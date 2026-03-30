@@ -15,7 +15,8 @@ ENV/
 
 # Output files (can be regenerated)
 output/
-*.pdf
+# *.pdf - COMMENTED OUT to allow LinkedIn post PDFs to be tracked
+# The data/*.pdf files MUST be in the repository for GitHub Actions to work
 *.png
 *.jpg
 *.jpeg
