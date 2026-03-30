@@ -1,0 +1,38 @@
+# Environment and Secrets
+.env
+*.key
+*.pem
+credentials.json
+
+# Logs
+logs/*.log
+logs/*.txt
+!logs/.gitkeep
+
+# Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+
+# Test files
+test_*.py
+*_test.py

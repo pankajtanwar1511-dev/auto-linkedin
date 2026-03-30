@@ -1,0 +1,156 @@
+# LinkedIn C++ Daily Posting Tracker
+# Mark each day as DONE when posted
+# Next day to post is the first one marked as TODO
+
+========================================
+LEGEND:
+  [ ] TODO - Not posted yet
+  [X] DONE - Posted successfully
+========================================
+
+CHAPTER 1: OBJECT-ORIENTED PROGRAMMING (Days 1-7)
+[ ] Day 1  | ch01_topic01_morning | Classes, Structs, and Access Specifiers
+[ ] Day 2  | ch01_topic02_morning | Encapsulation, Inheritance, and Polymorphism
+[ ] Day 3  | ch01_topic03_morning | Pure Virtual Functions and Abstract Base Classes
+[ ] Day 4  | ch01_topic04_morning | Constructors, Destructors, and Special Member Functions
+[ ] Day 5  | ch01_topic05_morning | Friend Functions and Friend Classes
+[ ] Day 6  | ch01_topic06_morning | Static Members and Static Functions
+[ ] Day 7  | ch01_topic07_morning | Virtual Functions Deep Dive
+
+CHAPTER 2: MEMORY MANAGEMENT (Day 8)
+[ ] Day 8  | ch02_topic01_morning | Memory Management Fundamentals
+
+CHAPTER 3: SMART POINTERS (Day 9)
+[ ] Day 9  | ch03_topic01_morning | Smart Pointers (unique_ptr, shared_ptr, weak_ptr)
+
+CHAPTER 4: REFERENCES, COPYING, MOVING (Days 10-13)
+[ ] Day 10 | ch04_topic01_morning | Lvalue and Rvalue References
+[ ] Day 11 | ch04_topic02_morning | Move Semantics and std::move
+[ ] Day 12 | ch04_topic03_morning | Perfect Forwarding and Reference Collapsing
+[ ] Day 13 | ch04_topic04_morning | Copy Elision and Return Value Optimization
+
+CHAPTER 5: OPERATOR OVERLOADING (Day 14)
+[ ] Day 14 | ch05_topic01_morning | Operator Overloading
+
+CHAPTER 6: TYPE SYSTEM AND CASTING (Days 15-16)
+[ ] Day 15 | ch06_topic01_morning | Type Conversions and Type Deduction
+[ ] Day 16 | ch06_topic02_morning | C++ Cast Operators
+
+CHAPTER 7: TEMPLATES AND GENERICS (Days 17-18)
+[ ] Day 17 | ch07_topic01_morning | Template Fundamentals
+[ ] Day 18 | ch07_topic02_morning | Advanced Templates (SFINAE and CRTP)
+
+CHAPTER 8: STL CONTAINERS AND ALGORITHMS (Days 19-24)
+[ ] Day 19 | ch08_topic01_morning | STL Vector
+[ ] Day 20 | ch08_topic02_morning | STL List
+[ ] Day 21 | ch08_topic03_morning | STL Deque and Forward List
+[ ] Day 22 | ch08_topic04_morning | Ordered Associative Containers (set/map)
+[ ] Day 23 | ch08_topic05_morning | Unordered Containers (unordered_set/unordered_map)
+[ ] Day 24 | ch08_topic06_morning | Iterators, Allocators, Algorithms, and Lambdas
+
+CHAPTER 9: C++11 FEATURES (Days 25-29)
+[ ] Day 25 | ch09_topic01_morning | C++11 Type Deduction (auto, decltype)
+[ ] Day 26 | ch09_topic02_morning | C++11 Language Safety Features
+[ ] Day 27 | ch09_topic03_morning | C++11 Inheritance Control
+[ ] Day 28 | ch09_topic04_morning | C++11 Functional Programming Features
+[ ] Day 29 | ch09_topic05_morning | C++11 Initialization and Template Enhancements
+
+CHAPTER 10: RAII AND RESOURCE MANAGEMENT (Days 30-32)
+[ ] Day 30 | ch10_topic01_morning | RAII Fundamentals and Exception Safety
+[ ] Day 31 | ch10_topic02_morning | RAII Custom Wrappers and Advanced Patterns
+[ ] Day 32 | ch10_topic03_morning | Smart Pointers as RAII
+
+CHAPTER 11: MULTITHREADING (Days 33-39)
+[ ] Day 33 | ch11_topic01_morning | Thread Basics and std::thread
+[ ] Day 34 | ch11_topic02_morning | Mutexes and Locks
+[ ] Day 35 | ch11_topic03_morning | Condition Variables
+[ ] Day 36 | ch11_topic04_morning | Atomics and Memory Ordering
+[ ] Day 37 | ch11_topic05_morning | Thread-Safe Patterns
+[ ] Day 38 | ch11_topic06_morning | Async, Promise, and Future
+[ ] Day 39 | ch11_topic07_morning | STL Thread Safety
+
+CHAPTER 12: DESIGN PATTERNS (Days 40-47)
+[ ] Day 40 | ch12_topic01_morning | Singleton Pattern
+[ ] Day 41 | ch12_topic02_morning | Functor Pattern
+[ ] Day 42 | ch12_topic03_morning | CRTP Pattern
+[ ] Day 43 | ch12_topic04_morning | Object Pool Pattern
+[ ] Day 44 | ch12_topic05_morning | Custom Vector Implementation
+[ ] Day 45 | ch12_topic06_morning | Factory Pattern
+[ ] Day 46 | ch12_topic07_morning | Observer Pattern
+[ ] Day 47 | ch12_topic08_morning | Strategy Pattern
+
+CHAPTER 13: COMPILE-TIME MAGIC (Day 48)
+[ ] Day 48 | ch13_topic01_morning | Compile-Time Programming
+
+CHAPTER 14: LOW-LEVEL AND TRICKY TOPICS (Days 49-50)
+[ ] Day 49 | ch14_topic01_morning | Low-Level Internals
+[ ] Day 50 | ch14_topic02_morning | Advanced Pitfalls
+
+CHAPTER 15: C++14 FEATURES (Day 51)
+[ ] Day 51 | ch15_topic01_morning | C++14 Features
+
+CHAPTER 16: C++17 FEATURES (Days 52-55)
+[ ] Day 52 | ch16_topic01_morning | C++17 Language Features
+[ ] Day 53 | ch16_topic02_morning | C++17 Standard Library
+[ ] Day 54 | ch16_topic03_morning | C++17 Template Improvements
+[ ] Day 55 | ch16_topic04_morning | C++17 Parallel Algorithms
+
+CHAPTER 17: SOFTWARE ARCHITECTURE (Days 56-62)
+[ ] Day 56 | ch17_topic01_morning | Architecture and Design Thinking
+[ ] Day 57 | ch17_topic02_morning | Event-Driven Architecture
+[ ] Day 58 | ch17_topic03_morning | Component-Based Architecture (ECS)
+[ ] Day 59 | ch17_topic04_morning | Layered Architecture
+[ ] Day 60 | ch17_topic05_morning | MVC/MVVM Patterns
+[ ] Day 61 | ch17_topic06_morning | Microservices Architecture
+[ ] Day 62 | ch17_topic07_morning | Clean/Hexagonal Architecture
+
+CHAPTER 18: NETWORK PROGRAMMING (Days 63-68)
+[ ] Day 63 | ch18_topic01_morning | Network Programming Basics
+[ ] Day 64 | ch18_topic02_morning | Socket Programming
+[ ] Day 65 | ch18_topic03_morning | TCP/IP Protocol Suite
+[ ] Day 66 | ch18_topic04_morning | Asynchronous I/O
+[ ] Day 67 | ch18_topic05_morning | Network Security
+[ ] Day 68 | ch18_topic06_morning | High-Performance Networking
+
+CHAPTER 19: C++20 FEATURES (Days 69-74)
+[ ] Day 69 | ch19_topic01_morning | C++20 Concepts and Constraints
+[ ] Day 70 | ch19_topic02_morning | C++20 Ranges and Views
+[ ] Day 71 | ch19_topic03_morning | C++20 Coroutines
+[ ] Day 72 | ch19_topic04_morning | C++20 Language Features
+[ ] Day 73 | ch19_topic05_morning | C++20 Library Additions
+[ ] Day 74 | ch19_topic06_morning | C++20 Modules
+
+CHAPTER 20: ADVANCED IMPLEMENTATIONS (Days 75-88)
+[ ] Day 75 | ch20_topic01_morning | Memory Pool Allocator
+[ ] Day 76 | ch20_topic02_morning | Thread-Safe Bounded Queue
+[ ] Day 77 | ch20_topic03_morning | Lock-Free Stack
+[ ] Day 78 | ch20_topic04_morning | Thread Pool Implementation
+[ ] Day 79 | ch20_topic05_morning | Vector Internals
+[ ] Day 80 | ch20_topic06_morning | Custom std::function Implementation
+[ ] Day 81 | ch20_topic07_morning | Custom HashMap Implementation
+[ ] Day 82 | ch20_topic08_morning | Singleton Pattern Implementation
+[ ] Day 83 | ch20_topic09_morning | RAII File Descriptor Wrapper
+[ ] Day 84 | ch20_topic10_morning | Lock-Free Ring Buffer
+[ ] Day 85 | ch20_topic11_morning | LRU Cache Implementation
+[ ] Day 86 | ch20_topic12_morning | Copy-on-Write String
+[ ] Day 87 | ch20_topic13_morning | Smart Logger Implementation
+[ ] Day 88 | ch20_topic14_morning | Spinlock vs Mutex
+
+========================================
+QUICK STATS:
+  Total Days: 88
+  Completed: 0
+  Remaining: 88
+
+NEXT TO POST: Day 1 - ch01_topic01_morning
+========================================
+
+HOW TO USE THIS FILE:
+1. After posting Day N, change [ ] to [X] for that day
+2. Next day to post is always the first [ ] TODO item
+3. Update "Completed" count in QUICK STATS section
+4. Files are in: /home/pankaj/autolinkedin/data/
+
+POSTING COMMAND REFERENCE:
+- PDF file:     ch01_topic01_morning.pdf (upload to LinkedIn)
+- Caption file: ch01_topic01_morning.txt (copy caption from here)

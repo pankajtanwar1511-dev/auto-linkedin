@@ -1,0 +1,62 @@
+{
+  "version": "1.0.0",
+  "app_name": "LinkedIn C++ Content Automation",
+  "content": {
+    "pdf_directory": "/home/pankaj/autolinkedin/data",
+    "caption_directory": "/home/pankaj/autolinkedin/data",
+    "file_pattern": "ch{chapter:02d}_topic{topic:02d}_morning",
+    "total_posts": 88
+  },
+  "tracking": {
+    "tracker_file": "tracker/posting_tracker.txt",
+    "schedule_csv": "tracker/posting_schedule.csv",
+    "log_file": "logs/posting_history.log"
+  },
+  "posting_schedule": {
+    "time": "08:00",
+    "timezone": "Asia/Tokyo",
+    "skip_weekends": false,
+    "retry_failed_posts": true
+  },
+  "linkedin": {
+    "max_carousel_images": 10,
+    "image_format": "JPEG",
+    "image_quality": 95,
+    "dimensions": {
+      "width": 1080,
+      "height": 1080
+    },
+    "caption_max_length": 2200,
+    "hashtag_limit": 30
+  },
+  "api_settings": {
+    "base_url": "https://graph.facebook.com/v18.0",
+    "rate_limit": {
+      "posts_per_day": 25,
+      "requests_per_hour": 200
+    },
+    "timeout_seconds": 30
+  },
+  "retry_policy": {
+    "max_attempts": 3,
+    "retry_delay_seconds": 300,
+    "exponential_backoff": true
+  },
+  "logging": {
+    "level": "INFO",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "max_file_size_mb": 10,
+    "backup_count": 5
+  },
+  "notifications": {
+    "enabled": false,
+    "email_on_success": false,
+    "email_on_failure": true,
+    "email_on_completion": true
+  },
+  "features": {
+    "automation_enabled": false,
+    "analytics_enabled": false,
+    "dry_run_mode": false
+  }
+}
