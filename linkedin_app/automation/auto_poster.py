@@ -111,12 +111,21 @@ class AutoPoster:
         if os.getenv('GITHUB_ACTIONS') == 'true' and not dry_run:
             # Determine if morning or evening based on current UTC hour
             current_hour_utc = datetime.utcnow().hour
+            current_weekday = datetime.now().weekday()  # 0=Monday, 6=Sunday
 
             if current_hour_utc < 6:  # Morning run (triggered at 2:30 AM UTC = 8:00 AM IST)
                 # Random delay: 0-60 minutes (8:00-9:00 AM IST)
                 delay_minutes = random.randint(0, 60)
                 time_label = "morning"
             else:  # Evening run (triggered at 12:30 PM UTC = 6:00 PM IST)
+                # Check if today is an "even post day" (Tue, Thu, Sat = days 1, 3, 5)
+                # Pattern: Mon(1 post), Tue(2 posts), Wed(1), Thu(2), Fri(1), Sat(2), Sun(1)
+                even_post_days = [1, 3, 5]  # Tuesday, Thursday, Saturday
+
+                if current_weekday not in even_post_days:
+                    self.logger.info("⏭️  Skipping evening post (odd-day pattern)")
+                    return True  # Skip evening post on odd days
+
                 # Random delay: 0-60 minutes (6:00-7:00 PM IST)
                 delay_minutes = random.randint(0, 60)
                 time_label = "evening"

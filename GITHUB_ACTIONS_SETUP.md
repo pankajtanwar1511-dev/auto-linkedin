@@ -75,27 +75,40 @@ Before waiting for the scheduled run, test it manually:
 
 ## 📅 Automatic Schedule
 
-Once set up, the workflow will run automatically **2 times per day**:
+Once set up, the workflow will run automatically on an **alternating pattern**:
 
-### Morning Post
+### Morning Post (Every Day)
 - **Workflow starts:** Every day at 8:00 AM IST (2:30 AM UTC)
 - **Random delay:** 0-60 minutes (posts between 8:00-9:00 AM IST)
-- **Posts:** Next unposted topic from tracker
+- **Frequency:** 7 days/week
 
-### Evening Post
-- **Workflow starts:** Every day at 6:00 PM IST (12:30 PM UTC)
+### Evening Post (Alternate Days Only)
+- **Workflow starts:** Tuesday, Thursday, Saturday at 6:00 PM IST (12:30 PM UTC)
 - **Random delay:** 0-60 minutes (posts between 6:00-7:00 PM IST)
-- **Posts:** Next unposted topic from tracker
+- **Frequency:** 3 days/week
 
-**Why 2 posts/day?**
-- ✅ Completes all 88 posts in **44 days** (before token expires at 60 days)
-- ✅ **16-day safety buffer** for token expiration
-- ✅ Better engagement (morning + evening audiences)
+### Weekly Pattern
+| Day | Morning | Evening | Total Posts/Day |
+|-----|---------|---------|----------------|
+| Monday | ✅ | ❌ | 1 post |
+| Tuesday | ✅ | ✅ | 2 posts |
+| Wednesday | ✅ | ❌ | 1 post |
+| Thursday | ✅ | ✅ | 2 posts |
+| Friday | ✅ | ❌ | 1 post |
+| Saturday | ✅ | ✅ | 2 posts |
+| Sunday | ✅ | ❌ | 1 post |
+| **Weekly Total** | | | **10 posts/week** |
+
+**Why alternating pattern?**
+- ✅ Completes all 88 posts in **~59 days** (just before token expires at 60 days)
+- ✅ **1-day safety buffer** for token expiration
+- ✅ More sustainable posting pace
 - ✅ Still natural with random timing
+- ✅ Lower GitHub Actions usage
 
 **Tracking:** Auto-updates `posting_tracker.txt` after each post
 
-**GitHub Actions usage:** 60 min/day average = 1,800 min/month (90% of free tier)
+**GitHub Actions usage:** ~40 min/day average = 1,200 min/month (60% of free tier)
 
 ---
 
@@ -203,20 +216,18 @@ if datetime.datetime.now().weekday() >= 5:  # 5=Sat, 6=Sun
 
 **GitHub Actions Free Tier:**
 - 2,000 minutes/month (public repos)
-- Your usage breakdown (2 workflows/day):
-  - Workflow startup: ~5 seconds × 2 = 10 seconds
-  - Random delay: 0-60 min (avg: 30 min) × 2 = 60 min average
-  - Posting: ~30 seconds × 2 = 60 seconds
-  - **Total per day: ~60 minutes average**
-  - **Monthly: 30 days × 60 min = 1,800 minutes**
-  - **Usage: 90% of free tier** ✅
+- Your usage breakdown (alternating pattern):
+  - **Mon, Wed, Fri, Sun:** 1 post/day × 30 min avg = 30 min
+  - **Tue, Thu, Sat:** 2 posts/day × 60 min avg = 60 min
+  - **Average per week:** (4 days × 30 min) + (3 days × 60 min) = 300 min
+  - **Monthly: ~1,200 minutes**
+  - **Usage: 60% of free tier** ✅
 
-**Worst case:** 120 min/day × 30 days = 3,600 min (would exceed free tier)
-- But this is extremely unlikely (requires max delay both times every day)
-- Average case keeps you well within limits
-
-**For 44-day campaign:** 44 days × 60 min = 2,640 min total (would exceed monthly limit slightly if all in one month)
-- Solution: Split across 2 months (1,320 min/month each) ✅
+**For 59-day campaign:**
+- Week 1-8: 10 posts/week = 80 posts
+- Week 9: 8 posts (Days 57-59)
+- Total: ~1,180 minutes per month
+- **Well within free tier!** ✅
 
 **Cost:** $0 (completely free)
 
@@ -227,17 +238,19 @@ if datetime.datetime.now().weekday() >= 5:  # 5=Sat, 6=Sun
 Once set up:
 
 1. **Tomorrow 8 AM IST:** Day 1 posts automatically (morning)
-2. **Tomorrow 6 PM IST:** Day 2 posts automatically (evening)
-3. **Day 2 onwards:** 2 posts per day (morning + evening)
-4. **Day 44:** All 88 posts completed! 🎉
+2. **If tomorrow is Tue/Thu/Sat:** Day 2 posts at 6 PM (evening)
+3. **If tomorrow is Mon/Wed/Fri/Sun:** No evening post (waits for next day)
+4. **Continues alternating** until Day 59
 
 **Timeline:**
 - Start: Day 1
-- Finish: Day 44 (all 88 posts done)
+- Week 1-8: 10 posts/week = 80 posts
+- Week 9: 8 more posts (Days 57-59)
+- Finish: Day 59 (all 88 posts done) 🎉
 - Token expires: Day 60
-- **Safety buffer: 16 days** ✅
+- **Safety buffer: 1 day** ✅
 
-**No action needed from you!** Just check LinkedIn twice daily to see your posts going live.
+**No action needed from you!** Just check LinkedIn to see your posts going live.
 
 ---
 

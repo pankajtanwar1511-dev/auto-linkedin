@@ -2,9 +2,10 @@ name: Daily LinkedIn C++ Post
 
 on:
   schedule:
-    # Morning post: 2:30 AM UTC (8:00 AM IST)
+    # Morning post: Every day at 2:30 AM UTC (8:00 AM IST)
     - cron: '30 2 * * *'
-    # Evening post: 12:30 PM UTC (6:00 PM IST)
+    # Evening post: Every day at 12:30 PM UTC (6:00 PM IST)
+    # Script will check if it should post (alternating pattern)
     - cron: '30 12 * * *'
 
   workflow_dispatch:  # Allows manual trigger from GitHub UI
