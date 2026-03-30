@@ -8,8 +8,10 @@ import os
 import sys
 import json
 import logging
+import time
+import random
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, Optional
 
 # Import our modules
@@ -104,6 +106,19 @@ class AutoPoster:
         Returns:
             True if successful
         """
+        # Random delay: 0-120 minutes (8:00 AM - 10:00 AM IST)
+        # Only apply when running via automation (check if GITHUB_ACTIONS env var exists)
+        if os.getenv('GITHUB_ACTIONS') == 'true' and not dry_run:
+            delay_minutes = random.randint(0, 120)
+            delay_seconds = delay_minutes * 60
+            post_time = datetime.now().replace(hour=8, minute=0) + timedelta(minutes=delay_minutes)
+
+            self.logger.info(f"⏰ Random delay: {delay_minutes} minutes")
+            self.logger.info(f"📍 Will post at: {post_time.strftime('%I:%M %p')}")
+
+            if delay_seconds > 0:
+                time.sleep(delay_seconds)
+
         # Get next post
         next_post = self.get_next_post()
 
