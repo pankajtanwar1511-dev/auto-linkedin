@@ -1,0 +1,58 @@
+name: Daily LinkedIn C++ Post
+
+on:
+  schedule:
+    # Runs every day at 2:30 AM UTC (8:00 AM IST)
+    - cron: '30 2 * * *'
+
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
+
+jobs:
+  post-to-linkedin:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history to track changes
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        pip install requests python-dotenv
+
+    - name: Post to LinkedIn
+      env:
+        LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
+        LINKEDIN_USER_ID: ${{ secrets.LINKEDIN_USER_ID }}
+        POSTING_TIME: '08:00'
+        TIMEZONE: 'Asia/Kolkata'
+      run: |
+        cd linkedin_app/automation
+        python3 auto_poster.py
+
+    - name: Commit updated tracker
+      if: success()
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "GitHub Actions Bot"
+        git add linkedin_app/tracker/posting_tracker.txt linkedin_app/logs/posting_history.json
+        git diff --staged --quiet || git commit -m "chore: Update posting tracker - Day posted via GitHub Actions"
+
+    - name: Push changes
+      if: success()
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: main
+
+    - name: Notify on failure
+      if: failure()
+      run: |
+        echo "❌ LinkedIn posting failed!"
+        echo "Check logs: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
