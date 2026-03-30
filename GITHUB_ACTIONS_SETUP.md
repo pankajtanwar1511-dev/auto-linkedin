@@ -77,10 +77,14 @@ Before waiting for the scheduled run, test it manually:
 
 Once set up, the workflow will run automatically:
 
-- **Time:** Every day at 8:00 AM IST (2:30 AM UTC)
+- **Workflow starts:** Every day at 8:00 AM IST (2:30 AM UTC)
+- **Random delay:** 0-120 minutes (posts between 8:00-10:00 AM IST)
+- **Why random?** Makes posting pattern more natural and human-like
 - **Action:** Posts next unposted day from tracker
 - **Tracking:** Auto-updates `posting_tracker.txt` after each post
 - **Logs:** Commits `posting_history.json` to track all posts
+
+**Example:** Workflow triggers at 8:00 AM, waits 47 minutes, posts at 8:47 AM.
 
 ---
 
