@@ -151,7 +151,7 @@ class AutoPoster:
         caption_path = next_post['caption_path']
         topic = next_post['topic']
 
-        self.logger.info(f"📅 Day {day}: {topic}")
+        self.logger.info(f"📅 Post {day}: {topic}")
         self.logger.info(f"📄 PDF: {pdf_path.name}")
         self.logger.info(f"📝 Caption: {caption_path.name}")
 
@@ -180,11 +180,11 @@ class AutoPoster:
             success = self.poster.post_pdf(
                 pdf_path=str(pdf_path),
                 caption=caption,
-                title=f"Day {day}: {topic}"
+                title=f"Post {day}: {topic}"
             )
 
             if success:
-                self.logger.info(f"✅ Day {day} posted successfully!")
+                self.logger.info(f"✅ Post {day} posted successfully!")
 
                 # Update tracker
                 self.mark_complete(day)
@@ -194,7 +194,7 @@ class AutoPoster:
 
                 return True
             else:
-                self.logger.error(f"❌ Failed to post Day {day}")
+                self.logger.error(f"❌ Failed to post Post {day}")
                 self._log_post(day, topic, success=False)
                 return False
 
@@ -205,10 +205,10 @@ class AutoPoster:
 
     def mark_complete(self, day: int):
         """
-        Mark day as complete in tracker.
+        Mark post as complete in tracker.
 
         Args:
-            day: Day number to mark
+            day: Post number to mark
         """
         try:
             # Read tracker
@@ -218,7 +218,7 @@ class AutoPoster:
             # Update line
             updated = False
             for i, line in enumerate(lines):
-                if line.strip().startswith(f'[ ] Day {day} '):
+                if line.strip().startswith(f'[ ] Post {day} '):
                     lines[i] = line.replace('[ ]', '[X]', 1)
                     updated = True
                     break
@@ -228,9 +228,9 @@ class AutoPoster:
                 with open(self.tracker_file, 'w') as f:
                     f.writelines(lines)
 
-                self.logger.info(f"✅ Marked Day {day} as complete in tracker")
+                self.logger.info(f"✅ Marked Post {day} as complete in tracker")
             else:
-                self.logger.warning(f"Could not find Day {day} in tracker")
+                self.logger.warning(f"Could not find Post {day} in tracker")
 
         except Exception as e:
             self.logger.error(f"Error updating tracker: {e}")

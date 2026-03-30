@@ -1,0 +1,22 @@
+Hello, C++ developers. [Post 11]
+
+Topic: Move Semantics and std::move.
+
+Move semantics revolutionized C++ performance characteristics in C++11 and beyond.
+
+This carousel covers:
+- Lvalue vs rvalue distinction and references
+- Move constructor and move assignment semantics
+- Perfect forwarding and universal references
+- When move operations actually improve performance
+- Common mistakes that prevent move semantics
+
+Understanding move semantics is fundamental to writing efficient modern C++ code.
+
+The examples demonstrate both the mechanics and the performance implications of proper move usage.
+
+How often do you explicitly implement move constructors in your classes?
+
+---
+
+#CPlusPlus #CPP #MoveSemantics #CPP11 #RvalueReferences #Programming #SoftwareEngineering #PerformanceOptimization #ModernCPP #ZeroCopy #Efficiency #TechEducation #DeveloperLife #LanguageFeatures #SoftwareDevelopment #CodeOptimization #PerfectForwarding #TechnicalExcellence #SystemsProgramming #AdvancedCPP
