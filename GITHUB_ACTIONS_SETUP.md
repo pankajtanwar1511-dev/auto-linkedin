@@ -75,18 +75,27 @@ Before waiting for the scheduled run, test it manually:
 
 ## 📅 Automatic Schedule
 
-Once set up, the workflow will run automatically:
+Once set up, the workflow will run automatically **2 times per day**:
 
+### Morning Post
 - **Workflow starts:** Every day at 8:00 AM IST (2:30 AM UTC)
 - **Random delay:** 0-60 minutes (posts between 8:00-9:00 AM IST)
-- **Why random?** Makes posting pattern more natural and human-like
-- **Action:** Posts next unposted day from tracker
-- **Tracking:** Auto-updates `posting_tracker.txt` after each post
-- **Logs:** Commits `posting_history.json` to track all posts
+- **Posts:** Next unposted topic from tracker
 
-**Example:** Workflow triggers at 8:00 AM, waits 23 minutes, posts at 8:23 AM.
+### Evening Post
+- **Workflow starts:** Every day at 6:00 PM IST (12:30 PM UTC)
+- **Random delay:** 0-60 minutes (posts between 6:00-7:00 PM IST)
+- **Posts:** Next unposted topic from tracker
 
-**GitHub Actions usage:** ~30 min/day average = 900 min/month (45% of free tier)
+**Why 2 posts/day?**
+- ✅ Completes all 88 posts in **44 days** (before token expires at 60 days)
+- ✅ **16-day safety buffer** for token expiration
+- ✅ Better engagement (morning + evening audiences)
+- ✅ Still natural with random timing
+
+**Tracking:** Auto-updates `posting_tracker.txt` after each post
+
+**GitHub Actions usage:** 60 min/day average = 1,800 min/month (90% of free tier)
 
 ---
 
@@ -194,15 +203,20 @@ if datetime.datetime.now().weekday() >= 5:  # 5=Sat, 6=Sun
 
 **GitHub Actions Free Tier:**
 - 2,000 minutes/month (public repos)
-- Your usage breakdown:
-  - Workflow startup: ~5 seconds
-  - Random delay: 0-60 minutes (avg: 30 min)
-  - Posting: ~30 seconds
-  - **Total per day: ~30 minutes average**
-  - **Monthly: 30 days × 30 min = 900 minutes**
-  - **Usage: 45% of free tier** ✅
+- Your usage breakdown (2 workflows/day):
+  - Workflow startup: ~5 seconds × 2 = 10 seconds
+  - Random delay: 0-60 min (avg: 30 min) × 2 = 60 min average
+  - Posting: ~30 seconds × 2 = 60 seconds
+  - **Total per day: ~60 minutes average**
+  - **Monthly: 30 days × 60 min = 1,800 minutes**
+  - **Usage: 90% of free tier** ✅
 
-**Worst case:** 60 min/day × 30 days = 1,800 min (90% of free tier - still safe!)
+**Worst case:** 120 min/day × 30 days = 3,600 min (would exceed free tier)
+- But this is extremely unlikely (requires max delay both times every day)
+- Average case keeps you well within limits
+
+**For 44-day campaign:** 44 days × 60 min = 2,640 min total (would exceed monthly limit slightly if all in one month)
+- Solution: Split across 2 months (1,320 min/month each) ✅
 
 **Cost:** $0 (completely free)
 
@@ -212,11 +226,18 @@ if datetime.datetime.now().weekday() >= 5:  # 5=Sat, 6=Sun
 
 Once set up:
 
-1. **Tomorrow 8 AM IST:** Day 1 posts automatically
-2. **Day 2:** Day 2 posts automatically
-3. **Day 3-88:** Continues daily until all 88 days posted
+1. **Tomorrow 8 AM IST:** Day 1 posts automatically (morning)
+2. **Tomorrow 6 PM IST:** Day 2 posts automatically (evening)
+3. **Day 2 onwards:** 2 posts per day (morning + evening)
+4. **Day 44:** All 88 posts completed! 🎉
 
-**No action needed from you!** Just check LinkedIn daily to see your posts going live.
+**Timeline:**
+- Start: Day 1
+- Finish: Day 44 (all 88 posts done)
+- Token expires: Day 60
+- **Safety buffer: 16 days** ✅
+
+**No action needed from you!** Just check LinkedIn twice daily to see your posts going live.
 
 ---
 

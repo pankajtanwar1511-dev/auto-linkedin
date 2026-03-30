@@ -106,15 +106,24 @@ class AutoPoster:
         Returns:
             True if successful
         """
-        # Random delay: 0-60 minutes (8:00 AM - 9:00 AM IST)
+        # Random delay for natural posting times
         # Only apply when running via automation (check if GITHUB_ACTIONS env var exists)
         if os.getenv('GITHUB_ACTIONS') == 'true' and not dry_run:
-            delay_minutes = random.randint(0, 60)
-            delay_seconds = delay_minutes * 60
-            post_time = datetime.now().replace(hour=8, minute=0) + timedelta(minutes=delay_minutes)
+            # Determine if morning or evening based on current UTC hour
+            current_hour_utc = datetime.utcnow().hour
 
-            self.logger.info(f"⏰ Random delay: {delay_minutes} minutes")
-            self.logger.info(f"📍 Will post at: {post_time.strftime('%I:%M %p')}")
+            if current_hour_utc < 6:  # Morning run (triggered at 2:30 AM UTC = 8:00 AM IST)
+                # Random delay: 0-60 minutes (8:00-9:00 AM IST)
+                delay_minutes = random.randint(0, 60)
+                time_label = "morning"
+            else:  # Evening run (triggered at 12:30 PM UTC = 6:00 PM IST)
+                # Random delay: 0-60 minutes (6:00-7:00 PM IST)
+                delay_minutes = random.randint(0, 60)
+                time_label = "evening"
+
+            delay_seconds = delay_minutes * 60
+
+            self.logger.info(f"⏰ {time_label.capitalize()} post - Random delay: {delay_minutes} minutes")
 
             if delay_seconds > 0:
                 time.sleep(delay_seconds)
