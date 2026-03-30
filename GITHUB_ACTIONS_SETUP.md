@@ -78,13 +78,15 @@ Before waiting for the scheduled run, test it manually:
 Once set up, the workflow will run automatically:
 
 - **Workflow starts:** Every day at 8:00 AM IST (2:30 AM UTC)
-- **Random delay:** 0-120 minutes (posts between 8:00-10:00 AM IST)
+- **Random delay:** 0-60 minutes (posts between 8:00-9:00 AM IST)
 - **Why random?** Makes posting pattern more natural and human-like
 - **Action:** Posts next unposted day from tracker
 - **Tracking:** Auto-updates `posting_tracker.txt` after each post
 - **Logs:** Commits `posting_history.json` to track all posts
 
-**Example:** Workflow triggers at 8:00 AM, waits 47 minutes, posts at 8:47 AM.
+**Example:** Workflow triggers at 8:00 AM, waits 23 minutes, posts at 8:23 AM.
+
+**GitHub Actions usage:** ~30 min/day average = 900 min/month (45% of free tier)
 
 ---
 
@@ -192,8 +194,15 @@ if datetime.datetime.now().weekday() >= 5:  # 5=Sat, 6=Sun
 
 **GitHub Actions Free Tier:**
 - 2,000 minutes/month (public repos)
-- Your usage: ~2 seconds/day = ~1 minute/month
-- **You'll use 0.05% of your quota!**
+- Your usage breakdown:
+  - Workflow startup: ~5 seconds
+  - Random delay: 0-60 minutes (avg: 30 min)
+  - Posting: ~30 seconds
+  - **Total per day: ~30 minutes average**
+  - **Monthly: 30 days × 30 min = 900 minutes**
+  - **Usage: 45% of free tier** ✅
+
+**Worst case:** 60 min/day × 30 days = 1,800 min (90% of free tier - still safe!)
 
 **Cost:** $0 (completely free)
 

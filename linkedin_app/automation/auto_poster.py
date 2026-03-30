@@ -106,10 +106,10 @@ class AutoPoster:
         Returns:
             True if successful
         """
-        # Random delay: 0-120 minutes (8:00 AM - 10:00 AM IST)
+        # Random delay: 0-60 minutes (8:00 AM - 9:00 AM IST)
         # Only apply when running via automation (check if GITHUB_ACTIONS env var exists)
         if os.getenv('GITHUB_ACTIONS') == 'true' and not dry_run:
-            delay_minutes = random.randint(0, 120)
+            delay_minutes = random.randint(0, 60)
             delay_seconds = delay_minutes * 60
             post_time = datetime.now().replace(hour=8, minute=0) + timedelta(minutes=delay_minutes)
 
