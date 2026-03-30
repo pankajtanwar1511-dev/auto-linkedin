@@ -37,57 +37,28 @@ public:
 ```
 
 **Answer:**
-```
-Data race (undefined behavior in concurrent access)
-```
+
+
 
 **Explanation:**
+
 - `head_` and `tail_` not atomic → data races
 - Producer reads `head_`, consumer modifies `head_` → race
 - Consumer reads `tail_`, producer modifies `tail_` → race
 - Compiler may reorder `buffer_[current_tail] = item` after `tail_ = next_tail`
 - Consumer may see updated `tail_` but unwritten data
-- Need `std::atomic` with proper memory ordering
-- **Key Concept:** Lock-free data structures require atomic variables with memory ordering; plain variables subject to data races and reordering; must use std::atomic with acquire-release semantics
 
 **Fixed Version:**
-```cpp
-template<typename T, size_t Size>
-class RingBuffer {
-    T buffer_[Size];
-    std::atomic<size_t> head_{0};
-    std::atomic<size_t> tail_{0};
 
-public:
-    bool push(const T& item) {
-        size_t current_tail = tail_.load(std::memory_order_relaxed);
-        size_t next_tail = (current_tail + 1) % Size;
+- public: bool push(const T& item) { size_t current_tail = tail_.load(std::memory_order_relaxed); size_t next_tail = (current_tail + 1) % Size;
+- if (next_tail == head_.load(std::memory_order_acquire)) { return false; }
+- buffer_[current_tail] = item; tail_.store(next_tail, std::memory_order_release); return true; }
+- bool pop(T& item) { size_t current_head = head_.load(std::memory_order_relaxed);
+- if (current_head == tail_.load(std::memory_order_acquire)) { return false; }
 
-        if (next_tail == head_.load(std::memory_order_acquire)) {
-            return false;
-        }
-
-        buffer_[current_tail] = item;
-        tail_.store(next_tail, std::memory_order_release);
-        return true;
-    }
-
-    bool pop(T& item) {
-        size_t current_head = head_.load(std::memory_order_relaxed);
-
-        if (current_head == tail_.load(std::memory_order_acquire)) {
-            return false;
-        }
-
-        item = buffer_[current_head];
-        head_.store((current_head + 1) % Size, std::memory_order_release);
-        return true;
-    }
-};
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q2
 ```cpp
 template<typename T, size_t Size>
@@ -509,61 +480,28 @@ int main() {
 ```
 
 **Answer:**
-```
-Memory leak (non-trivial destructors never called for unconsumed elements)
-```
+
+
 
 **Explanation:**
+
 - `buffer_` is array of `T`, constructed with default constructor
 - Push assigns to elements (copy/move assignment)
 - If elements never popped, destructors never called
 - `ComplexType` has `std::string` → internal buffer leaked
 - Need manual lifetime management (placement new/explicit destructor calls)
-- Or require trivially destructible types
-- **Key Concept:** Arrays in lock-free structures with non-trivial types need explicit lifetime management; unconsumed elements never destroyed; use placement new or require trivial types for lock-free queues
 
 **Fixed Version:**
-```cpp
-// Option 1: Require trivially destructible
-template<typename T, size_t Size>
-class RingBuffer {
-    static_assert(std::is_trivially_destructible_v<T>, "T must be trivially destructible");
 
-    T buffer_[Size];
-    // ...
-};
+- T buffer_[Size]; // ..
+- public: bool push(const T& item) { // ..
+- T* slot = reinterpret_cast<T*>(&buffer_[current_tail * sizeof(T)]); new (slot) T(item); // Placement new
+- bool pop(T& item) { // ..
+- T* slot = reinterpret_cast<T*>(&buffer_[current_head * sizeof(T)]); item = std::move(*slot); slot->~T(); // Explicit destructor
 
-// Option 2: Manual lifetime management (more complex)
-template<typename T, size_t Size>
-class RingBuffer {
-    alignas(T) char buffer_[Size * sizeof(T)];  // Raw storage
-    std::atomic<size_t> head_{0};
-    std::atomic<size_t> tail_{0};
-
-public:
-    bool push(const T& item) {
-        // ... check full ...
-
-        T* slot = reinterpret_cast<T*>(&buffer_[current_tail * sizeof(T)]);
-        new (slot) T(item);  // Placement new
-
-        // ...
-    }
-
-    bool pop(T& item) {
-        // ... check empty ...
-
-        T* slot = reinterpret_cast<T*>(&buffer_[current_head * sizeof(T)]);
-        item = std::move(*slot);
-        slot->~T();  // Explicit destructor
-
-        // ...
-    }
-};
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q10
 ```cpp
 template<typename T, size_t Size>

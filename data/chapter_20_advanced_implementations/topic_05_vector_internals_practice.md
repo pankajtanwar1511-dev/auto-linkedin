@@ -83,57 +83,17 @@ Implement this exercise.
 
 **Answer:**
 
-```cpp
-template<typename T>
-class Vector {
-private:
-    size_t total_reallocations_ = 0;
-    size_t total_moves_ = 0;
-    size_t total_copies_ = 0;
-
-    void reallocate(size_t new_capacity) {
-        ++total_reallocations_;
-
-        // ... allocation ...
-
-        if constexpr (std::is_nothrow_move_constructible_v<T>) {
-            total_moves_ += size_;
-            std::uninitialized_move_n(data_, size_, new_data);
-        } else {
-            total_copies_ += size_;
-            // ... copy logic ...
-        }
-
-        // ... rest ...
-    }
-
-public:
-    struct Stats {
-        size_t reallocations;
-        size_t moves;
-        size_t copies;
-    };
-
-    Stats get_stats() const {
-        return {total_reallocations_, total_moves_, total_copies_};
-    }
-};
-```
+- void reallocate(size_t new_capacity) { ++total_reallocations_;
+- public: struct Stats { size_t reallocations; size_t moves; size_t copies; };
+- Stats get_stats() const { return {total_reallocations_, total_moves_, total_copies_}; } }; ```
 
 **Usage:**
-```cpp
-Vector<int> v;
-for (int i = 0; i < 1000; ++i) {
-    v.push_back(i);
-}
 
-auto stats = v.get_stats();
-std::cout << "Reallocations: " << stats.reallocations << '\n';
-std::cout << "Moves: " << stats.moves << '\n';
-```
+- auto stats = v.get_stats(); std::cout << "Reallocations: " << stats.reallocations << '\n'; std::cout << "Moves: " << stats.moves << '\n'; ```
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q5
 Benchmark vector vs `std::vector` for 1M push_back operations.
 

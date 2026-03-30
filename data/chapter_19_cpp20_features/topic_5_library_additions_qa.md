@@ -343,65 +343,31 @@ auto empty = s.subspan(5, 0);  // Empty span at end
 
 #### Q9: Explain `std::jthread` cancellation patterns.
 
+
 **Answer:**
+
+
 
 **Basic Cancellation:**
 
-```cpp
-std::jthread t([](std::stop_token stoken) {
-    while (!stoken.stop_requested()) {
-        // Do work
-    }
-});
-
-t.request_stop();  // Signal thread to stop
-// Joins automatically in destructor
-```
+- t.request_stop(); // Signal thread to stop // Joins automatically in destructor ```
 
 **Callback on Stop Request:**
 
-```cpp
-std::jthread t([](std::stop_token stoken) {
-    std::stop_callback cb(stoken, [] {
-        std::cout << "Stop requested!\n";
-    });
-
-    while (!stoken.stop_requested()) {
-        // Work
-    }
-});
-
-t.request_stop();  // Callback fires immediately
-```
+- while (!stoken.stop_requested()) { // Work } });
+- t.request_stop(); // Callback fires immediately ```
 
 **Condition Variable Integration:**
 
-```cpp
-std::mutex mtx;
-std::condition_variable_any cv;
-std::queue<int> tasks;
+- std::jthread worker([&](std::stop_token stoken) { while (!stoken.stop_requested()) { std::unique_lock lock(mtx);
+- // Wait until data or stop requested cv.wait(lock, stoken, [&] { return !tasks.empty(); });
+- if (stoken.stop_requested()) break;
+- // Process task int task = tasks.front(); tasks.pop(); } });
+- worker.request_stop(); cv.notify_all(); // Wake up waiting thread ```
 
-std::jthread worker([&](std::stop_token stoken) {
-    while (!stoken.stop_requested()) {
-        std::unique_lock lock(mtx);
-
-        // Wait until data or stop requested
-        cv.wait(lock, stoken, [&] { return !tasks.empty(); });
-
-        if (stoken.stop_requested()) break;
-
-        // Process task
-        int task = tasks.front();
-        tasks.pop();
-    }
-});
-
-worker.request_stop();
-cv.notify_all();  // Wake up waiting thread
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q10: What are the performance characteristics of `std::format`?
 
 **Answer:**
@@ -558,130 +524,35 @@ process(std::to_array({1, 2, 3}));  // T deduced as int
 
 #### Q13: How do you customize `std::format` for custom types?
 
+
 **Answer:**
 
-Specialize `std::formatter` for your type:
-
-```cpp
-#include <format>
-
-struct Point {
-    int x, y;
-};
-
-// Specialize formatter
-template<>
-struct std::formatter<Point> {
-    // Parse format specification
-    constexpr auto parse(std::format_parse_context& ctx) {
-        return ctx.begin();  // No custom format specs for now
-    }
-
-    // Format the Point
-    auto format(const Point& p, std::format_context& ctx) const {
-        return std::format_to(ctx.out(), "({}, {})", p.x, p.y);
-    }
-};
-
-int main() {
-    Point p{10, 20};
-    std::cout << std::format("Point: {}", p);  // Point: (10, 20)
-}
-```
+- Specialize `std::formatter` for your type:
+- struct Point { int x, y; };
+- // Format the Point auto format(const Point& p, std::format_context& ctx) const { return std::format_to(ctx.out(), "({}, {})", p.x, p.y); } };
+- int main() { Point p{10, 20}; std::cout << std::format("Point: {}", p); // Point: (10, 20) } ```
 
 **With Custom Format Specs:**
 
-```cpp
-template<>
-struct std::formatter<Point> {
-    char presentation = 'p';  // 'p' for parens, 'b' for brackets
+- std::format("{:p}", p); // (10, 20) std::format("{:b}", p); // [10, 20] ```
 
-    constexpr auto parse(std::format_parse_context& ctx) {
-        auto it = ctx.begin();
-        if (it != ctx.end() && (*it == 'p' || *it == 'b')) {
-            presentation = *it++;
-        }
-        return it;
-    }
-
-    auto format(const Point& p, std::format_context& ctx) const {
-        if (presentation == 'p') {
-            return std::format_to(ctx.out(), "({}, {})", p.x, p.y);
-        } else {
-            return std::format_to(ctx.out(), "[{}, {}]", p.x, p.y);
-        }
-    }
-};
-
-std::format("{:p}", p);  // (10, 20)
-std::format("{:b}", p);  // [10, 20]
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q14: What are the timezone capabilities in C++20 chrono?
+
 
 **Answer:**
 
-C++20 adds comprehensive timezone support:
+- C++20 adds comprehensive timezone support:
+- auto ny_tz = std::chrono::locate_zone("America/New_York"); auto tokyo_tz = std::chrono::locate_zone("Asia/Tokyo"); auto utc_tz = std::chrono::locate_zone("UTC"); ```
+- // Current time in different zones auto now = system_clock::now(); auto ny_time = zoned_time{ny_tz, now}; auto tokyo_time = zoned_time{tokyo_tz, now};
+- std::cout << std::format("{}\n", ny_time); // 2024-03-24 10:00:00 EDT std::cout << std::format("{}\n", tokyo_time); // 2024-03-24 23:00:00 JST ```
+- Timezone Conversions:**
 
-**1. Timezone Lookup:**
-
-```cpp
-#include <chrono>
-
-auto ny_tz = std::chrono::locate_zone("America/New_York");
-auto tokyo_tz = std::chrono::locate_zone("Asia/Tokyo");
-auto utc_tz = std::chrono::locate_zone("UTC");
-```
-
-**2. Zoned Time:**
-
-```cpp
-using namespace std::chrono;
-
-// Current time in different zones
-auto now = system_clock::now();
-auto ny_time = zoned_time{ny_tz, now};
-auto tokyo_time = zoned_time{tokyo_tz, now};
-
-std::cout << std::format("{}\n", ny_time);     // 2024-03-24 10:00:00 EDT
-std::cout << std::format("{}\n", tokyo_time);  // 2024-03-24 23:00:00 JST
-```
-
-**3. Timezone Conversions:**
-
-```cpp
-// Create time in one zone, convert to another
-auto ny_local = local_days{2024y/March/24} + 10h;  // 10 AM in NY
-auto ny_zoned = zoned_time{ny_tz, ny_local};
-
-// Convert to Tokyo time
-auto tokyo_zoned = zoned_time{tokyo_tz, ny_zoned.get_sys_time()};
-// Result: 2024-03-24 23:00:00 JST (13 hour difference)
-```
-
-**4. DST Handling:**
-
-```cpp
-// C++20 automatically handles DST transitions
-auto spring_forward = zoned_time{ny_tz, local_days{2024y/March/10} + 2h};
-// Correctly handles 2 AM → 3 AM DST transition
-```
-
-**5. Timezone Database:**
-
-```cpp
-// List all timezones
-auto& db = std::chrono::get_tzdb();
-for (const auto& zone : db.zones) {
-    std::cout << zone.name() << '\n';
-}
-// America/New_York, Asia/Tokyo, Europe/London, ...
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q15: How does `std::erase` / `std::erase_if` improve on `erase-remove` idiom?
 
 **Answer:**

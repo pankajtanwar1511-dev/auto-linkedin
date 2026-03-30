@@ -297,60 +297,34 @@ auto lambda2 = []<typename T>(T x) { return x * 2; };  // Can use T
 
 #### Q8: Explain `using enum` and its benefits.
 
+
 **Answer:**
 
-`using enum` brings enum values into current scope:
+- `using enum` brings enum values into current scope:
 
 **Before C++20:**
-```cpp
-enum class Color { Red, Green, Blue };
 
-void paint(Color c) {
-    switch (c) {
-        case Color::Red:   break;  // Verbose
-        case Color::Green: break;
-        case Color::Blue:  break;
-    }
-}
-```
+- void paint(Color c) { switch (c) { case Color::Red: break; // Verbose case Color::Green: break; case Color::Blue: break; } } ```
 
 **With C++20:**
-```cpp
-void paint(Color c) {
-    using enum Color;  // Bring all enumerators into scope
 
-    switch (c) {
-        case Red:   break;  // Concise
-        case Green: break;
-        case Blue:  break;
-    }
-}
-```
+- switch (c) { case Red: break; // Concise case Green: break; case Blue: break; } } ```
 
 **Benefits:**
 
-1. **Less Verbose:** Eliminates repetitive `Color::` prefix
-2. **Scoped:** Only affects local scope, no global pollution
-3. **Selective Import:** Can import specific values:
-   ```cpp
-   using Color::Red;
-   using Color::Blue;
-   // Green still requires Color::Green
-   ```
-
-4. **Multiple Enums:**
-   ```cpp
-   using enum Color;
-   using enum Shape;
-   // Both sets of enumerators available
-   ```
+- Less Verbose: Eliminates repetitive `Color::` prefix 2
+- Scoped: Only affects local scope, no global pollution 3
+- Selective Import: Can import specific values: ```cpp using Color::Red; using Color::Blue; // Green still requires Color::Green ```
+- Multiple Enums: ```cpp using enum Color; using enum Shape; // Both sets of enumerators available ```
 
 **When NOT to use:**
+
 - Avoid if names conflict with variables
 - Don't use at global scope (defeats scoped enum purpose)
 
----
+**Note:** Full detailed explanation with additional examples available in source materials.
 
+---
 #### Q9: What's the difference between `constexpr` and `consteval` in practice?
 
 **Answer:**
@@ -607,129 +581,42 @@ void use_comparison() {
 
 #### Q14: What are the restrictions on designated initializers?
 
+
 **Answer:**
 
-**1. Must Match Declaration Order:**
+- Must Match Declaration Order:**
+- // ❌ Error: Wrong order Data d1{.c = 3, .b = 2, .a = 1};
+- // ✅ OK: Correct order Data d2{.a = 1, .b = 2, .c = 3}; ```
+- Can't Mix with Positional:**
+- Only for Aggregates:**
 
-```cpp
-struct Data { int a, b, c; };
-
-// ❌ Error: Wrong order
-Data d1{.c = 3, .b = 2, .a = 1};
-
-// ✅ OK: Correct order
-Data d2{.a = 1, .b = 2, .c = 3};
-```
-
-**2. Can't Mix with Positional:**
-
-```cpp
-// ❌ Error
-Data d3{1, .b = 2, .c = 3};
-```
-
-**3. Only for Aggregates:**
-
-```cpp
-struct NonAggregate {
-    int x;
-    NonAggregate(int val) : x(val) {}  // Has constructor
-};
-
-// ❌ Error: Not an aggregate
-// NonAggregate n{.x = 10};
-```
-
-**4. Can Skip Members:**
-
-```cpp
-// ✅ OK: Skipped members are default-initialized
-Data d4{.a = 1};  // b=0, c=0
-```
-
-**5. Must Use Brace Initialization:**
-
-```cpp
-// ❌ Error: Parentheses not allowed with designators
-// Data d5(.a = 1);
-
-// ✅ OK
-Data d6{.a = 1};
-```
-
-**6. Works with Nested Structs:**
-
-```cpp
-struct Inner { int x, y; };
-struct Outer { Inner in; int z; };
-
-// ✅ OK
-Outer o{.in = {.x = 1, .y = 2}, .z = 3};
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q15: When would you use conditionally explicit constructors?
+
 
 **Answer:**
 
-Used when convertibility should depend on a compile-time condition:
-
-```cpp
-template<typename T>
-class SmartPointer {
-    T* ptr;
-
-public:
-    // Constructor is explicit ONLY if U* is not convertible to T*
-    template<typename U>
-    explicit(!std::is_convertible_v<U*, T*>)
-    SmartPointer(U* p) : ptr(p) {}
-};
-
-struct Base {};
-struct Derived : Base {};
-
-int main() {
-    Derived* d = new Derived;
-
-    // ✅ Implicit conversion OK (Derived* → Base*)
-    SmartPointer<Base> ptr1 = new Derived;
-
-    // ✅ Explicit conversion required (unrelated types)
-    SmartPointer<int> ptr2 = SmartPointer<int>(new int);
-}
-```
+- Used when convertibility should depend on a compile-time condition:
+- struct Base {}; struct Derived : Base {};
+- int main() { Derived* d = new Derived;
+- // ✅ Implicit conversion OK (Derived* → Base*) SmartPointer<Base> ptr1 = new Derived;
+- // ✅ Explicit conversion required (unrelated types) SmartPointer<int> ptr2 = SmartPointer<int>(new int); } ```
 
 **Use Cases:**
 
-1. **Type-safe wrappers:**
-   ```cpp
-   template<typename T>
-   struct Optional {
-       template<typename U>
-       explicit(!std::is_convertible_v<U, T>)
-       Optional(U&& value) { /* ... */ }
-   };
-   ```
 
-2. **Smart pointers with inheritance:**
-   ```cpp
-   template<typename T>
-   class unique_ptr {
-       template<typename U>
-       explicit(!std::is_convertible_v<U*, T*>)
-       unique_ptr(unique_ptr<U>&& other);
-   };
-   ```
 
 **Benefits:**
+
 - Allows implicit conversion when safe
 - Forces explicit conversion when potentially unsafe
 - Single constructor instead of two overloads
 
----
+**Note:** Full detailed explanation with additional examples available in source materials.
 
+---
 #### Q16: How does `constinit` differ from `constexpr` for global variables?
 
 **Answer:**
@@ -882,124 +769,60 @@ for (auto& item : million_items) {
 
 #### Q19: How do template lambdas help with perfect forwarding?
 
+
 **Answer:**
 
-Template lambdas enable perfect forwarding in lambdas:
+- Template lambdas enable perfect forwarding in lambdas:
 
 **Problem with Generic Lambdas (C++14):**
 
-```cpp
-// C++14: Can't perfect forward
-auto wrapper1 = [](auto&& arg) {
-    // Can't use std::forward properly
-    return func(std::forward<???>(arg));  // What type?
-};
-```
+
 
 **Solution with Template Lambda (C++20):**
 
-```cpp
-// C++20: Can perfectly forward
-auto wrapper2 = []<typename T>(T&& arg) {
-    return func(std::forward<T>(arg));  // ✅ Correct type
-};
-
-// Variadic version
-auto wrapper3 = []<typename... Args>(Args&&... args) {
-    return func(std::forward<Args>(args)...);
-};
-```
+- // Variadic version auto wrapper3 = []<typename..
+- args) { return func(std::forward<Args>(args)...); }; ```
 
 **Practical Example:**
 
-```cpp
-#include <utility>
-#include <iostream>
-
-void process(int& x) { std::cout << "lvalue: " << x << '\n'; }
-void process(int&& x) { std::cout << "rvalue: " << x << '\n'; }
-
-int main() {
-    auto forwarder = []<typename T>(T&& arg) {
-        process(std::forward<T>(arg));
-    };
-
-    int a = 10;
-    forwarder(a);     // Calls lvalue version
-    forwarder(20);    // Calls rvalue version
-}
-```
+- void process(int& x) { std::cout << "lvalue: " << x << '\n'; } void process(int&& x) { std::cout << "rvalue: " << x << '\n'; }
+- int main() { auto forwarder = []<typename T>(T&& arg) { process(std::forward<T>(arg)); };
+- int a = 10; forwarder(a); // Calls lvalue version forwarder(20); // Calls rvalue version } ```
 
 **Output:**
-```
-lvalue: 10
-rvalue: 20
-```
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q20: What are aggregate improvements in C++20?
+
 
 **Answer:**
 
+
+
 **C++20 Added Two Major Aggregate Enhancements:**
 
-**1. Parenthesized Initialization:**
-
-```cpp
-struct Point { int x, y; };
-
-// C++17: Only braces
-Point p1{1, 2};
-
-// ✅ C++20: Parentheses also work
-Point p2(1, 2);
-Point p3 = Point(3, 4);
-```
-
-**2. Aggregates with Base Classes:**
-
-```cpp
-struct Base { int id; };
-struct Derived : Base { std::string name; };
-
-// ✅ C++20: Can initialize base class members
-Derived d1{.id = 1, .name = "Alice"};
-
-// Also works with positional
-Derived d2{2, "Bob"};
-```
+- Parenthesized Initialization:**
+- // C++17: Only braces Point p1{1, 2};
+- // ✅ C++20: Parentheses also work Point p2(1, 2); Point p3 = Point(3, 4); ```
+- Aggregates with Base Classes:**
+- // ✅ C++20: Can initialize base class members Derived d1{.id = 1, .name = "Alice"};
 
 **What Qualifies as an Aggregate in C++20:**
 
-```cpp
-// ✅ Aggregate
-struct A {
-    int x;
-    double y;
-};
-
-// ✅ Aggregate (with base)
-struct B : A {
-    std::string s;
-};
-
-// ❌ Not Aggregate (has constructor)
-struct C {
-    int x;
-    C(int val) : x(val) {}
-};
-
-// ❌ Not Aggregate (has virtual function)
-struct D {
-    virtual void foo();
-};
-```
+- // ✅ Aggregate (with base) struct B : A { std::string s; };
+- // ❌ Not Aggregate (has constructor) struct C { int x; C(int val) : x(val) {} };
+- // ❌ Not Aggregate (has virtual function) struct D { virtual void foo(); }; ```
 
 **Benefits:**
 
 - More flexible initialization syntax
 - Simpler inheritance initialization
 - Better integration with designated initializers
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---

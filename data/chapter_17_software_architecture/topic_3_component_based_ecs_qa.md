@@ -78,61 +78,18 @@ for (size_t i = 0; i < positions.size(); i++) {
 
 #### Q3: How do you handle component dependencies in ECS?
 
-**Answer**:
 
-**Problem**: `MovementSystem` needs both `Position` and `Velocity`, but what if entity only has `Velocity`?
+**:**
 
-**Solution 1: Query with Multiple Component Types**
+- Problem: `MovementSystem` needs both `Position` and `Velocity`, but what if entity only has `Velocity`
+- Solution 1: Query with Multiple Component Types
+- Solution 2: Component Groups (Pre-filtered)
+- void addComponent<T>(EntityID entity, T component) { components[entity][typeid(T)] = component;
+- // Update groups if (typeid(T) == typeid(Velocity) && hasComponent<Position>(entity)) { movableGroup.add(entity); } } };
 
-```cpp
-void MovementSystem::update(ComponentManager& cm) {
-    // Only get entities with BOTH Position AND Velocity
-    for (EntityID e : cm.getEntitiesWith<Position, Velocity>()) {
-        auto& pos = cm.get<Position>(e);   // ✅ Safe
-        auto& vel = cm.get<Velocity>(e);   // ✅ Safe
-        pos.x += vel.dx;
-    }
-}
-```
-
-**Solution 2: Component Groups (Pre-filtered)**
-
-```cpp
-class ComponentManager {
-    ComponentGroup movableGroup;  // Entities with Position + Velocity
-
-    void addComponent<T>(EntityID entity, T component) {
-        components[entity][typeid(T)] = component;
-
-        // Update groups
-        if (typeid(T) == typeid(Velocity) && hasComponent<Position>(entity)) {
-            movableGroup.add(entity);
-        }
-    }
-};
-
-void MovementSystem::update() {
-    for (EntityID e : movableGroup) {
-        // Guaranteed to have both components
-    }
-}
-```
-
-**Solution 3: Enforce at Add Time**
-
-```cpp
-void addVelocity(EntityID entity, Velocity vel) {
-    if (!hasComponent<Position>(entity)) {
-        throw std::logic_error("Velocity requires Position component!");
-    }
-    addComponent(entity, vel);
-}
-```
-
-**Best Practice**: Use query systems or component groups. Fail fast if dependencies not met.
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q4: What are the trade-offs of using ECS?
 
 **Answer**:
@@ -161,12 +118,14 @@ void addVelocity(EntityID entity, Velocity vel) {
 
 #### Q5: How do you implement system execution order in ECS?
 
+
+**:**
+
 **Answer**:
-
 **Problem**: Systems depend on each other's results.
-
 **Example**:
-```
+
+```cpp
 MovementSystem:  Updates positions
 ↓
 CollisionSystem: Needs updated positions
@@ -174,105 +133,8 @@ CollisionSystem: Needs updated positions
 RenderSystem:    Needs collision results
 ```
 
-**Solution 1: Priority-Based Scheduling**
+- MovementSystem: Updates positions ↓ CollisionSystem: Needs updated positions ↓ RenderSystem: Needs collision results ```
 
-```cpp
-class SystemManager {
-    std::vector<std::pair<int, System*>> systems;  // (priority, system)
-
-public:
-    void addSystem(System* system, int priority) {
-        systems.emplace_back(priority, system);
-        std::sort(systems.begin(), systems.end(), [](auto& a, auto& b) {
-            return a.first < b.first;
-        });
-    }
-
-    void update() {
-        for (auto& [priority, system] : systems) {
-            system->update();
-        }
-    }
-};
-
-// Usage
-manager.addSystem(&movementSystem, 100);
-manager.addSystem(&collisionSystem, 200);
-manager.addSystem(&renderSystem, 300);
-```
-
-**Solution 2: Dependency Graph**
-
-```cpp
-class System {
-public:
-    std::vector<System*> dependencies;
-};
-
-class SystemScheduler {
-    void topologicalSort(std::vector<System*>& systems) {
-        // Sort systems so dependencies run first
-    }
-};
-
-// Usage
-collisionSystem.dependencies = {&movementSystem};
-renderSystem.dependencies = {&movementSystem, &collisionSystem};
-```
-
-**Solution 3: Manual Phases**
-
-```cpp
-void gameLoop() {
-    // Phase 1: Input & Movement
-    inputSystem.update();
-    movementSystem.update();
-
-    // Phase 2: Game Logic
-    collisionSystem.update();
-    aiSystem.update();
-
-    // Phase 3: Rendering
-    renderSystem.update();
-}
-```
-
-**Best Practice**: Use explicit ordering with documentation of dependencies.
-
----
-
-#### Additional Questions 6-20 (Outlined)
-
-**Q6**: How do you handle entity lifetime safely (prevent dangling references)?
-
-**Q7**: What is an archetype in ECS? Why is it faster?
-
-**Q8**: How do you implement component removal during iteration?
-
-**Q9**: Explain sparse sets vs dense arrays for component storage.
-
-**Q10**: How do you implement multithreading in ECS?
-
-**Q11**: What is the role of an Entity ID? Why not use pointers?
-
-**Q12**: How do you serialize/deserialize entities with ECS?
-
-**Q13**: Compare ECS to Unity's GameObject system.
-
-**Q14**: How do you implement events/messaging in ECS?
-
-**Q15**: What are system groups? When are they useful?
-
-**Q16**: How do you handle singleton components (global state)?
-
-**Q17**: What is DOTS (Data-Oriented Technology Stack)?
-
-**Q18**: How do you implement entity prefabs/templates in ECS?
-
-**Q19**: What are reactive systems vs update systems?
-
-**Q20**: How do you profile and optimize ECS performance?
-
-(Full answers can be expanded as needed)
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---

@@ -4305,12 +4305,10 @@
             "class_template",
             "tuple"
           ],
-          "answer": "Yes, class templates can be variadic; `std::tuple` is a prime example using variadic template parameters for arbitrary types.",
-          "explanation": "Variadic class templates are essential for implementing type-safe heterogeneous containers like `std::tuple`, `std::variant`, and generic metaprogramming utilities. They use the same parameter pack syntax as variadic function templates. Recursive inheritance patterns enable compile-time iteration over type lists. The standard library heavily uses this technique - understanding it unlocks advanced template metaprogramming.",
-          "code_examples": [
-            "// Simple variadic class template\ntemplate<typename... Types>\nclass MultiType {\n    std::tuple<Types...> data;\npublic:\n    MultiType(Types... args) : data(args...) {}\n    \n    template<size_t I>\n    auto get() const -> decltype(std::get<I>(data)) {\n        return std::get<I>(data);\n    }\n};\n\n// Usage\nMultiType<int, double, std::string> mt(42, 3.14, \"Hello\");\nauto value = mt.get<0>();  // 42\n\n// Type list manipulation\ntemplate<typename... Types>\nstruct TypeList {\n    static constexpr size_t size = sizeof...(Types);\n};\n\nTypeList<int, double, char> list;  // size = 3\n\n// Recursive class template\ntemplate<typename... Types>\nclass VariadicBase;\n\ntemplate<>\nclass VariadicBase<> {\n    // Empty base case\n};\n\ntemplate<typename T, typename... Rest>\nclass VariadicBase<T, Rest...> : public VariadicBase<Rest...> {\n    T value;\npublic:\n    VariadicBase(T v, Rest... rest) \n        : VariadicBase<Rest...>(rest...), value(v) {}\n};"
-          ],
-          "key_takeaway": "Class templates can be variadic using `template<typename... Types>`; essential for implementing tuple-like containers and type lists."
+          "answer": "- Yes, class templates can be variadic; `std::tuple` is a prime example using variadic template parameters for arbitrary types.",
+          "explanation": "- Variadic class templates are essential for implementing type-safe heterogeneous containers like `std::tuple`, `std::variant`, and generic metaprogramming utilities\n- They use the same parameter pack syntax as variadic function templates\n- Recursive inheritance patterns enable compile-time iteration over type lists\n- The standard library heavily uses this technique - understanding it unlocks advanced template metaprogramming.",
+          "code_examples": [],
+          "key_takeaway": "**Note:** Full detailed explanation with additional examples available in source materials."
         },
         {
           "question_number": 15,
@@ -4350,12 +4348,10 @@
             "perfect_forwarding",
             "rvalue_reference"
           ],
-          "answer": "Use universal references (`Args&&...`) and `std::forward` to preserve value categories when passing arguments through.",
-          "explanation": "Perfect forwarding with variadic templates combines universal references (`Args&&...`) with `std::forward` to preserve argument value categories (lvalue vs rvalue). This enables zero-overhead argument passing through wrapper functions. The pattern `Args&&... args` followed by `std::forward<Args>(args)...` is standard for forwarding wrappers. This technique is crucial for implementing factories, emplace operations, and generic wrappers.",
-          "code_examples": [
-            "// ✅ Perfect forwarding with variadic templates\ntemplate<typename... Args>\nvoid forwardToOther(Args&&... args) {\n    otherFunction(std::forward<Args>(args)...);\n}\n\n// Example: creating objects\ntemplate<typename T, typename... Args>\nT* create(Args&&... args) {\n    return new T(std::forward<Args>(args)...);\n}\n\nclass Widget {\npublic:\n    Widget(int x, const std::string& name) { }\n};\n\n// Usage preserves lvalue/rvalue nature\nstd::string name = \"Test\";\nWidget* w1 = create<Widget>(42, name);           // lvalue string\nWidget* w2 = create<Widget>(42, std::string(\"Temp\"));  // rvalue string\n\n// Without forwarding: always copies\ntemplate<typename... Args>\nvoid badForward(Args... args) {  // No &&, no forward\n    otherFunction(args...);  // Always passes lvalues (copies)\n}\n\n// Variadic emplace example (like std::vector::emplace_back)\ntemplate<typename T>\nclass Container {\n    T* data;\npublic:\n    template<typename... Args>\n    void emplace(Args&&... args) {\n        new (data) T(std::forward<Args>(args)...);  // In-place construction\n    }\n};"
-          ],
-          "key_takeaway": "Use `Args&&...` and `std::forward<Args>(args)...` to perfectly forward arbitrary arguments while preserving value categories."
+          "answer": "- Use universal references (`Args&&...`) and `std::forward` to preserve value categories when passing arguments through.",
+          "explanation": "- Perfect forwarding with variadic templates combines universal references (`Args&&...`) with `std::forward` to preserve argument value categories (lvalue vs rvalue)\n- This enables zero-overhead argument passing through wrapper functions\n- The pattern `Args&&..\n- args` followed by `std::forward<Args>(args)...` is standard for forwarding wrappers\n- This technique is crucial for implementing factories, emplace operations, and generic wrappers.",
+          "code_examples": [],
+          "key_takeaway": "**Note:** Full detailed explanation with additional examples available in source materials."
         },
         {
           "question_number": 17,
@@ -4415,12 +4411,10 @@
             "partial_specialization",
             "template_metaprogramming"
           ],
-          "answer": "Yes, partial specialization works with variadic templates, enabling powerful type-level pattern matching and metaprogramming.",
-          "explanation": "Partial specialization with variadic templates enables type-level recursion and pattern matching. You can specialize for empty packs, packs with at least one element, or specific type patterns. This technique is fundamental to implementing type lists, tuple-like structures, and compile-time algorithms. The pattern of primary template + empty specialization + head/tail specialization mirrors the recursion pattern in variadic function templates.",
-          "code_examples": [
-            "// Primary template\ntemplate<typename... Types>\nclass TypeList {\n    static constexpr size_t size = sizeof...(Types);\n};\n\n// Partial specialization: empty list\ntemplate<>\nclass TypeList<> {\n    static constexpr size_t size = 0;\n    using First = void;\n};\n\n// Partial specialization: at least one type\ntemplate<typename Head, typename... Tail>\nclass TypeList<Head, Tail...> {\npublic:\n    static constexpr size_t size = 1 + sizeof...(Tail);\n    using First = Head;\n    using Rest = TypeList<Tail...>;\n};\n\n// Usage\nusing List1 = TypeList<int, double, char>;\nusing First = List1::First;  // int\nusing Rest = List1::Rest;    // TypeList<double, char>\nconstexpr size_t sz = List1::size;  // 3\n\n// More complex: match specific patterns\ntemplate<typename... Types>\nstruct AllPointers;\n\ntemplate<typename T, typename... Rest>\nstruct AllPointers<T*, Rest...> {\n    static constexpr bool value = AllPointers<Rest...>::value;\n};\n\ntemplate<>\nstruct AllPointers<> {\n    static constexpr bool value = true;\n};\n\nbool test1 = AllPointers<int*, char*, double*>::value;  // true\nbool test2 = AllPointers<int*, char, double*>::value;   // false"
-          ],
-          "key_takeaway": "Variadic class templates support partial specialization, enabling type-level pattern matching and recursive metaprogramming."
+          "answer": "- Yes, partial specialization works with variadic templates, enabling powerful type-level pattern matching and metaprogramming.",
+          "explanation": "- Partial specialization with variadic templates enables type-level recursion and pattern matching\n- You can specialize for empty packs, packs with at least one element, or specific type patterns\n- This technique is fundamental to implementing type lists, tuple-like structures, and compile-time algorithms\n- The pattern of primary template + empty specialization + head/tail specialization mirrors the recursion pattern in variadic function templates.",
+          "code_examples": [],
+          "key_takeaway": "**Note:** Full detailed explanation with additional examples available in source materials."
         },
         {
           "question_number": 20,
@@ -4635,12 +4629,10 @@
             "tuple",
             "heterogeneous"
           ],
-          "answer": "Use recursive template pattern or `std::tuple` to handle each type individually with type safety.",
-          "explanation": "Variadic templates naturally preserve each argument's type through the template parameter pack. The recursive processing pattern applies different operations to each type as needed. `std::tuple` provides structured storage for heterogeneous types with type-safe access via `std::get`. This enables building type-safe containers and algorithms that work with arbitrary combinations of types, foundational to modern C++ metaprogramming.",
-          "code_examples": [
-            "// Pattern 1: Recursive processing with type preservation\ntemplate<typename T>\nvoid processEach(T value) {\n    std::cout << typeid(T).name() << \": \" << value << \"\\n\";\n}\n\ntemplate<typename T, typename... Rest>\nvoid processEach(T first, Rest... rest) {\n    processEach(first);\n    processEach(rest...);\n}\n\nprocessEach(42, 3.14, \"hello\", 'x');\n// Processes each with correct type\n\n// Pattern 2: Store in tuple for later access\ntemplate<typename... Args>\nauto storeTuple(Args... args) {\n    return std::make_tuple(args...);\n}\n\nauto data = storeTuple(1, 2.5, \"test\");\nint i = std::get<0>(data);     // 1\ndouble d = std::get<1>(data);  // 2.5\nconst char* s = std::get<2>(data);  // \"test\"\n\n// Pattern 3: Type-based access\ntemplate<typename... Args>\nclass Variant {\n    std::tuple<Args...> data;\npublic:\n    Variant(Args... args) : data(args...) {}\n    \n    template<size_t I>\n    auto get() const -> decltype(std::get<I>(data)) {\n        return std::get<I>(data);\n    }\n};\n\nVariant<int, double, std::string> v(42, 3.14, \"test\");"
-          ],
-          "key_takeaway": "Variadic templates preserve individual argument types; use recursion for processing or tuple for storage with type safety."
+          "answer": "- Use recursive template pattern or `std::tuple` to handle each type individually with type safety.",
+          "explanation": "- Variadic templates naturally preserve each argument's type through the template parameter pack\n- The recursive processing pattern applies different operations to each type as needed\n- `std::tuple` provides structured storage for heterogeneous types with type-safe access via `std::get`\n- This enables building type-safe containers and algorithms that work with arbitrary combinations of types, foundational to modern C++ metaprogramming.",
+          "code_examples": [],
+          "key_takeaway": "**Note:** Full detailed explanation with additional examples available in source materials."
         },
         {
           "question_number": 30,

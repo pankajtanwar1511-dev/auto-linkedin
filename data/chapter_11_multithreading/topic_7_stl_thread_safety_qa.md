@@ -388,126 +388,75 @@ char c2 = str[1];  // ✅ Safe - const access is thread-safe
 **Concepts:** #thread_local #batching #lock_contention #merge_pattern
 
 **Answer:**
-Use thread-local vectors for accumulation, then merge into shared vector with single lock per thread, minimizing contention.
+
+- Use thread-local vectors for accumulation, then merge into shared vector with single lock per thread, minimizing contention.
 
 **Code example:**
-```cpp
-#include <vector>
-#include <thread>
-#include <mutex>
 
-// ❌ Poor: Lock on every push_back
-void poor_approach(std::vector<int>& results, std::mutex& mtx, int start, int end) {
-    for (int i = start; i < end; ++i) {
-        std::lock_guard lock(mtx);  // Lock for every element!
-        results.push_back(compute(i));
-    }
-}
-
-// ✅ Good: Thread-local accumulation, single merge
-void good_approach(std::vector<int>& results, std::mutex& mtx, int start, int end) {
-    std::vector<int> local_results;
-    local_results.reserve(end - start);
-
-    // Accumulate locally - no locking
-    for (int i = start; i < end; ++i) {
-        local_results.push_back(compute(i));
-    }
-
-    // Single lock for batch merge
-    std::lock_guard lock(mtx);
-    results.insert(results.end(), local_results.begin(), local_results.end());
-}
-
-void demonstrate() {
-    std::vector<int> results;
-    results.reserve(1000);
-    std::mutex mtx;
-
-    std::thread t1(good_approach, std::ref(results), std::ref(mtx), 0, 500);
-    std::thread t2(good_approach, std::ref(results), std::ref(mtx), 500, 1000);
-
-    t1.join();
-    t2.join();
-}
-```
+- results.push_back(compute(i)); } }
+- // Accumulate locally - no locking for (int i = start; i < end; ++i) { local_results.push_back(compute(i)); }
+- // Single lock for batch merge std::lock_guard lock(mtx); results.insert(results.end(), local_results.begin(), local_results.end()); }
+- void demonstrate() { std::vector<int> results; results.reserve(1000); std::mutex mtx;
+- std::thread t1(good_approach, std::ref(results), std::ref(mtx), 0, 500); std::thread t2(good_approach, std::ref(results), std::ref(mtx), 500, 1000);
 
 **Explanation:**
-Locking on every `push_back` causes severe lock contention: each thread must acquire/release mutex thousands of times. Thread-local accumulation allows each thread to work independently without contention, then merge results in bulk with a single lock. This reduces lock acquisitions from N (number of elements) to T (number of threads), dramatically improving performance. In autonomous vehicle perception, this pattern is used when multiple threads process point cloud segments and merge results into a global obstacle list.
+
+- Locking on every `push_back` causes severe lock contention: each thread must acquire/release mutex thousands of times
+- Thread-local accumulation allows each thread to work independently without contention, then merge results in bulk with a single lock
+- This reduces lock acquisitions from N (number of elements) to T (number of threads), dramatically improving performance
+- In autonomous vehicle perception, this pattern is used when multiple threads process point cloud segments and merge results into a global obstacle list.
 
 **Performance impact:**
+
 - Poor approach: N * (lock_cost + push_back_cost)
 - Good approach: N * push_back_cost + T * (lock_cost + merge_cost)
 - Typical speedup: 10-100x for lock-heavy workloads
 
-**Key takeaway:** Minimize lock contention by batching operations; use thread-local accumulation with single merge per thread.
+**Key takeaway:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q12: How do concurrent data structure libraries (like Intel TBB) achieve thread safety?
 **Difficulty:** #advanced
 **Category:** #lock_free #concurrent_data_structures
 **Concepts:** #TBB #fine_grained_locking #lock_free #concurrent_containers
 
 **Answer:**
-Concurrent data structures use fine-grained locking (lock per bucket/node) or lock-free algorithms (CAS operations) to allow concurrent access without global locks.
+
+- Concurrent data structures use fine-grained locking (lock per bucket/node) or lock-free algorithms (CAS operations) to allow concurrent access without global locks.
 
 **Code example (conceptual):**
-```cpp
-// Standard unordered_map: Single global lock
-class StandardMap {
-    std::unordered_map<K, V> map;
-    std::mutex global_lock;  // ❌ All threads contend on this
 
-    void insert(K key, V value) {
-        std::lock_guard lock(global_lock);
-        map[key] = value;
-    }
-};
-
-// TBB concurrent_hash_map: Lock per bucket
-class ConcurrentMap {
-    Bucket buckets[N];  // Array of buckets
-    std::mutex locks[N];  // Lock per bucket
-
-    void insert(K key, V value) {
-        size_t bucket_idx = hash(key) % N;
-        std::lock_guard lock(locks[bucket_idx]);  // ✅ Lock only this bucket
-        buckets[bucket_idx].insert(key, value);
-    }
-    // Threads modifying different buckets don't contend!
-};
-
-// Lock-free variant: Use atomic CAS on bucket heads
-class LockFreeMap {
-    std::atomic<Node*> bucket_heads[N];
-
-    void insert(K key, V value) {
-        size_t bucket_idx = hash(key) % N;
-        Node* new_node = new Node{key, value, nullptr};
-
-        Node* old_head = bucket_heads[bucket_idx].load();
-        do {
-            new_node->next = old_head;
-        } while (!bucket_heads[bucket_idx].compare_exchange_weak(old_head, new_node));
-        // ✅ No locks - uses CAS retry loop
-    }
-};
-```
+- void insert(K key, V value) { std::lock_guard lock(global_lock); map[key] = value; } };
+- // TBB concurrent_hash_map: Lock per bucket class ConcurrentMap { Bucket buckets[N]; // Array of buckets std::mutex locks[N]; // Lock per bucket
+- // Lock-free variant: Use atomic CAS on bucket heads class LockFreeMap { std::atomic<Node*> bucket_heads[N];
+- void insert(K key, V value) { size_t bucket_idx = hash(key) % N; Node* new_node = new Node{key, value, nullptr};
 
 **Explanation:**
-Standard containers use a single mutex protecting the entire container, causing all threads to serialize. Concurrent containers reduce contention by: (1) **Fine-grained locking**: Divide container into segments (buckets in hash table, levels in tree), each with its own lock. Threads operating on different segments don't contend. (2) **Lock-free algorithms**: Use atomic compare-and-swap (CAS) operations instead of locks, allowing multiple threads to progress without blocking. (3) **Read-optimized structures**: Separate read and write paths, allowing multiple readers without locking (e.g., using RCU - Read-Copy-Update).
+
+- Standard containers use a single mutex protecting the entire container, causing all threads to serialize
+- Concurrent containers reduce contention by: (1) Fine-grained locking: Divide container into segments (buckets in hash table, levels in tree), each with its own lock
+- Threads operating on different segments don't contend
+- (2) Lock-free algorithms: Use atomic compare-and-swap (CAS) operations instead of locks, allowing multiple threads to progress without blocking
+- (3) Read-optimized structures: Separate read and write paths, allowing multiple readers without locking (e.g., using RCU - Read-Copy-Update).
 
 **Intel TBB concurrent_hash_map features:**
+
 - Allows concurrent inserts, lookups, and erasures
 - Uses fine-grained locking per hash bucket
 - Provides `const_accessor` (reader lock) and `accessor` (writer lock)
 - Automatically handles rehashing concurrently
 
-**Key takeaway:** Concurrent data structures use fine-grained locking or lock-free algorithms to reduce contention; consider TBB, Folly, or Abseil for production concurrent containers.
+**Key takeaway:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q13: What is the C++ standard guarantee for concurrent reads on const-qualified containers?
 **Difficulty:** #beginner
 **Category:** #standard #thread_safety

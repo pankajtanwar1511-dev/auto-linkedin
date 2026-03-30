@@ -91,11 +91,11 @@ public:
 ```
 
 **Answer:**
-```
-No health check on acquire - returns stale/closed connections; create_connection() holds lock too long
-```
+
+
 
 **Explanation:**
+
 - Connection may have closed (timeout, network error) while in pool
 - `acquire()` returns dead FD - next operation fails
 - `create_connection()` inside lock blocks all threads for 100ms
@@ -103,45 +103,16 @@ No health check on acquire - returns stale/closed connections; create_connection
 - **Key Concept:** Always health-check pooled connections before returning; creating resources inside lock causes contention - create outside lock
 
 **Fixed Version:**
-```cpp
-int acquire() {
-    std::unique_lock<std::mutex> lock(mtx);
 
-    while (!available.empty()) {
-        int fd = available.front();
-        available.pop();
-        lock.unlock();
+- while (!available.empty()) { int fd = available.front(); available.pop(); lock.unlock();
+- // Health check outside lock
+- if (is_alive(fd)) { return fd; }
+- close(fd); // Stale connection lock.lock(); }
+- // Create new connection outside lock if (total_created < MAX_CONNECTIONS) { lock.unlock(); int fd = create_connection(); // May take 100ms - no lock held
 
-        // Health check outside lock!
-        if (is_alive(fd)) {
-            return fd;
-        }
-
-        close(fd);  // Stale connection
-        lock.lock();
-    }
-
-    // Create new connection outside lock
-    if (total_created < MAX_CONNECTIONS) {
-        lock.unlock();
-        int fd = create_connection();  // May take 100ms - no lock held!
-        lock.lock();
-        total_created++;
-        return fd;
-    }
-
-    throw std::runtime_error("Pool exhausted");
-}
-
-bool is_alive(int fd) {
-    char byte;
-    int result = recv(fd, &byte, 1, MSG_PEEK | MSG_DONTWAIT);
-    return result >= 0 || errno == EAGAIN;
-}
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q3
 ```cpp
 #include <sys/socket.h>

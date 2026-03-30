@@ -111,55 +111,25 @@ int main() {
 ```
 
 **Answer:**
-```
-Undefined behavior (static destruction order fiasco possible)
-```
+
+
 
 **Explanation:**
+
 - `globalRef` initialized during static initialization phase
 - Calls `getInstance()` → creates singleton
 - At program exit, destruction order of statics undefined
 - If `globalRef`'s translation unit destructs last, it may access destroyed singleton
 - Classic static destruction order problem
-- Holding references/pointers to singleton statics dangerous
-- **Key Concept:** Static references to singletons create destruction order fiasco; singleton may be destroyed before global references; avoid global references to singletons or use nifty counter pattern
 
 **Fixed Version:**
-```cpp
-// Option 1: Don't hold global references
-int main() {
-    Singleton& s = Singleton::getInstance();  // Get reference locally
-}
 
-// Option 2: Leak singleton (acceptable for true singletons)
-class Singleton {
-public:
-    static Singleton& getInstance() {
-        static Singleton* instance = new Singleton();  // Never destroyed
-        return *instance;
-    }
-};
+- // Option 3: Phoenix singleton (recreates if accessed after destruction) class Singleton { static bool destroyed_;
+- ~Singleton() { destroyed_ = true; } }; ```
 
-// Option 3: Phoenix singleton (recreates if accessed after destruction)
-class Singleton {
-    static bool destroyed_;
-
-public:
-    static Singleton& getInstance() {
-        static Singleton instance;
-        if (destroyed_) {
-            new (&instance) Singleton();  // Reconstruct
-            destroyed_ = false;
-        }
-        return instance;
-    }
-
-    ~Singleton() { destroyed_ = true; }
-};
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q3
 ```cpp
 class Singleton {
@@ -188,57 +158,25 @@ int main() {
 ```
 
 **Answer:**
-```
-Performance issue (lock acquired on every getInstance() call, even after initialization)
-```
+
+
 
 **Explanation:**
+
 - Mutex locked on EVERY `getInstance()` call
 - After first initialization, lock unnecessary (instance never changes)
 - 1 million lock acquisitions → severe performance penalty
 - Threads serialize at lock even though no actual concurrent modification
 - Classic over-synchronization problem
-- Need Double-Checked Locking Pattern (DCLP) or atomic pointer
-- **Key Concept:** Locking every singleton access causes unnecessary contention; only initialization needs synchronization; use DCLP with atomic or Meyer's singleton for better performance
 
 **Fixed Version:**
-```cpp
-// Option 1: Double-Checked Locking (DCLP) - C++11
-class Singleton {
-    static std::atomic<Singleton*> instance_;
-    static std::mutex mutex_;
 
-    Singleton() {}
+- public: static Singleton* getInstance() { Singleton* tmp = instance_.load(std::memory_order_acquire);
+- if (!tmp) { // First check (no lock) std::lock_guard<std::mutex> lock(mutex_); tmp = instance_.load(std::memory_order_relaxed);
 
-public:
-    static Singleton* getInstance() {
-        Singleton* tmp = instance_.load(std::memory_order_acquire);
-
-        if (!tmp) {  // First check (no lock)
-            std::lock_guard<std::mutex> lock(mutex_);
-            tmp = instance_.load(std::memory_order_relaxed);
-
-            if (!tmp) {  // Second check (with lock)
-                tmp = new Singleton();
-                instance_.store(tmp, std::memory_order_release);
-            }
-        }
-        return tmp;
-    }
-};
-
-// Option 2: Meyer's Singleton (simplest, best performance)
-class Singleton {
-public:
-    static Singleton& getInstance() {
-        static Singleton instance;  // Lock-free after initialization (C++11)
-        return instance;
-    }
-};
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q4
 ```cpp
 class DatabaseConnection {  // "Singleton"
@@ -267,70 +205,28 @@ void test_feature_B() {
 ```
 
 **Answer:**
-```
-Test isolation problem (tests share singleton state, not independent)
-```
+
+
 
 **Explanation:**
+
 - Meyer's singleton has static lifetime (never destroyed until program exit)
 - `test_feature_A()` creates singleton with state from test A
 - `test_feature_B()` gets same instance → state polluted from test A
 - Tests not isolated → test B may fail due to test A's side effects
 - Can't reset singleton between tests
-- Singletons problematic for unit testing
-- **Key Concept:** Singletons break test isolation by persisting state across tests; Meyer's singleton can't be reset; consider dependency injection or resetable singleton pattern for testability
 
 **Fixed Version:**
-```cpp
-// Option 1: Dependency Injection (preferred for testability)
-class DatabaseConnection {
-public:
-    virtual void connect() = 0;
-    virtual ~DatabaseConnection() = default;
-};
 
-class RealDatabaseConnection : public DatabaseConnection {
-public:
-    void connect() override { /* real connection */ }
-};
+- class RealDatabaseConnection : public DatabaseConnection { public: void connect() override { /* real connection */ } };
+- class MockDatabaseConnection : public DatabaseConnection { public: void connect() override { /* mock connection */ } };
+- void test_feature_A() { MockDatabaseConnection db; db.connect(); // Test with mock..
+- // Option 2: Resetable Singleton (for legacy code) class DatabaseConnection { static std::unique_ptr<DatabaseConnection> instance_;
+- static void reset() { instance_.reset(); // Destroy for testing } };
 
-class MockDatabaseConnection : public DatabaseConnection {
-public:
-    void connect() override { /* mock connection */ }
-};
-
-void test_feature_A() {
-    MockDatabaseConnection db;
-    db.connect();
-    // Test with mock...
-}
-
-// Option 2: Resetable Singleton (for legacy code)
-class DatabaseConnection {
-    static std::unique_ptr<DatabaseConnection> instance_;
-
-public:
-    static DatabaseConnection& getInstance() {
-        if (!instance_) {
-            instance_ = std::make_unique<DatabaseConnection>();
-        }
-        return *instance_;
-    }
-
-    static void reset() {
-        instance_.reset();  // Destroy for testing
-    }
-};
-
-void test_feature_A() {
-    DatabaseConnection::reset();  // Clean state
-    auto& db = DatabaseConnection::getInstance();
-    // Test...
-}
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q5
 ```cpp
 class Singleton {
@@ -571,59 +467,27 @@ int main() {
 ```
 
 **Answer:**
-```
-Memory leak (singleton never destroyed, new'ed memory never freed)
-```
+
+
 
 **Explanation:**
+
 - `getInstance()` uses `new` to create singleton
 - No corresponding `delete` anywhere in code
 - At program exit, singleton instance leaked
 - Valgrind/sanitizers report memory leak
 - For true singletons, leaking acceptable (cleaned by OS at exit)
-- But if singleton owns resources (files, sockets), those may not be released properly
-- **Key Concept:** Heap-allocated singletons without explicit cleanup leak memory; acceptable for pure memory but problematic for resource handles; prefer Meyer's singleton (automatic cleanup) or explicit cleanup
 
 **Fixed Version:**
-```cpp
-// Option 1: Meyer's Singleton (automatic cleanup)
-class Singleton {
-    Singleton() {}
 
-public:
-    static Singleton& getInstance() {
-        static Singleton instance;  // Destroyed at exit automatically
-        return instance;
-    }
-};
+- public: static Singleton& getInstance() { static Singleton instance; // Destroyed at exit automatically return instance; } };
+- // Option 2: Smart pointer with cleanup class Singleton { static std::unique_ptr<Singleton> instance_;
+- public: static Singleton& getInstance() { if (!instance_) { instance_ = std::make_unique<Singleton>(); } return *instance_; } };
+- std::unique_ptr<Singleton> Singleton::instance_;
 
-// Option 2: Smart pointer with cleanup
-class Singleton {
-    static std::unique_ptr<Singleton> instance_;
-
-public:
-    static Singleton& getInstance() {
-        if (!instance_) {
-            instance_ = std::make_unique<Singleton>();
-        }
-        return *instance_;
-    }
-};
-
-std::unique_ptr<Singleton> Singleton::instance_;
-
-// Option 3: Intentional leak (for singletons with destruction issues)
-class Singleton {
-public:
-    static Singleton& getInstance() {
-        static Singleton* instance = new Singleton();  // Intentionally leaked
-        return *instance;
-    }
-};
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q9
 ```cpp
 template<typename T>
@@ -656,58 +520,28 @@ int main() {
 ```
 
 **Answer:**
-```
-Design flaw (public inheritance exposes Singleton base class)
-```
+
+
 
 **Explanation:**
+
 - CRTP pattern: `Logger` inherits from `Singleton<Logger>`
 - Public inheritance makes `Singleton` interface visible
 - Can cast `Logger*` to `Singleton<Logger>*`
 - Exposes singleton implementation details
 - Violates encapsulation (singleton pattern leaks)
-- Should use private inheritance for CRTP
-- **Key Concept:** CRTP singleton should use private inheritance to hide base class interface; public inheritance exposes implementation details; prefer private inheritance for "implemented-in-terms-of" relationship
 
 **Fixed Version:**
-```cpp
-template<typename T>
-class Singleton {
-protected:  // Protected for derived access
-    Singleton() {}
 
-public:
-    static T& getInstance() {
-        static T instance;
-        return instance;
-    }
+- public: static T& getInstance() { static T instance; return instance; }
+- Singleton(const Singleton&) = delete; Singleton& operator=(const Singleton&) = delete; };
+- class Logger : private Singleton<Logger> { // Private inheritance
+- friend class Singleton<Logger>; // Allow base to access constructor
+- Logger() {} // Private constructor
 
-    Singleton(const Singleton&) = delete;
-    Singleton& operator=(const Singleton&) = delete;
-};
-
-class Logger : private Singleton<Logger> {  // Private inheritance!
-    friend class Singleton<Logger>;  // Allow base to access constructor
-
-    Logger() {}  // Private constructor
-
-public:
-    using Singleton<Logger>::getInstance;  // Expose only getInstance
-
-    void log(const std::string& msg) {
-        std::cout << msg << "\n";
-    }
-};
-
-int main() {
-    Logger& logger = Logger::getInstance();
-    // Singleton<Logger>* base = &logger;  // Compilation error - private inheritance
-    logger.log("Message");
-}
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q10
 ```cpp
 class Singleton {
@@ -739,63 +573,25 @@ int main() {
 ```
 
 **Answer:**
-```
-Output: [data size]
-Time: 5s
-(first access causes unexpected 5-second delay)
-```
+
+
 
 **Explanation:**
+
 - Meyer's singleton uses lazy initialization
 - Instance created on first `getInstance()` call
 - Constructor runs at first access → 5-second delay at that point
 - Unpredictable latency spike during first access
 - Can cause timeouts or poor user experience
-- If initialization expensive, prefer eager initialization or async initialization
-- **Key Concept:** Lazy singleton initialization causes latency spike on first access; unpredictable timing issue for expensive initialization; consider eager initialization, pre-warming, or async loading for performance-critical applications
 
 **Fixed Version:**
-```cpp
-// Option 1: Eager initialization
-class Singleton {
-    static Singleton instance_;  // Initialized at startup
-    std::string data_;
 
-    Singleton() {
-        data_ = loadLargeDataFromDisk();
-    }
+- Singleton() { data_ = loadLargeDataFromDisk(); }
+- public: static Singleton& getInstance() { return instance_; } };
+- Singleton Singleton::instance_; // Initialized before main()
+- // Option 2: Pre-warm at startup int main() { // Pre-warm singleton at startup (predictable timing) Singleton::getInstance();
+- // Now all subsequent accesses are fast std::cout << Singleton::getInstance().getData().size(); }
 
-public:
-    static Singleton& getInstance() {
-        return instance_;
-    }
-};
-
-Singleton Singleton::instance_;  // Initialized before main()
-
-// Option 2: Pre-warm at startup
-int main() {
-    // Pre-warm singleton at startup (predictable timing)
-    Singleton::getInstance();
-
-    // Now all subsequent accesses are fast
-    std::cout << Singleton::getInstance().getData().size();
-}
-
-// Option 3: Async initialization
-class Singleton {
-    std::future<std::string> data_future_;
-
-    Singleton() {
-        data_future_ = std::async(std::launch::async, loadLargeDataFromDisk);
-    }
-
-public:
-    const std::string& getData() {
-        static std::string data = data_future_.get();  // Wait on first getData()
-        return data;
-    }
-};
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---

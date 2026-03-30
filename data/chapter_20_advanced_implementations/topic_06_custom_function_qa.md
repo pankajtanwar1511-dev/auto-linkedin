@@ -155,70 +155,13 @@ Implement this exercise.
 
 **Answer:**
 
-```cpp
-template<typename R, typename... Args>
-class Function<R(Args...)> {
-private:
-    static constexpr size_t BUF_SIZE = 32;  // 32 bytes inline
+- Args> class Function<R(Args...)> { private: static constexpr size_t BUF_SIZE = 32; // 32 bytes inline
+- template<typename F> struct CallableImpl : CallableBase { F func_;
+- args) override { return func_(std::forward<Args>(args)...); }
+- void destroy() override { func_.~F(); // Manual destruction }
+- void clone_to(void* dest) const override { new (dest) CallableImpl(func_); } };
 
-    struct CallableBase {
-        virtual R invoke(Args...) = 0;
-        virtual void destroy() = 0;          // Custom destroyer
-        virtual void clone_to(void* dest) const = 0;  // Placement clone
-        virtual ~CallableBase() = default;
-    };
-
-    template<typename F>
-    struct CallableImpl : CallableBase {
-        F func_;
-
-        R invoke(Args... args) override {
-            return func_(std::forward<Args>(args)...);
-        }
-
-        void destroy() override {
-            func_.~F();  // Manual destruction
-        }
-
-        void clone_to(void* dest) const override {
-            new (dest) CallableImpl(func_);
-        }
-    };
-
-    alignas(std::max_align_t) char buffer_[BUF_SIZE];
-    CallableBase* ptr_;
-    bool heap_allocated_;
-
-public:
-    template<typename F>
-    Function(F f) {
-        using Impl = CallableImpl<std::decay_t<F>>;
-
-        if (sizeof(Impl) <= BUF_SIZE && alignof(Impl) <= alignof(std::max_align_t)) {
-            // Small: construct in buffer
-            ptr_ = new (buffer_) Impl(std::move(f));
-            heap_allocated_ = false;
-        } else {
-            // Large: heap allocate
-            ptr_ = new Impl(std::move(f));
-            heap_allocated_ = true;
-        }
-    }
-
-    ~Function() {
-        if (ptr_) {
-            ptr_->destroy();
-            if (heap_allocated_) {
-                delete ptr_;
-            }
-        }
-    }
-
-    R operator()(Args... args) {
-        return ptr_->invoke(std::forward<Args>(args)...);
-    }
-};
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
 #### Q6: What is the difference between std::function and function pointers?
@@ -329,57 +272,17 @@ Implement this exercise.
 
 **Answer:**
 
-```cpp
-template<typename R, typename... Args>
-class MoveOnlyFunction<R(Args...)> {
-private:
-    struct CallableBase {
-        virtual R invoke(Args...) = 0;
-        virtual ~CallableBase() = default;
-        // No clone() - not copyable!
-    };
-
-    template<typename F>
-    struct CallableImpl : CallableBase {
-        F func_;  // May be move-only
-
-        R invoke(Args... args) override {
-            return func_(std::forward<Args>(args)...);
-        }
-    };
-
-    std::unique_ptr<CallableBase> callable_;
-
-public:
-    template<typename F>
-    MoveOnlyFunction(F&& f)
-        : callable_(std::make_unique<CallableImpl<std::decay_t<F>>>(
-              std::forward<F>(f)))
-    {}
-
-    // Delete copy
-    MoveOnlyFunction(const MoveOnlyFunction&) = delete;
-    MoveOnlyFunction& operator=(const MoveOnlyFunction&) = delete;
-
-    // Enable move
-    MoveOnlyFunction(MoveOnlyFunction&&) = default;
-    MoveOnlyFunction& operator=(MoveOnlyFunction&&) = default;
-
-    R operator()(Args... args) {
-        return callable_->invoke(std::forward<Args>(args)...);
-    }
-};
-```
+- template<typename F> struct CallableImpl : CallableBase { F func_; // May be move-only
+- args) override { return func_(std::forward<Args>(args)...); } };
+- std::unique_ptr<CallableBase> callable_;
+- public: template<typename F> MoveOnlyFunction(F&& f) : callable_(std::make_unique<CallableImpl<std::decay_t<F>>>( std::forward<F>(f))) {}
+- // Delete copy MoveOnlyFunction(const MoveOnlyFunction&) = delete; MoveOnlyFunction& operator=(const MoveOnlyFunction&) = delete;
 
 **Usage:**
-```cpp
-MoveOnlyFunction<int()> func = [ptr = std::make_unique<int>(42)]() {
-    return *ptr;  // Move-only lambda
-};
 
-// func2 = func;  // ✗ Error: not copyable
-MoveOnlyFunction<int()> func2 = std::move(func);  // ✓ OK
-```
+- // func2 = func; // ✗ Error: not copyable MoveOnlyFunction<int()> func2 = std::move(func); // ✓ OK ```
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
 #### Q10: What is std::function_ref (C++26)?

@@ -31,57 +31,24 @@ int main() {
 ```
 
 **Answer:**
-```
-Silent failure (close() errors not detected, potential data loss)
-```
+
+
 
 **Explanation:**
+
 - `close()` can fail (e.g., disk full, network filesystem error)
 - Destructor ignores `close()` return value
 - Failed `close()` may lose buffered data writes
 - No way for caller to know close failed
 - Destructors shouldn't throw, so can't propagate error
-- Should log error or set error flag
-- **Key Concept:** close() can fail and lose data; RAII destructors can't throw exceptions; must handle errors via logging, error flags, or explicit close() method that can throw
 
 **Fixed Version:**
-```cpp
-class FileDescriptor {
-    int fd_;
-    bool closed_;
 
-public:
-    FileDescriptor(const char* path) : fd_(-1), closed_(false) {
-        fd_ = open(path, O_RDONLY);
-        if (fd_ < 0) {
-            throw std::runtime_error("Failed to open file");
-        }
-    }
+- int get() { return fd_; } }; ```
 
-    ~FileDescriptor() {
-        if (!closed_ && fd_ >= 0) {
-            if (close(fd_) < 0) {
-                std::cerr << "Warning: close() failed: " << strerror(errno) << "\n";
-            }
-        }
-    }
-
-    // Explicit close that can throw
-    void close() {
-        if (!closed_ && fd_ >= 0) {
-            if (::close(fd_) < 0) {
-                throw std::runtime_error("close() failed");
-            }
-            closed_ = true;
-        }
-    }
-
-    int get() { return fd_; }
-};
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q2
 ```cpp
 class FileDescriptor {
@@ -108,58 +75,28 @@ int main() {
 ```
 
 **Answer:**
-```
-Double-close error (undefined behavior, may close unrelated file descriptor)
-```
+
+
 
 **Explanation:**
+
 - Default copy constructor copies `fd_` value
 - `fd2` and `fd1` both hold same file descriptor number
 - `fd2` destructs first → closes file descriptor
 - `fd1` destructs → closes already-closed descriptor → undefined behavior
 - Worse: if another `open()` reused the FD number, we close wrong file!
-- Classic double-close bug
-- Must delete copy constructor/assignment
-- **Key Concept:** File descriptors are non-copyable resources; copying FD number creates double-close; delete copy operations or implement reference counting; prefer move-only semantics
 
 **Fixed Version:**
-```cpp
-class FileDescriptor {
-    int fd_;
 
-public:
-    FileDescriptor(int fd) : fd_(fd) {}
+- public: FileDescriptor(int fd) : fd_(fd) {}
+- ~FileDescriptor() { if (fd_ >= 0) { close(fd_); } }
+- // Delete copy operations FileDescriptor(const FileDescriptor&) = delete; FileDescriptor& operator=(const FileDescriptor&) = delete;
+- // Allow move operations FileDescriptor(FileDescriptor&& other) noexcept : fd_(other.fd_) { other.fd_ = -1; }
+- int get() const { return fd_; } }; ```
 
-    ~FileDescriptor() {
-        if (fd_ >= 0) {
-            close(fd_);
-        }
-    }
-
-    // Delete copy operations
-    FileDescriptor(const FileDescriptor&) = delete;
-    FileDescriptor& operator=(const FileDescriptor&) = delete;
-
-    // Allow move operations
-    FileDescriptor(FileDescriptor&& other) noexcept : fd_(other.fd_) {
-        other.fd_ = -1;
-    }
-
-    FileDescriptor& operator=(FileDescriptor&& other) noexcept {
-        if (this != &other) {
-            if (fd_ >= 0) close(fd_);
-            fd_ = other.fd_;
-            other.fd_ = -1;
-        }
-        return *this;
-    }
-
-    int get() const { return fd_; }
-};
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q3
 ```cpp
 class FileDescriptor {
@@ -311,60 +248,28 @@ int main() {
 ```
 
 **Answer:**
-```
-Double-close error (some_function closes FD, then destructor closes again)
-```
+
+
 
 **Explanation:**
+
 - `fd.get()` returns raw file descriptor
 - `some_function()` receives and closes it
 - Caller has no way to know function took ownership
 - Destructor runs → closes already-closed descriptor
 - Classic ownership confusion bug
-- `get()` should be used only for inspection, not ownership transfer
-- Need explicit ownership transfer mechanism (release() method)
-- **Key Concept:** Returning raw handles from RAII wrappers dangerous; no way to communicate ownership transfer; provide release() to explicitly transfer ownership and prevent double-close
 
 **Fixed Version:**
-```cpp
-class FileDescriptor {
-    int fd_;
 
-public:
-    FileDescriptor(int fd) : fd_(fd) {}
+- public: FileDescriptor(int fd) : fd_(fd) {}
+- ~FileDescriptor() { if (fd_ >= 0) { close(fd_); } }
+- // For inspection only (const qualifier emphasizes this) int get() const { return fd_; }
+- // Explicit ownership transfer int release() { int tmp = fd_; fd_ = -1; // Give up ownership return tmp; } };
+- // Better API: take RAII wrapper by move void some_function(FileDescriptor fd) { // Takes ownership, will close on destruction // Use fd.get() for operations }
 
-    ~FileDescriptor() {
-        if (fd_ >= 0) {
-            close(fd_);
-        }
-    }
-
-    // For inspection only (const qualifier emphasizes this)
-    int get() const { return fd_; }
-
-    // Explicit ownership transfer
-    int release() {
-        int tmp = fd_;
-        fd_ = -1;  // Give up ownership
-        return tmp;
-    }
-};
-
-// Better API: take RAII wrapper by move
-void some_function(FileDescriptor fd) {
-    // Takes ownership, will close on destruction
-    // Use fd.get() for operations
-}
-
-int main() {
-    FileDescriptor fd(open("file.txt", O_RDONLY));
-    some_function(std::move(fd));  // Explicit ownership transfer
-    // fd is now in moved-from state, destructor won't close
-}
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q6
 ```cpp
 class FileDescriptor {
@@ -614,65 +519,28 @@ int main() {
 ```
 
 **Answer:**
-```
-Closes unrelated file descriptor (99999 likely belongs to another resource or invalid)
-```
+
+
 
 **Explanation:**
+
 - Constructor accepts arbitrary FD number without validation
 - `is_valid()` only checks if FD >= 0, not if actually open
 - FD 99999 may be closed or belong to different resource
 - Destructor blindly closes it → may close wrong file or fail
 - Should validate FD actually refers to open file (e.g., via fcntl)
-- Or enforce construction only through factory functions that open files
-- **Key Concept:** Accepting arbitrary file descriptors without validation unsafe; FD may be closed, invalid, or owned elsewhere; validate using fcntl() or restrict construction to factory methods that open resources
 
 **Fixed Version:**
-```cpp
-class FileDescriptor {
-    int fd_;
 
-    // Private constructor
-    FileDescriptor(int fd) : fd_(fd) {}
+- // Private constructor FileDescriptor(int fd) : fd_(fd) {}
+- ~FileDescriptor() { if (fd_ >= 0) { close(fd_); } }
+- bool is_valid() const { return fd_ >= 0 && fcntl(fd_, F_GETFD) >= 0; } };
+- int main() { // FileDescriptor fd(99999); // Compilation error - constructor private
+- FileDescriptor fd = FileDescriptor::open("file.txt", O_RDONLY); // Safe } ```
 
-public:
-    // Factory methods (only way to create)
-    static FileDescriptor open(const char* path, int flags) {
-        int fd = ::open(path, flags);
-        if (fd < 0) {
-            throw std::runtime_error("open() failed");
-        }
-        return FileDescriptor(fd);
-    }
-
-    static FileDescriptor from_fd(int fd) {
-        // Validate FD is actually open
-        if (fcntl(fd, F_GETFD) < 0) {
-            throw std::invalid_argument("FD not open");
-        }
-        return FileDescriptor(fd);
-    }
-
-    ~FileDescriptor() {
-        if (fd_ >= 0) {
-            close(fd_);
-        }
-    }
-
-    bool is_valid() const {
-        return fd_ >= 0 && fcntl(fd_, F_GETFD) >= 0;
-    }
-};
-
-int main() {
-    // FileDescriptor fd(99999);  // Compilation error - constructor private
-
-    FileDescriptor fd = FileDescriptor::open("file.txt", O_RDONLY);  // Safe
-}
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q10
 ```cpp
 class FileDescriptor {

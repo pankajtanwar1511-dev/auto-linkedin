@@ -494,58 +494,27 @@ The built-in comma operator guarantees left-to-right evaluation with sequence po
 **Concepts:** #rule_of_five #copy_constructor #move_semantics #assignment_operator #destructor #raii
 
 **Answer:**
-If you define a custom destructor, copy constructor, or copy assignment operator, you usually need to define all three (rule of three). With move semantics, this extends to five (add move constructor and move assignment). If you use RAII correctly, you may need zero custom special functions.
+
+- If you define a custom destructor, copy constructor, or copy assignment operator, you usually need to define all three (rule of three)
+- With move semantics, this extends to five (add move constructor and move assignment)
+- If you use RAII correctly, you may need zero custom special functions.
 
 **Code example:**
-```cpp
-// Rule of Five
-class DynamicArray {
-    int* data;
-    size_t size;
-public:
-    ~DynamicArray() { delete[] data; }  // 1. Destructor
-    
-    DynamicArray(const DynamicArray& other)  // 2. Copy constructor
-        : size(other.size), data(new int[size]) {
-        std::copy(other.data, other.data + size, data);
-    }
-    
-    DynamicArray& operator=(const DynamicArray& other) {  // 3. Copy assignment
-        if (this != &other) {
-            delete[] data;
-            size = other.size;
-            data = new int[size];
-            std::copy(other.data, other.data + size, data);
-        }
-        return *this;
-    }
-    
-    DynamicArray(DynamicArray&& other) noexcept  // 4. Move constructor
-        : data(other.data), size(other.size) {
-        other.data = nullptr;
-        other.size = 0;
-    }
-    
-    DynamicArray& operator=(DynamicArray&& other) noexcept {  // 5. Move assignment
-        if (this != &other) {
-            delete[] data;
-            data = other.data;
-            size = other.size;
-            other.data = nullptr;
-            other.size = 0;
-        }
-        return *this;
-    }
-};
-```
+
+- Destructor DynamicArray(const DynamicArray& other) // 2
 
 **Explanation:**
-Classes managing resources need consistent copy and move semantics. If you properly use smart pointers and RAII wrappers, the compiler can generate all five correctly (rule of zero), making custom operators unnecessary.
 
-**Key takeaway:** When managing resources, implement all five special member functions or use RAII wrappers to follow the rule of zero; inconsistent implementation leads to memory leaks or double-deletion bugs.
+- Classes managing resources need consistent copy and move semantics
+- If you properly use smart pointers and RAII wrappers, the compiler can generate all five correctly (rule of zero), making custom operators unnecessary.
+
+**Key takeaway:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q19: How does the spaceship operator (<=>) simplify comparison operator overloading in C++20?
 **Difficulty:** #intermediate
 **Category:** #modern_cpp #best_practice

@@ -94,71 +94,15 @@ CLOSED (recovered)
 
 #### Q5: How do you ensure data consistency across microservices?
 
-**Answer**:
 
-**Two strategies**:
+**:**
 
-**1. Eventual Consistency (Common)**:
 - Each service has own database
 - Use events to propagate changes
 - Accept temporary inconsistency
-
-```cpp
-// User Service updates email
-userRepository.updateEmail(userId, newEmail);
-eventBus.publish("UserEmailUpdated", {userId, newEmail});
-
-// Order Service listens and updates cache
-void onUserEmailUpdated(Event e) {
-    userCache.update(e.userId, e.newEmail);
-}
-```
-
-**2. Strong Consistency (Rare)**:
 - Query master service for latest data
 - No caching, always fresh
 
-```cpp
-// Order Service queries User Service every time
-std::string getEmail(int userId) {
-    return httpClient.get("user-service/users/" + userId).email;
-}
-```
-
-**Trade-off**: Performance (caching) vs Consistency (fresh data).
-
----
-
-#### Additional Questions 6-20 (Outlined)
-
-**Q6**: What is an API Gateway? What are its responsibilities?
-
-**Q7**: How does service discovery work?
-
-**Q8**: What is the difference between synchronous and asynchronous communication?
-
-**Q9**: How do you version APIs in microservices?
-
-**Q10**: What is distributed tracing? How does it work?
-
-**Q11**: How do you handle authentication in microservices?
-
-**Q12**: What is a service mesh? (Istio, Linkerd)
-
-**Q13**: How do you test microservices?
-
-**Q14**: What is the strangler fig pattern for migrating from monolith?
-
-**Q15**: How do you handle database migrations in microservices?
-
-**Q16**: What is CQRS and how does it relate to microservices?
-
-**Q17**: How do you monitor microservices?
-
-**Q18**: What is polyglot persistence?
-
-**Q19**: How do you handle rate limiting in microservices?
-
-**Q20**: What are the differences between microservices and SOA (Service-Oriented Architecture)?
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---

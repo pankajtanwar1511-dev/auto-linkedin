@@ -180,7 +180,7 @@ Implement this exercise.
 
 **Answer:**
 
-**Yes, but more complex** (two pointers: head and tail).
+- Yes, but more complex (two pointers: head and tail).
 
 **Simplified approach (Michael-Scott queue):**
 
@@ -197,65 +197,20 @@ private:
 
     std::atomic<Node*> head_;
     std::atomic<Node*> tail_;
-
-public:
-    LockFreeQueue() {
-        Node* dummy = new Node();
-        head_.store(dummy);
-        tail_.store(dummy);
-    }
-
-    void push(T value) {
-        auto data = std::make_shared<T>(std::move(value));
-        Node* new_node = new Node();
-        new_node->data = data;
-
-        Node* old_tail = tail_.load();
-
-        while (true) {
-            Node* tail_next = old_tail->next.load();
-
-            if (tail_next == nullptr) {
-                // Try to link new node
-                if (old_tail->next.compare_exchange_weak(tail_next, new_node)) {
-                    // Success - update tail
-                    tail_.compare_exchange_weak(old_tail, new_node);
-                    return;
-                }
-            } else {
-                // Help other thread update tail
-                tail_.compare_exchange_weak(old_tail, tail_next);
-            }
-
-            old_tail = tail_.load();
-        }
-    }
-
-    std::shared_ptr<T> try_pop() {
-        Node* old_head = head_.load();
-
-        while (true) {
-            Node* head_next = old_head->next.load();
-
-            if (head_next == nullptr) {
-                return std::shared_ptr<T>();  // Empty
-            }
-
-            if (head_.compare_exchange_weak(old_head, head_next)) {
-                std::shared_ptr<T> result;
-                result.swap(head_next->data);
-                delete old_head;  // Safe (dummy node)
-                return result;
-            }
-        }
-    }
-};
+    // ... (additional code omitted for brevity)
 ```
 
+- cpp template<typename T> class LockFreeQueue { private: struct Node { std::shared_ptr<T> data; std::atomic<Node*> next;
+- Node() : next(nullptr) {} };
+- std::atomic<Node*> head_; std::atomic<Node*> tail_;
+
 **Key differences from stack:**
+
 - Two CAS locations (head and tail)
 - Dummy node to avoid special cases
 - "Helping" mechanism (threads help complete others' operations)
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
 #### Q7: What are the performance characteristics of lock-free vs mutex-based stacks?
@@ -292,58 +247,10 @@ Implement this exercise.
 
 **Answer:**
 
-**1) Single-Threaded Tests:**
-```cpp
-LockFreeStack<int> stack;
-stack.push(1);
-stack.push(2);
-assert(stack.try_pop() == 2);
-assert(stack.try_pop() == 1);
-assert(!stack.try_pop().has_value());
-```
-
-**2) Multi-Threaded Stress Test:**
-```cpp
-void test() {
-    LockFreeStack<int> stack;
-    std::atomic<int> pushed{0}, popped{0};
-
-    auto pusher = [&]() {
-        for (int i = 0; i < 10000; ++i) {
-            stack.push(i);
-            ++pushed;
-        }
-    };
-
-    auto popper = [&]() {
-        while (popped < 20000) {
-            if (stack.try_pop()) ++popped;
-        }
-    };
-
-    std::vector<std::thread> threads;
-    threads.emplace_back(pusher);
-    threads.emplace_back(pusher);
-    threads.emplace_back(popper);
-    threads.emplace_back(popper);
-
-    for (auto& t : threads) t.join();
-
-    assert(pushed == 20000);
-    assert(popped == 20000);
-    assert(stack.empty());
-}
-```
-
-**3) Thread Sanitizer:**
-```bash
-g++ -fsanitize=thread -g test.cpp
-./a.out
-```
-
-**4) Formal Verification:**
 - Model checking (limited state space)
 - Proof assistants (Coq, Isabelle)
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
 #### Q9: Explain the role of `std::atomic<T>` - what can T be?

@@ -1458,12 +1458,10 @@
             "algorithm_design",
             "crtp"
           ],
-          "answer": "Implement the algorithm in the CRTP base using static dispatch to call derived-specific operations, enabling customization without virtual function overhead.",
-          "explanation": "The CRTP base implements the common algorithm structure (the \"template method\"), calling `sortImpl` via static dispatch to get the derived-specific behavior. Each derived class provides its own implementation. This achieves the Template Method design pattern at compile time with zero overhead. The compiler can inline everything, unlike virtual functions which prevent many optimizations.",
-          "code_examples": [
-            "template<typename Derived>\nclass SortAlgorithm {\npublic:\n    template<typename Container>\n    void sort(Container& cont) {\n        std::cout << \"Starting sort...\\n\";\n        auto begin = cont.begin();\n        auto end = cont.end();\n        static_cast<Derived*>(this)->sortImpl(begin, end);  // ✅ Customization point\n        std::cout << \"Sort complete.\\n\";\n    }\n};\n\nclass QuickSort : public SortAlgorithm<QuickSort> {\npublic:\n    template<typename Iterator>\n    void sortImpl(Iterator begin, Iterator end) {\n        std::cout << \"Using QuickSort\\n\";\n        std::sort(begin, end);  // Use std::sort as example\n    }\n};\n\nclass BubbleSort : public SortAlgorithm<BubbleSort> {\npublic:\n    template<typename Iterator>\n    void sortImpl(Iterator begin, Iterator end) {\n        std::cout << \"Using BubbleSort\\n\";\n        // Bubble sort implementation\n    }\n};\n\nint main() {\n    std::vector<int> data = {3, 1, 4, 1, 5};\n    QuickSort qs;\n    qs.sort(data);  // Starting sort... Using QuickSort Sort complete.\n}"
-          ],
-          "key_takeaway": "CRTP enables compile-time polymorphic algorithms with the Template Method pattern."
+          "answer": "- Implement the algorithm in the CRTP base using static dispatch to call derived-specific operations, enabling customization without virtual function overhead.",
+          "explanation": "- The CRTP base implements the common algorithm structure (the \"template method\"), calling `sortImpl` via static dispatch to get the derived-specific behavior\n- Each derived class provides its own implementation\n- This achieves the Template Method design pattern at compile time with zero overhead\n- The compiler can inline everything, unlike virtual functions which prevent many optimizations.",
+          "code_examples": [],
+          "key_takeaway": "**Note:** Full detailed explanation with additional examples available in source materials."
         }
       ],
       "practice_tasks": [

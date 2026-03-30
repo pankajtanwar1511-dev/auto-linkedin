@@ -250,71 +250,25 @@ Implement this exercise.
 
 **Answer:**
 
-```cpp
-#include <chrono>
-#include <iostream>
-
-template<typename Stack>
-void benchmark(int num_threads, int ops_per_thread) {
-    Stack stack;
-
-    auto start = std::chrono::high_resolution_clock::now();
-
-    std::vector<std::thread> threads;
-    for (int i = 0; i < num_threads; ++i) {
-        threads.emplace_back([&stack, ops_per_thread]() {
-            for (int j = 0; j < ops_per_thread; ++j) {
-                stack.push(j);
-                stack.try_pop();
-            }
-        });
-    }
-
-    for (auto& t : threads) t.join();
-
-    auto end = std::chrono::high_resolution_clock::now();
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-
-    std::cout << num_threads << " threads: " << ms << " ms\n";
-}
-
-int main() {
-    std::cout << "Lock-Free Stack:\n";
-    benchmark<LockFreeStack<int>>(1, 1000000);
-    benchmark<LockFreeStack<int>>(2, 500000);
-    benchmark<LockFreeStack<int>>(4, 250000);
-    benchmark<LockFreeStack<int>>(8, 125000);
-
-    std::cout << "\nMutex Stack:\n";
-    benchmark<MutexStack<int>>(1, 1000000);
-    benchmark<MutexStack<int>>(2, 500000);
-    benchmark<MutexStack<int>>(4, 250000);
-    benchmark<MutexStack<int>>(8, 125000);
-}
-```
+- template<typename Stack> void benchmark(int num_threads, int ops_per_thread) { Stack stack;
+- auto start = std::chrono::high_resolution_clock::now();
+- for (auto& t : threads) t.join();
+- auto end = std::chrono::high_resolution_clock::now(); auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+- std::cout << num_threads << " threads: " << ms << " ms\n"; }
 
 **Typical results:**
-```
-Lock-Free Stack:
-1 threads: 45 ms
-2 threads: 38 ms
-4 threads: 35 ms
-8 threads: 34 ms
 
-Mutex Stack:
-1 threads: 28 ms
-2 threads: 62 ms
-4 threads: 145 ms
-8 threads: 287 ms
-```
+- Mutex Stack: 1 threads: 28 ms 2 threads: 62 ms 4 threads: 145 ms 8 threads: 287 ms ```
 
 **Conclusions:**
+
 - **Single thread:** Mutex wins (no atomic overhead)
 - **High contention (8+ threads):** Lock-free wins (no blocking)
 - **Crossover:** ~2-4 threads
 
----
+**Note:** Full detailed explanation with additional examples available in source materials.
 
+---
 #### Q7
 Implement a lock-free stack that tracks the maximum size ever reached.
 

@@ -671,11 +671,11 @@ int main() {
 ```
 
 **Answer:**
-```
-Blocking send() starves other clients - defeats poll() multiplexing
-```
+
+
 
 **Explanation:**
+
 - `send()` blocks if client TCP receive buffer full
 - Slow client (or network) causes send() to block
 - While blocked, cannot process other clients - defeats poll()
@@ -683,60 +683,15 @@ Blocking send() starves other clients - defeats poll() multiplexing
 - **Key Concept:** Use non-blocking I/O in poll() loops; blocking send() defeats multiplexing - queue data and use POLLOUT
 
 **Fixed Version:**
-```cpp
-struct FileTransfer {
-    int file_fd;
-    std::string buffer;
-    bool eof = false;
-};
 
-std::map<int, FileTransfer> transfers;
+- std::map<int, FileTransfer> transfers;
+- transfers[client_fd] = {file_fd, "", false};
+- // Enable POLLOUT monitoring for (auto& pfd : fds) { if (pfd.fd == client_fd) { pfd.events |= POLLOUT; break; } } }
+- // In poll loop if (pfd.revents & POLLOUT) { auto& transfer = transfers[pfd.fd];
 
-void start_file_transfer(int client_fd, const char* filename, std::vector<struct pollfd>& fds) {
-    int file_fd = open(filename, O_RDONLY);
-    fcntl(client_fd, F_SETFL, O_NONBLOCK);  // Non-blocking!
-
-    transfers[client_fd] = {file_fd, "", false};
-
-    // Enable POLLOUT monitoring
-    for (auto& pfd : fds) {
-        if (pfd.fd == client_fd) {
-            pfd.events |= POLLOUT;
-            break;
-        }
-    }
-}
-
-// In poll loop
-if (pfd.revents & POLLOUT) {
-    auto& transfer = transfers[pfd.fd];
-
-    if (transfer.buffer.empty() && !transfer.eof) {
-        char buffer[65536];
-        ssize_t n = read(transfer.file_fd, buffer, sizeof(buffer));
-        if (n > 0) {
-            transfer.buffer.assign(buffer, n);
-        } else {
-            transfer.buffer = "\r\n--EOF--\r\n";
-            transfer.eof = true;
-            close(transfer.file_fd);
-        }
-    }
-
-    int sent = send(pfd.fd, transfer.buffer.c_str(), transfer.buffer.size(), 0);
-    if (sent > 0) {
-        transfer.buffer = transfer.buffer.substr(sent);
-        if (transfer.buffer.empty() && transfer.eof) {
-            // Transfer complete
-            transfers.erase(pfd.fd);
-            pfd.events &= ~POLLOUT;
-        }
-    }
-}
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q11
 ```cpp
 #include <poll.h>

@@ -143,11 +143,13 @@ class UserService {
 
 #### Q5: How do you handle cross-cutting concerns (logging, authentication) in layered architecture?
 
+
+**:**
+
 **Answer**:
-
 **Cross-Cutting Concerns**: Features needed in multiple layers (logging, security, error handling).
-
 **Problem**: Duplication
+
 ```cpp
 void method1() {
     log("Starting...");
@@ -162,88 +164,10 @@ void method2() {
 }
 ```
 
-**Solutions**:
+- cpp void method1() { log("Starting..."); // logic log("Done"); }
+- void method2() { log("Starting..."); // ← Duplicated
+- // logic log("Done"); } ```
 
-**1. Decorator Pattern**:
-```cpp
-class LoggingDecorator : public IUserService {
-    IUserService* innerService;
-
-public:
-    void registerUser(const User& user) override {
-        log("registerUser called");
-        innerService->registerUser(user);
-        log("registerUser completed");
-    }
-};
-```
-
-**2. Middleware (Web Apps)**:
-```cpp
-app.use(LoggingMiddleware());  // Applies to all requests
-app.use(AuthenticationMiddleware());
-```
-
-**3. Aspect-Oriented Programming (AOP)**:
-```cpp
-@Logged  // Annotation adds logging automatically
-void registerUser(const User& user) {
-    // No logging code needed!
-}
-```
-
-**4. Base Class with Template Method**:
-```cpp
-class BaseService {
-protected:
-    void execute(std::function<void()> operation) {
-        log("Starting");
-        operation();
-        log("Done");
-    }
-};
-
-class UserService : public BaseService {
-    void registerUser(const User& user) {
-        execute([&]() {
-            // Actual logic here
-        });
-    }
-};
-```
-
----
-
-#### Additional Questions 6-20 (Outlined)
-
-**Q6**: What is the difference between 3-tier and N-tier architecture?
-
-**Q7**: How do you implement dependency injection in C++?
-
-**Q8**: What is the role of DTOs (Data Transfer Objects) between layers?
-
-**Q9**: Should the Data layer return domain objects or DTOs?
-
-**Q10**: How do you handle transactions across multiple repositories?
-
-**Q11**: What is CQRS and how does it relate to layered architecture?
-
-**Q12**: How do you implement caching in a layered architecture?
-
-**Q13**: What are the disadvantages of layered architecture?
-
-**Q14**: When should you NOT use layered architecture?
-
-**Q15**: How do you implement validation: in Presentation or Business layer?
-
-**Q16**: What is the Dependency Inversion Principle in context of layering?
-
-**Q17**: How do you handle errors across layers?
-
-**Q18**: What is the difference between Service layer and Domain layer?
-
-**Q19**: How do you implement authorization in layered architecture?
-
-**Q20**: Compare layered architecture to microservices architecture.
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---

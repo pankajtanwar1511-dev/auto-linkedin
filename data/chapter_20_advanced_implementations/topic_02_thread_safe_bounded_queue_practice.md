@@ -102,77 +102,19 @@ Implement this exercise.
 
 **Answer:**
 
-```cpp
-template<typename T>
-class BoundedQueue {
-private:
-    std::queue<T> queue_;
-    const size_t capacity_;
-
-    std::mutex mutex_;
-    std::condition_variable not_full_, not_empty_;
-
-    // Statistics (protected by same mutex)
-    size_t total_pushed_ = 0;
-    size_t total_popped_ = 0;
-    size_t max_size_reached_ = 0;
-
-public:
-    void push(const T& value) {
-        std::unique_lock<std::mutex> lock(mutex_);
-        not_full_.wait(lock, [this]() { return queue_.size() < capacity_; });
-
-        queue_.push(value);
-        ++total_pushed_;  // Update stat
-
-        if (queue_.size() > max_size_reached_) {
-            max_size_reached_ = queue_.size();
-        }
-
-        not_empty_.notify_one();
-    }
-
-    T pop() {
-        std::unique_lock<std::mutex> lock(mutex_);
-        not_empty_.wait(lock, [this]() { return !queue_.empty(); });
-
-        T value = std::move(queue_.front());
-        queue_.pop();
-        ++total_popped_;  // Update stat
-
-        not_full_.notify_one();
-        return value;
-    }
-
-    struct Stats {
-        size_t total_pushed;
-        size_t total_popped;
-        size_t max_size_reached;
-        size_t current_size;
-    };
-
-    Stats get_stats() const {
-        std::lock_guard<std::mutex> lock(mutex_);
-        return Stats{
-            total_pushed_,
-            total_popped_,
-            max_size_reached_,
-            queue_.size()
-        };
-    }
-};
-```
+- std::mutex mutex_; std::condition_variable not_full_, not_empty_;
+- // Statistics (protected by same mutex) size_t total_pushed_ = 0; size_t total_popped_ = 0; size_t max_size_reached_ = 0;
+- public: void push(const T& value) { std::unique_lock<std::mutex> lock(mutex_); not_full_.wait(lock, [this]() { return queue_.size() < capacity_; });
+- queue_.push(value); ++total_pushed_; // Update stat
+- if (queue_.size() > max_size_reached_) { max_size_reached_ = queue_.size(); }
 
 **Usage:**
-```cpp
-auto stats = queue.get_stats();
-std::cout << "Pushed: " << stats.total_pushed
-          << ", Popped: " << stats.total_popped
-          << ", Max size: " << stats.max_size_reached << '\n';
-```
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q5
 Modify the queue to support multiple priorities (3 levels: HIGH, MEDIUM, LOW). Ensure HIGH priority items are popped first.
 
@@ -180,73 +122,19 @@ Implement this exercise.
 
 **Answer:**
 
-```cpp
-enum class Priority { LOW, MEDIUM, HIGH };
-
-template<typename T>
-class MultiPriorityQueue {
-private:
-    std::array<std::queue<T>, 3> queues_;  // One per priority
-    const size_t capacity_;
-    size_t total_size_ = 0;
-
-    std::mutex mutex_;
-    std::condition_variable not_full_, not_empty_;
-
-    static size_t priority_index(Priority p) {
-        return static_cast<size_t>(p);
-    }
-
-public:
-    explicit MultiPriorityQueue(size_t capacity) : capacity_(capacity) {}
-
-    void push(const T& value, Priority priority) {
-        std::unique_lock<std::mutex> lock(mutex_);
-
-        not_full_.wait(lock, [this]() {
-            return total_size_ < capacity_;
-        });
-
-        queues_[priority_index(priority)].push(value);
-        ++total_size_;
-        not_empty_.notify_one();
-    }
-
-    T pop() {
-        std::unique_lock<std::mutex> lock(mutex_);
-
-        not_empty_.wait(lock, [this]() {
-            return total_size_ > 0;
-        });
-
-        // Pop from highest priority non-empty queue
-        for (int i = 2; i >= 0; --i) {  // HIGH → MEDIUM → LOW
-            if (!queues_[i].empty()) {
-                T value = std::move(queues_[i].front());
-                queues_[i].pop();
-                --total_size_;
-                not_full_.notify_one();
-                return value;
-            }
-        }
-
-        throw std::logic_error("Queue empty despite wait condition");
-    }
-};
-```
+- template<typename T> class MultiPriorityQueue { private: std::array<std::queue<T>, 3> queues_; // One per priority const size_t capacity_; size_t total_size_ = 0;
+- std::mutex mutex_; std::condition_variable not_full_, not_empty_;
+- static size_t priority_index(Priority p) { return static_cast<size_t>(p); }
+- public: explicit MultiPriorityQueue(size_t capacity) : capacity_(capacity) {}
+- void push(const T& value, Priority priority) { std::unique_lock<std::mutex> lock(mutex_);
 
 **Usage:**
-```cpp
-MultiPriorityQueue<Task> queue(100);
-queue.push(task1, Priority::LOW);
-queue.push(task2, Priority::HIGH);
-queue.push(task3, Priority::MEDIUM);
 
-Task t = queue.pop();  // Gets task2 (HIGH priority)
-```
+- Task t = queue.pop(); // Gets task2 (HIGH priority) ```
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q6
 Implement a `wait_until_empty()` method that blocks until the queue is empty.
 
@@ -398,72 +286,19 @@ Implement this exercise.
 
 **Answer:**
 
-```cpp
-template<typename T>
-class BoundedQueue {
-private:
-    std::queue<T> queue_;
-    const size_t capacity_;
-    std::mutex mutex_;
-    std::condition_variable not_full_, not_empty_;
-
-    // Callbacks (optional)
-    std::function<void(const T&)> on_push_callback_;
-    std::function<void(const T&)> on_pop_callback_;
-
-public:
-    void set_on_push_callback(std::function<void(const T&)> callback) {
-        std::lock_guard<std::mutex> lock(mutex_);
-        on_push_callback_ = std::move(callback);
-    }
-
-    void set_on_pop_callback(std::function<void(const T&)> callback) {
-        std::lock_guard<std::mutex> lock(mutex_);
-        on_pop_callback_ = std::move(callback);
-    }
-
-    void push(const T& value) {
-        std::unique_lock<std::mutex> lock(mutex_);
-        not_full_.wait(lock, [this]() { return queue_.size() < capacity_; });
-
-        queue_.push(value);
-        not_empty_.notify_one();
-
-        if (on_push_callback_) {
-            on_push_callback_(value);  // Execute callback
-        }
-    }
-
-    T pop() {
-        std::unique_lock<std::mutex> lock(mutex_);
-        not_empty_.wait(lock, [this]() { return !queue_.empty(); });
-
-        T value = std::move(queue_.front());
-        queue_.pop();
-        not_full_.notify_one();
-
-        if (on_pop_callback_) {
-            on_pop_callback_(value);  // Execute callback
-        }
-
-        return value;
-    }
-};
-```
+- // Callbacks (optional) std::function<void(const T&)> on_push_callback_; std::function<void(const T&)> on_pop_callback_;
+- void set_on_pop_callback(std::function<void(const T&)> callback) { std::lock_guard<std::mutex> lock(mutex_); on_pop_callback_ = std::move(callback); }
+- void push(const T& value) { std::unique_lock<std::mutex> lock(mutex_); not_full_.wait(lock, [this]() { return queue_.size() < capacity_; });
+- queue_.push(value); not_empty_.notify_one();
+- if (on_push_callback_) { on_push_callback_(value); // Execute callback } }
 
 **Usage:**
-```cpp
-queue.set_on_push_callback([](const int& val) {
-    std::cout << "Pushed: " << val << '\n';
-});
 
-queue.set_on_pop_callback([](const int& val) {
-    std::cout << "Popped: " << val << '\n';
-});
-```
+- queue.set_on_pop_callback([](const int& val) { std::cout << "Popped: " << val << '\n'; }); ```
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q10
 Implement `drain()` that moves all elements to a vector and returns them atomically.
 

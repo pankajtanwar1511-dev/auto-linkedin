@@ -519,52 +519,24 @@ int main() {
 ```
 
 **Answer:**
-```
-Deadlock (spinlock not recursive, double-lock deadlocks immediately)
-```
+
+
 
 **Explanation:**
+
 - First `lock()` acquires successfully
 - Second `lock()` spins forever (same thread!)
 - Spinlocks not recursive by default
 - Unlike `std::recursive_mutex`, spinlock deadlocks
 - Must track owner thread for recursion
-- **Key Concept:** Basic spinlocks non-recursive; double-locking causes deadlock; implement recursive spinlock with owner tracking or use recursive_mutex
 
 **Recursive Spinlock:**
-```cpp
-class RecursiveSpinlock {
-    std::atomic<bool> locked_{false};
-    std::thread::id owner_;
-    int recursion_count_ = 0;
 
-public:
-    void lock() {
-        auto this_id = std::this_thread::get_id();
+- public: void lock() { auto this_id = std::this_thread::get_id();
+- if (owner_ == this_id) { recursion_count_++; // Recursive lock return; }
+- owner_ = this_id; recursion_count_ = 1; }
+- void unlock() { if (--recursion_count_ == 0) { owner_ = std::thread::id(); locked_.store(false, std::memory_order_release); } } }; ```
 
-        if (owner_ == this_id) {
-            recursion_count_++;  // Recursive lock
-            return;
-        }
-
-        // Acquire lock
-        while (locked_.exchange(true, std::memory_order_acquire)) {
-            while (locked_.load(std::memory_order_relaxed)) {
-                cpu_relax();
-            }
-        }
-
-        owner_ = this_id;
-        recursion_count_ = 1;
-    }
-
-    void unlock() {
-        if (--recursion_count_ == 0) {
-            owner_ = std::thread::id();
-            locked_.store(false, std::memory_order_release);
-        }
-    }
-};
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---

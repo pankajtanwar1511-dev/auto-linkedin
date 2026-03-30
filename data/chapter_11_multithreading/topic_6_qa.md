@@ -390,68 +390,25 @@ future<void> represents a completion signal. Calling get() on it returns void bu
 **Concepts:** #task_queue #worker_threads #future_collection
 
 **Answer:**
-Create a queue of packaged_tasks, worker threads dequeue and execute tasks, and submitters retrieve results via returned futures.
+
+- Create a queue of packaged_tasks, worker threads dequeue and execute tasks, and submitters retrieve results via returned futures.
 
 **Code example:**
-```cpp
-class ThreadPool {
-    std::vector<std::thread> workers;
-    std::queue<std::packaged_task<void()>> tasks;
-    std::mutex mtx;
-    std::condition_variable cv;
-    bool stop = false;
 
-public:
-    ThreadPool(size_t num_threads) {
-        for (size_t i = 0; i < num_threads; ++i) {
-            workers.emplace_back([this] {
-                while (true) {
-                    std::packaged_task<void()> task;
-                    {
-                        std::unique_lock<std::mutex> lock(mtx);
-                        cv.wait(lock, [this]{ return stop || !tasks.empty(); });
-                        if (stop && tasks.empty()) return;
-                        task = std::move(tasks.front());
-                        tasks.pop();
-                    }
-                    task();  // Execute task
-                }
-            });
-        }
-    }
-
-    template<typename F>
-    auto submit(F&& f) -> std::future<decltype(f())> {
-        using RetType = decltype(f());
-        auto task = std::packaged_task<RetType()>(std::forward<F>(f));
-        auto fut = task.get_future();
-
-        {
-            std::lock_guard<std::mutex> lock(mtx);
-            tasks.emplace(std::move(task));
-        }
-        cv.notify_one();
-        return fut;
-    }
-
-    ~ThreadPool() {
-        {
-            std::lock_guard<std::mutex> lock(mtx);
-            stop = true;
-        }
-        cv.notify_all();
-        for (auto& t : workers) t.join();
-    }
-};
-```
+- { std::lock_guard<std::mutex> lock(mtx); tasks.emplace(std::move(task)); } cv.notify_one(); return fut; }
 
 **Explanation:**
-Packaged_task wraps arbitrary callables with futures, allowing the thread pool to handle heterogeneous tasks. Submitters receive futures for result retrieval without knowing which worker executed the task. This pattern scales to hundreds of concurrent tasks in autonomous vehicle perception where camera frames, lidar scans, and radar updates are all processed in parallel by a shared worker pool.
 
-**Key takeaway:** Packaged_task is the foundation for thread pools, separating task submission from execution and result retrieval.
+- Packaged_task wraps arbitrary callables with futures, allowing the thread pool to handle heterogeneous tasks
+- Submitters receive futures for result retrieval without knowing which worker executed the task
+
+**Key takeaway:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q17: What is the relationship between std::promise::set_value() and future::get()?
 **Difficulty:** #intermediate
 **Category:** #promise #future

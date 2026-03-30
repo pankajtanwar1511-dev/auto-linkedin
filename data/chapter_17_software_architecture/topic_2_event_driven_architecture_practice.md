@@ -34,22 +34,20 @@ public:
 ```
 
 **Answer:**
-```
+```cpp
 Iterator invalidation bug - undefined behavior if handler unsubscribes during publish
 ```
-
+- Iterator invalidation bug - undefined behavior if handler unsubscribes during publish ```
 **Explanation:**
 - Iterating over `handlers` vector while handler callback modifies it (unsubscribe)
 - `unsubscribe()` erases from vector, invalidating iterators currently in use
 - Causes undefined behavior: crash, skip handlers, or call deleted handlers
 - Classic event system bug - handlers modifying subscription list during dispatch
 - **Key Concept:** Never modify container while iterating; use snapshot or deferred operations
-
 **Fixed Version:**
 ```cpp
 class EventBus {
     std::vector<EventHandler> handlers;
-
 public:
     void publish(const Event& e) {
         // Copy handlers vector to avoid iterator invalidation
@@ -58,60 +56,12 @@ public:
             h(e);  // Safe - iterating over copy
         }
     }
-
-    void subscribe(EventHandler h) {
-        handlers.push_back(h);
-    }
-
-    void unsubscribe(EventHandler h) {
-        // Remove handler (modifies original, not affecting copy in publish)
-        handlers.erase(std::remove_if(handlers.begin(), handlers.end(),
-            [&](const EventHandler& handler) {
-                // Compare function pointers (simplified)
-                return handler.target_type() == h.target_type();
-            }), handlers.end());
-    }
-};
+    // ... (additional code omitted for brevity)
 ```
 
-**Alternative: Deferred Removal:**
-```cpp
-class EventBus {
-    std::vector<EventHandler> handlers;
-    std::vector<EventHandler> toRemove;
-    bool publishing = false;
+**Note:** Full detailed explanation with additional examples available in source materials.
 
-public:
-    void publish(const Event& e) {
-        publishing = true;
-        for (auto& h : handlers) {
-            h(e);
-        }
-        publishing = false;
-
-        // Process deferred removals
-        for (auto& h : toRemove) {
-            handlers.erase(std::remove_if(handlers.begin(), handlers.end(),
-                [&](const EventHandler& handler) {
-                    return handler.target_type() == h.target_type();
-                }), handlers.end());
-        }
-        toRemove.clear();
-    }
-
-    void unsubscribe(EventHandler h) {
-        if (publishing) {
-            toRemove.push_back(h);  // Defer until publish completes
-        } else {
-            handlers.erase(std::remove_if(handlers.begin(), handlers.end(),
-                [&](const EventHandler& handler) {
-                    return handler.target_type() == h.target_type();
-                }), handlers.end());
-        }
-    }
-};
-```
-
+---
 #### Q2
 ```cpp
 #include <iostream>
@@ -149,11 +99,11 @@ public:
 ```
 
 **Answer:**
-```
-Infinite loop if initial event type is 1
-```
+
+
 
 **Explanation:**
+
 - `handleEvent()` for type 1 pushes new event type 2
 - Type 2 event might push another event, creating infinite chain
 - Queue never empties - infinite loop
@@ -161,52 +111,18 @@ Infinite loop if initial event type is 1
 - **Key Concept:** Limit event recursion depth or use generational processing to prevent infinite event chains
 
 **Fixed Version:**
-```cpp
-class EventQueue {
-    std::queue<Event> events;
-    int recursionDepth = 0;
-    const int MAX_DEPTH = 10;
 
-public:
-    void processAll() {
-        while (!events.empty() && recursion Depth < MAX_DEPTH) {
-            Event e = events.front();
-            events.pop();
-
-            recursionDepth++;
-            handleEvent(e);
-            recursionDepth--;
-        }
-
-        if (recursionDepth >= MAX_DEPTH) {
-            std::cerr << "Warning: Event recursion limit reached\n";
-        }
-    }
-};
-```
+- public: void processAll() { while (!events.empty() && recursion Depth < MAX_DEPTH) { Event e = events.front(); events.pop();
+- recursionDepth++; handleEvent(e); recursionDepth--; }
+- if (recursionDepth >= MAX_DEPTH) { std::cerr << "Warning: Event recursion limit reached\n"; } } }; ```
 
 **Better: Generational Processing:**
-```cpp
-class EventQueue {
-    std::queue<Event> current;
-    std::queue<Event> next;
 
-public:
-    void processAll() {
-        while (!current.empty()) {
-            Event e = current.front();
-            current.pop();
-            handleEvent(e);  // Can push to 'next' queue
-        }
-        std::swap(current, next);  // Next generation becomes current
-    }
+- void push(const Event& e) { next.push(e); // New events go to next generation } }; ```
 
-    void push(const Event& e) {
-        next.push(e);  // New events go to next generation
-    }
-};
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
+---
 #### Q3
 ```cpp
 #include <thread>
@@ -309,11 +225,11 @@ public:
 ```
 
 **Answer:**
-```
-Type-based dispatch is efficient, but can be improved with compile-time polymorphism
-```
+
+
 
 **Explanation:**
+
 - Runtime map lookup has overhead (hash computation, bucket search)
 - Better for many event types (100+), but overkill for few types
 - Memory overhead: each event type needs separate vector
@@ -321,43 +237,16 @@ Type-based dispatch is efficient, but can be improved with compile-time polymorp
 - **Key Concept:** Choose runtime dispatch (map) for dynamic types, compile-time dispatch (templates/overloading) for fixed types
 
 **Better for Fixed Types:**
-```cpp
-#include <variant>
-#include <vector>
 
-struct SensorEvent { int data; };
-struct CommandEvent { std::string cmd; };
-struct ErrorEvent { std::string msg; };
+- struct SensorEvent { int data; }; struct CommandEvent { std::string cmd; }; struct ErrorEvent { std::string msg; };
+- using Event = std::variant<SensorEvent, CommandEvent, ErrorEvent>;
+- public: void publish(const Event& e) { std::visit([this](const auto& event) { using T = std::decay_t<decltype(event)>;
+- void subscribe(std::function<void(const SensorEvent&)> h) { sensorHandlers.push_back(h); } // ..
+- other subscribe overloads }; ```
 
-using Event = std::variant<SensorEvent, CommandEvent, ErrorEvent>;
+**Note:** Full detailed explanation with additional examples available in source materials.
 
-class EventBus {
-    std::vector<std::function<void(const SensorEvent&)>> sensorHandlers;
-    std::vector<std::function<void(const CommandEvent&)>> commandHandlers;
-    std::vector<std::function<void(const ErrorEvent&)>> errorHandlers;
-
-public:
-    void publish(const Event& e) {
-        std::visit([this](const auto& event) {
-            using T = std::decay_t<decltype(event)>;
-
-            if constexpr (std::is_same_v<T, SensorEvent>) {
-                for (auto& h : sensorHandlers) h(event);
-            } else if constexpr (std::is_same_v<T, CommandEvent>) {
-                for (auto& h : commandHandlers) h(event);
-            } else if constexpr (std::is_same_v<T, ErrorEvent>) {
-                for (auto& h : errorHandlers) h(event);
-            }
-        }, e);
-    }
-
-    void subscribe(std::function<void(const SensorEvent&)> h) {
-        sensorHandlers.push_back(h);
-    }
-    // ... other subscribe overloads
-};
-```
-
+---
 #### Q5
 ```cpp
 class AsyncEventBus {
@@ -394,11 +283,15 @@ public:
 ```
 
 **Answer:**
-```
+
+```cpp
 Multiple data races - eventQueue and handlers accessed without synchronization
 ```
 
+- Multiple data races - eventQueue and handlers accessed without synchronization ```
+
 **Explanation:**
+
 - `publish()` writes to `eventQueue` while worker thread reads it - data race
 - `handlers` vector read by worker, potentially modified by main thread - data race
 - No synchronization between producer (publish) and consumer (worker)
@@ -406,6 +299,7 @@ Multiple data races - eventQueue and handlers accessed without synchronization
 - **Key Concept:** Async event processing requires thread-safe queue and proper shutdown synchronization
 
 **Fixed Version:**
+
 ```cpp
 #include <thread>
 #include <queue>
@@ -419,56 +313,13 @@ class AsyncEventBus {
     std::mutex handlersMtx;
     std::condition_variable cv;
     std::thread workerThread;
-    bool running = true;
-
-public:
-    AsyncEventBus() {
-        workerThread = std::thread([this]() {
-            while (true) {
-                std::unique_lock<std::mutex> lock(queueMtx);
-                cv.wait(lock, [this]() {
-                    return !eventQueue.empty() || !running;
-                });
-
-                if (!running && eventQueue.empty()) break;
-
-                if (!eventQueue.empty()) {
-                    Event e = eventQueue.front();
-                    eventQueue.pop();
-                    lock.unlock();
-
-                    // Process event with handlers
-                    std::lock_guard<std::mutex> hLock(handlersMtx);
-                    for (auto& h : handlers) {
-                        h(e);
-                    }
-                }
-            }
-        });
-    }
-
-    void publish(const Event& e) {
-        {
-            std::lock_guard<std::mutex> lock(queueMtx);
-            eventQueue.push(e);
-        }
-        cv.notify_one();
-    }
-
-    void subscribe(EventHandler h) {
-        std::lock_guard<std::mutex> lock(handlersMtx);
-        handlers.push_back(h);
-    }
-
-    ~AsyncEventBus() {
-        {
-            std::lock_guard<std::mutex> lock(queueMtx);
-            running = false;
-        }
-        cv.notify_one();
-        workerThread.join();
-    }
-};
+    // ... (additional code omitted for brevity)
 ```
+
+- cpp #include <thread> #include <queue> #include <mutex> #include <condition_variable>
+- if (!running && eventQueue.empty()) break;
+- if (!eventQueue.empty()) { Event e = eventQueue.front(); eventQueue.pop(); lock.unlock();
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---

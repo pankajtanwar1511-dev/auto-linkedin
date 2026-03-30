@@ -114,151 +114,29 @@ class Controller {
 
 #### Q4: How do you implement two-way data binding in C++?
 
-**Answer**:
 
-C++ doesn't have built-in data binding (unlike C#/WPF or JavaScript frameworks), but you can simulate it:
+**:**
 
-**ObservableProperty Pattern**:
+- C++ doesn't have built-in data binding (unlike C#/WPF or JavaScript frameworks), but you can simulate it:
+- ObservableProperty Pattern:
+- public: void set(const T& newValue) { value = newValue; notify(); // Notify all listeners }
+- T get() const { return value; }
+- void onChange(std::function<void(const T&)> listener) { listeners.push_back(listener); }
 
-```cpp
-template<typename T>
-class ObservableProperty {
-    T value;
-    std::vector<std::function<void(const T&)>> listeners;
-
-public:
-    void set(const T& newValue) {
-        value = newValue;
-        notify();  // Notify all listeners
-    }
-
-    T get() const { return value; }
-
-    void onChange(std::function<void(const T&)> listener) {
-        listeners.push_back(listener);
-    }
-
-private:
-    void notify() {
-        for (auto& listener : listeners) {
-            listener(value);
-        }
-    }
-};
-
-// Usage
-class ViewModel {
-    ObservableProperty<std::string> userName;
-};
-
-class View {
-    void init(ViewModel* vm) {
-        vm->userName.onChange([this](const std::string& newValue) {
-            updateLabel(newValue);  // Auto-update UI
-        });
-    }
-};
-```
-
-**Qt Signals/Slots** (built-in binding):
-```cpp
-QObject::connect(textBox, &QLineEdit::textChanged,
-                 viewModel, &ViewModel::setUserName);
-
-QObject::connect(viewModel, &ViewModel::userNameChanged,
-                 label, &QLabel::setText);
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q5: Where should validation logic go: View, Controller, or Model?
 
-**Answer**:
 
-**Two types of validation**:
+**:**
 
-**1. UI Validation (Presentation Layer)**:
 - Format checks (email has @, phone has digits)
 - Required field checks
 - **Where**: View or Controller
-
-```cpp
-class UserController {
-    void onFormSubmit(const std::string& email) {
-        // UI validation
-        if (email.empty()) {
-            view->showError("Email is required");
-            return;
-        }
-
-        if (email.find('@') == std::string::npos) {
-            view->showError("Invalid email format");
-            return;
-        }
-
-        // Pass to Model for business validation
-        model->registerUser(email);
-    }
-};
-```
-
-**2. Business Validation (Model Layer)**:
 - Business rules (age must be 18+)
 - Database constraints (email must be unique)
-- **Where**: Model
 
-```cpp
-class UserModel {
-    bool registerUser(const std::string& email, int age) {
-        // Business validation
-        if (age < 18) {
-            throw BusinessException("Must be 18 or older");
-        }
-
-        if (emailExists(email)) {
-            throw BusinessException("Email already registered");
-        }
-
-        // Save
-        saveToDatabase(email, age);
-    }
-};
-```
-
-**Best Practice**: **Validate in both places** (UI for UX, Model for security).
-
----
-
-#### Additional Questions 6-20 (Outlined)
-
-**Q6**: How do you handle navigation between Views in MVC?
-
-**Q7**: What is the difference between Passive View and Supervising Controller (MVP variants)?
-
-**Q8**: How do you implement commands in MVVM?
-
-**Q9**: Should Model know about View in MVC?
-
-**Q10**: How do you manage state across multiple Views?
-
-**Q11**: What are the disadvantages of MVVM?
-
-**Q12**: How do you implement undo/redo in MVC?
-
-**Q13**: What is the role of a Router in MVC web applications?
-
-**Q14**: How do you handle asynchronous operations in MVVM?
-
-**Q15**: What is the difference between ViewModel and Presentation Model?
-
-**Q16**: How do you implement dependency injection in MVC?
-
-**Q17**: Should Controllers talk to each other?
-
-**Q18**: How do you handle errors in MVVM (where to show error messages)?
-
-**Q19**: What is MVVM-C (MVVM + Coordinator)?
-
-**Q20**: Compare MVC to Flux/Redux architectures.
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---

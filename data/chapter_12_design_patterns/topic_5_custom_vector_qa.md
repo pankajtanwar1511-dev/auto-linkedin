@@ -505,60 +505,30 @@ Removing elements (via `pop_back`, `resize`) doesn't reduce capacity, so memory 
 **Concepts:** #allocator #template_template_parameter #stl_allocator #memory_management #customization
 
 **Answer:**
-Add an `Allocator` template parameter (defaulting to `std::allocator<T>`), and use allocator methods (`allocate`, `deallocate`, `construct`, `destroy`) instead of `new`/`delete`.
+
+- Add an `Allocator` template parameter (defaulting to `std::allocator<T>`), and use allocator methods (`allocate`, `deallocate`, `construct`, `destroy`) instead of `new`/`delete`.
 
 **Code example:**
-```cpp
-template <typename T, typename Allocator = std::allocator<T>>
-class Vector {
-private:
-    T* data;
-    std::size_t size;
-    std::size_t capacity;
-    Allocator alloc;  // Allocator instance
 
-public:
-    void reserve(std::size_t new_cap) {
-        if (new_cap <= capacity) return;
-
-        // Use allocator instead of new[]
-        T* new_data = alloc.allocate(new_cap);
-
-        // Construct elements using allocator
-        for (std::size_t i = 0; i < size; ++i) {
-            alloc.construct(&new_data[i], std::move(data[i]));
-            alloc.destroy(&data[i]);
-        }
-
-        alloc.deallocate(data, capacity);
-        data = new_data;
-        capacity = new_cap;
-    }
-
-    ~Vector() {
-        for (std::size_t i = 0; i < size; ++i) {
-            alloc.destroy(&data[i]);
-        }
-        alloc.deallocate(data, capacity);
-    }
-};
-
-// Usage with custom allocator
-template <typename T>
-class PoolAllocator {
-    // ... custom allocation from memory pool ...
-};
-
-Vector<int, PoolAllocator<int>> v;  // Uses pool allocator
-```
+- public: void reserve(std::size_t new_cap) { if (new_cap <= capacity) return;
+- // Use allocator instead of new[] T* new_data = alloc.allocate(new_cap);
+- alloc.deallocate(data, capacity); data = new_data; capacity = new_cap; }
+- ~Vector() { for (std::size_t i = 0; i < size; ++i) { alloc.destroy(&data[i]); } alloc.deallocate(data, capacity); } };
+- // Usage with custom allocator template <typename T> class PoolAllocator { // ..
 
 **Explanation:**
-Allocators decouple memory allocation from object construction. `allocate(n)` returns raw memory (like `operator new`), `construct(ptr, args...)` calls placement new, `destroy(ptr)` calls destructor, `deallocate(ptr, n)` frees memory. This allows custom memory management (e.g., pool allocators for real-time systems, aligned allocators for SIMD).
 
-**Key takeaway:** Allocator support enables STL-compatible custom memory management.
+- Allocators decouple memory allocation from object construction
+- `allocate(n)` returns raw memory (like `operator new`), `construct(ptr, args...)` calls placement new, `destroy(ptr)` calls destructor, `deallocate(ptr, n)` frees memory
+- This allows custom memory management (e.g., pool allocators for real-time systems, aligned allocators for SIMD).
+
+**Key takeaway:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q16: What is the difference between emplace_back and push_back?
 **Difficulty:** #intermediate
 **Category:** #performance #move_semantics
@@ -688,14 +658,18 @@ Modern CPUs have a memory hierarchy: L1 cache (~1ns), L2 (~5ns), L3 (~20ns), RAM
 ---
 
 #### Q19: What is the Small Vector Optimization (SVO) and how would you implement it?
-**Difficulty:** #advanced
-**Category:** #optimization #memory
-**Concepts:** #small_buffer_optimization #union #placement_new #cache_optimization #memory_allocation
+
+**Concepts:**
+
+
 
 **Answer:**
-Small Vector Optimization stores a small number of elements inline (without heap allocation) for small sizes. When size exceeds the inline capacity, it switches to heap allocation.
+
+- Small Vector Optimization stores a small number of elements inline (without heap allocation) for small sizes
+- When size exceeds the inline capacity, it switches to heap allocation.
 
 **Code example:**
+
 ```cpp
 template <typename T, std::size_t InlineCapacity = 16>
 class SmallVector {
@@ -709,141 +683,55 @@ private:
         T* heap_storage;
     };
 
-    bool is_heap_allocated() const {
-        return capacity > InlineCapacity;
-    }
-
-    T* data_ptr() {
-        return is_heap_allocated() ? heap_storage : inline_storage;
-    }
-
-public:
-    SmallVector() : size(0), capacity(InlineCapacity) {
-        // Use inline_storage by default (no allocation)
-    }
-
-    ~SmallVector() {
-        if (is_heap_allocated()) {
-            delete[] heap_storage;
-        }
-    }
-
-    void push_back(const T& value) {
-        if (size == capacity) {
-            // Transition from inline to heap
-            if (!is_heap_allocated()) {
-                T* new_data = new T[capacity * 2];
-                for (size_t i = 0; i < size; ++i) {
-                    new_data[i] = std::move(inline_storage[i]);
-                }
-                heap_storage = new_data;
-                capacity *= 2;
-            } else {
-                // Already on heap, grow normally
-                T* new_data = new T[capacity * 2];
-                for (size_t i = 0; i < size; ++i) {
-                    new_data[i] = std::move(heap_storage[i]);
-                }
-                delete[] heap_storage;
-                heap_storage = new_data;
-                capacity *= 2;
-            }
-        }
-        data_ptr()[size++] = value;
-    }
-
-    T& operator[](size_t idx) { return data_ptr()[idx]; }
-};
-
-// Usage: No heap allocation for small vectors
-SmallVector<int, 8> v;  // First 8 elements stored inline
-for (int i = 0; i < 5; ++i) {
-    v.push_back(i);  // No malloc (uses inline_storage)
-}
-v.push_back(10);  // Still inline
-v.push_back(11);  // Still inline
-v.push_back(12);  // Exceeds capacity=8 -> heap allocation
+    // ... (additional code omitted for brevity)
 ```
 
-**Explanation:**
-Small objects (≤8 elements) benefit from inline storage: no malloc overhead (~100ns), better cache locality (part of the vector object itself). The union lets us reuse the same memory for either inline storage or heap pointer. When transitioning from inline to heap, we allocate heap storage, move elements, and switch the flag.
+- cpp template <typename T, std::size_t InlineCapacity = 16> class SmallVector { private: std::size_t size; std::size_t capacity;
+- // Union: either inline storage or heap pointer union { T inline_storage[InlineCapacity]; T* heap_storage; };
+- bool is_heap_allocated() const { return capacity > InlineCapacity; }
 
-**Key takeaway:** SVO optimizes the common case of small vectors, avoiding heap allocation for sizes ≤ InlineCapacity.
+**Explanation:**
+
+- Small objects (≤8 elements) benefit from inline storage: no malloc overhead (~100ns), better cache locality (part of the vector object itself)
+- The union lets us reuse the same memory for either inline storage or heap pointer
+- When transitioning from inline to heap, we allocate heap storage, move elements, and switch the flag.
+
+**Key takeaway:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q20: How would you implement a thread-safe Vector?
 **Difficulty:** #advanced
 **Category:** #concurrency #multithreading
 **Concepts:** #thread_safety #mutex #shared_mutex #concurrent_access #lock_free #atomic
 
 **Answer:**
-Use a mutex to protect all member functions that modify or read shared state. For reader-writer scenarios, use `std::shared_mutex` (multiple readers, exclusive writer).
+
+- Use a mutex to protect all member functions that modify or read shared state
+- For reader-writer scenarios, use `std::shared_mutex` (multiple readers, exclusive writer).
 
 **Code example:**
-```cpp
-#include <mutex>
-#include <shared_mutex>
 
-template <typename T>
-class ThreadSafeVector {
-private:
-    T* data;
-    std::size_t size;
-    std::size_t capacity;
-    mutable std::shared_mutex mtx;  // Reader-writer lock
-
-public:
-    void push_back(const T& value) {
-        std::unique_lock lock(mtx);  // Exclusive lock (writer)
-
-        if (size == capacity) {
-            reserve_impl(capacity == 0 ? 1 : capacity * 2);
-        }
-        data[size++] = value;
-    }
-
-    T operator[](std::size_t idx) const {
-        std::shared_lock lock(mtx);  // Shared lock (reader)
-        return data[idx];  // Return by value (avoid dangling ref)
-    }
-
-    std::size_t get_size() const {
-        std::shared_lock lock(mtx);
-        return size;
-    }
-
-private:
-    void reserve_impl(std::size_t new_cap) {
-        // Called with lock held
-        T* new_data = new T[new_cap];
-        for (std::size_t i = 0; i < size; ++i) {
-            new_data[i] = std::move(data[i]);
-        }
-        delete[] data;
-        data = new_data;
-        capacity = new_cap;
-    }
-};
-
-// Usage: Multiple threads can safely access
-ThreadSafeVector<int> v;
-
-// Thread 1: Write
-std::thread t1([&]() { v.push_back(42); });
-
-// Thread 2: Read
-std::thread t2([&]() { std::cout << v[0]; });
-
-t1.join();
-t2.join();
-```
+- template <typename T> class ThreadSafeVector { private: T* data; std::size_t size; std::size_t capacity; mutable std::shared_mutex mtx; // Reader-writer lock
+- public: void push_back(const T& value) { std::unique_lock lock(mtx); // Exclusive lock (writer)
+- if (size == capacity) { reserve_impl(capacity == 0
+- 1 : capacity * 2); } data[size++] = value; }
+- T operator[](std::size_t idx) const { std::shared_lock lock(mtx); // Shared lock (reader) return data[idx]; // Return by value (avoid dangling ref) }
 
 **Explanation:**
-`std::shared_mutex` allows multiple readers (`std::shared_lock`) or one writer (`std::unique_lock`). Writes (push_back, reserve) require exclusive access. Reads (operator[], size) allow concurrent access. **Important**: Return elements by value (not reference) to avoid dangling references if the vector reallocates after the lock is released.
 
-**Alternative (lock-free)**: For high-performance scenarios, use atomic operations and copy-on-write (COW) semantics, but this is complex and requires deep understanding of memory ordering.
+- `std::shared_mutex` allows multiple readers (`std::shared_lock`) or one writer (`std::unique_lock`)
+- Writes (push_back, reserve) require exclusive access
+- Reads (operator[], size) allow concurrent access
+- Important: Return elements by value (not reference) to avoid dangling references if the vector reallocates after the lock is released
 
-**Key takeaway:** Mutex-based thread safety is simple but may be a bottleneck; lock-free data structures are faster but much harder to implement correctly.
+**Key takeaway:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---

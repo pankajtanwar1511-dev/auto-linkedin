@@ -51,94 +51,15 @@
 
 #### Q5
 
-**Goal**: Implement multiple primary adapters for same core.
 
-**Requirements**:
-1. Core: `OrderService`
-2. Primary Adapter 1: `RESTController` (simulated HTTP)
-3. Primary Adapter 2: `CLIController` (command-line)
-4. Both use same `OrderService`
+**:**
 
----
+- Goal: Implement multiple primary adapters for same core
+- Core: `OrderService` 2
+- Primary Adapter 1: `RESTController` (simulated HTTP) 3
+- Primary Adapter 2: `CLIController` (command-line) 4
+- Both use same `OrderService`
 
-#### Task 6: Use Case Layer
-
-**Goal**: Separate use cases from domain logic.
-
-**Requirements**:
-1. Use Case: `PlaceOrderUseCase`
-2. Use Case: `CancelOrderUseCase`
-3. Domain: `Order`, `Payment`, `Product`
-4. Use cases orchestrate domain objects
-
----
-
-#### Task 7: Domain Events
-
-**Goal**: Implement event-driven hexagonal architecture.
-
-**Requirements**:
-1. Domain: `User` publishes `UserRegistered` event
-2. Event Handler: `SendWelcomeEmailHandler`
-3. Event Bus: `IEventBus` interface
-4. In-Memory Event Bus adapter
-
----
-
-#### Task 8: Separate Domain from Persistence Models
-
-**Goal**: Map between domain and database entities.
-
-**Requirements**:
-1. Domain: `User` (pure business logic)
-2. Persistence: `UserEntity` (ORM annotations)
-3. Mapper: `UserMapper` in repository adapter
-4. `UserRepository` maps between them
-
----
-
-#### Task 9: Integration Test with Real Adapter
-
-**Goal**: Test with in-memory database adapter (integration-like test).
-
-**Requirements**:
-1. `InMemoryOrderRepository` (full implementation)
-2. Test full flow: create order → retrieve → update → delete
-3. Verify data persists correctly
-
----
-
-#### Task 10: Cross-Cutting Concerns
-
-**Goal**: Add logging without coupling to core.
-
-**Requirements**:
-1. `LoggingDecorator` wraps `OrderService`
-2. Logs method calls and results
-3. Core remains unaware of logging
-
----
-
-#### Task 11-20: Additional Tasks (Outlined)
-
-**Task 11**: Implement transaction management
-
-**Task 12**: Add authentication/authorization adapter
-
-**Task 13**: Implement dependency injection container
-
-**Task 14**: Create API Gateway as primary adapter
-
-**Task 15**: Implement CQRS (separate read/write ports)
-
-**Task 16**: Add caching adapter
-
-**Task 17**: Implement saga pattern for distributed transactions
-
-**Task 18**: Create monitoring/metrics adapter
-
-**Task 19**: Implement rate limiting adapter
-
-**Task 20**: Build complete e-commerce system with hexagonal architecture
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---

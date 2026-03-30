@@ -298,51 +298,20 @@ void notifier() {
 ```
 
 **Answer:**
-```
-Waiter blocks forever
-```
+
+
 
 **Explanation:**
+
 - **Lost wakeup problem** - classic mistake
 - **Execution scenario:**
-  1. Notifier calls notify_one() FIRST
-  2. No one is waiting yet! Notification is "lost"
-  3. Notifier locks, sets counter=10, unlocks
-  4. Waiter locks, calls cv.wait()
-  5. Predicate checked: counter=10, should be true... BUT
-  6. **Actually counter=0** - timing issue!
 - **Race condition timeline:**
-  ```
-  Time | Notifier              | Waiter
-  -----|-----------------------|------------------
-  T0   | notify_one() (lost)   | (not started)
-  T1   | lock, counter=10      | (not started)
-  T2   | unlock                | lock, wait(counter>0)
-  T3   |                       | blocks forever
-  ```
 - **Why waiter blocks:**
-  - Notification sent before waiter calls wait()
-  - Once in wait(), will never receive that notification again
-  - counter=10 but waiter doesn't know (already waiting)
-- **Predicate doesn't help here** because:
-  - Predicate checked WHEN entering wait()
-  - If false at that moment, thread waits
-  - **But counter=0 when wait() called** (timing issue)
-- **Correct version:**
-  ```cpp
-  void notifier() {
-      {
-          std::lock_guard<std::mutex> lock(mtx);
-          counter = 10;  // Set condition FIRST
-      }
-      cv.notify_one();  // THEN notify
-  }
-  ```
-- **Rule:** Set condition BEFORE notifying
-- **Key Concept:** Lost wakeup when notification before condition set; always set state before notify
+- Notification sent before waiter calls wait()
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q7
 ```cpp
 std::mutex mtx;
@@ -671,51 +640,20 @@ void thread1() {
 ```
 
 **Answer:**
-```
-Blocks forever
-```
+
+
 
 **Explanation:**
+
 - **Predicate always returns false** - infinite wait
 - **cv.wait() expansion:**
-  ```cpp
-  while (![]{ return false; }()) {  // while(true)
-      cv.wait(lock);
-  }
-  ```
 - **Execution:**
-  1. Thread locks m1
-  2. Calls wait with predicate
-  3. Predicate evaluated: returns false
-  4. Enters wait(), releases lock
-  5. **Waits for notification**
-  6. (Even if notified) Wakes up, rechecks predicate
-  7. Predicate still false
-  8. Goes back to waiting
-  9. **Infinite loop** - predicate never becomes true
 - **No notification exists:**
-  - Even worse, no other thread calls notify
-  - Thread waits forever for notification that never comes
-- **Even with notifications:**
-  - If another thread called notify_one() repeatedly
-  - This thread would wake, check predicate (false), wait again
-  - Still infinite loop
-- **Common mistake patterns:**
-  - Using wrong variable in predicate
-  - Logic error in condition (< instead of >)
-  - Never updating the predicate variable
-- **Debugging:**
-  - Program hangs
-  - Thread stuck in cv.wait()
-  - Check predicate logic carefully
-- **Fix requires:**
-  - Correct predicate logic
-  - Another thread to actually set condition true
-  - Notification when condition changes
-- **Key Concept:** Predicate must eventually become true; always-false predicate causes infinite wait
+- Even worse, no other thread calls notify
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q13
 ```cpp
 std::mutex mtx;
@@ -926,61 +864,20 @@ void consumer() {
 ```
 
 **Answer:**
-```
-Prints "0 1 2" then blocks forever
-```
+
+
 
 **Explanation:**
+
 - **Missing shutdown mechanism** - common producer-consumer bug
 - **Execution timeline:**
-  1. Producer pushes 0, notifies, sleeps
-  2. Consumer wakes, pops 0, prints "0 "
-  3. Consumer loops: q.empty()=true, waits
-  4. Producer pushes 1, notifies, sleeps
-  5. Consumer pops 1, prints "1 "
-  6. Producer pushes 2, notifies, sleeps
-  7. Consumer pops 2, prints "2 "
-  8. **Producer loop ends, thread exits**
-  9. Consumer loops: q.empty()=true, waits
-  10. **No more notifications coming** - waits forever
-  11. main() tries to join consumer → blocks forever
 - **Problem: Infinite loop in consumer**
-  - `while(true)` never terminates
-  - No way to signal "no more data"
-  - Consumer can't distinguish "empty now" from "empty forever"
-- **Solution 1: Shutdown flag**
-  ```cpp
-  bool done = false;
+- `while(true)` never terminates
+- No way to signal "no more data"
 
-  void producer() {
-      // ... produce items ...
-      {
-          std::lock_guard<std::mutex> lock(mtx);
-          done = true;
-      }
-      cv.notify_one();
-  }
-
-  void consumer() {
-      while (true) {
-          std::unique_lock<std::mutex> lock(mtx);
-          cv.wait(lock, [&]{ return !q.empty() || done; });
-          if (q.empty() && done) break;
-          // ... process item ...
-      }
-  }
-  ```
-- **Solution 2: Sentinel value**
-  ```cpp
-  q.push(-1);  // Special "end of stream" marker
-  cv.notify_one();
-  ```
-- **Solution 3: Exception-based**
-  - Producer throws/sets error flag when done
-- **Key Concept:** Producer-consumer needs shutdown mechanism; infinite consumer loop requires way to signal completion
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q17
 ```cpp
 std::mutex mtx;
@@ -1054,52 +951,20 @@ void waiter() {
 ```
 
 **Answer:**
-```
-Output: "false"
-```
+
+
 
 **Explanation:**
+
 - **Zero timeout** - wait_for with duration of 0
 - **Execution:**
-  1. Waiter locks mtx
-  2. Calls wait_for with 0 seconds timeout
-  3. **Predicate checked immediately:** returns false
-  4. Since predicate false, would normally wait
-  5. **But timeout is 0** - no waiting allowed
-  6. Immediately "times out"
-  7. Returns false (predicate not satisfied)
-  8. Prints "false"
 - **Essentially a non-blocking check:**
-  - Checks if condition currently true
-  - Doesn't wait if false
-  - Returns immediately
-- **Use case: Polling pattern**
-  ```cpp
-  if (cv.wait_for(lock, 0s, pred)) {
-      // Condition met right now
-  } else {
-      // Condition not met, continue without waiting
-  }
-  ```
-- **Equivalent to:**
-  ```cpp
-  std::unique_lock<std::mutex> lock(mtx);
-  if (predicate()) {
-      // do something
-  }
-  // But wait_for handles spurious wakeup checking internally
-  ```
-- **Practical use:**
-  - Try-style operation
-  - Check without commitment to wait
-  - Non-blocking synchronization attempt
-- **Return value:**
-  - true: Predicate was already true
-  - false: Predicate was false (no time to wait)
-- **Key Concept:** Zero timeout creates non-blocking check; returns immediately with current predicate state
+- Checks if condition currently true
+- Doesn't wait if false
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q19
 ```cpp
 std::mutex mtx1, mtx2;
@@ -1119,60 +984,20 @@ void consumer() {
 ```
 
 **Answer:**
-```
-Undefined behavior (different mutexes)
-```
+
+
 
 **Explanation:**
+
 - **Condition variable requires consistent mutex** - CRITICAL rule violated
 - **Why this is wrong:**
-  - Producer uses mtx1 to protect ready
-  - Consumer uses mtx2 with condition variable
-  - cv.wait() expects same mutex that protects the condition
-- **What goes wrong:**
-  1. Producer locks mtx1, sets ready=true
-  2. Consumer locks mtx2, calls cv.wait()
-  3. **cv.wait() releases mtx2** (wrong mutex!)
-  4. ready is protected by mtx1, not mtx2
-  5. **Data race:** Consumer reads ready without mtx1
-  6. Producer modifies ready without mtx2
-  7. **Undefined behavior**
-- **Condition variable contract:**
-  - Same mutex must be used by:
-    - All threads modifying the predicate state
-    - All threads waiting on the CV
-    - All threads notifying the CV
-  - **Reason:** wait() atomically unlocks mutex and waits
-  - If different mutex, atomicity guarantee broken
-- **Memory synchronization broken:**
-  - Mutex provides happens-before relationship
-  - Different mutexes = no synchronization
-  - Changes to ready might not be visible
-- **Compiler/runtime might not catch:**
-  - No compile-time check for mutex consistency
-  - Runtime behavior is undefined
-  - Might appear to work, might crash, might hang
-- **Correct version:**
-  ```cpp
-  std::mutex mtx;  // ONE mutex for both
-  std::condition_variable cv;
-  bool ready = false;
+- Producer uses mtx1 to protect ready
+- Consumer uses mtx2 with condition variable
+- cv.wait() expects same mutex that protects the condition
 
-  void producer() {
-      std::lock_guard<std::mutex> lock(mtx);
-      ready = true;
-      cv.notify_one();
-  }
-
-  void consumer() {
-      std::unique_lock<std::mutex> lock(mtx);
-      cv.wait(lock, []{ return ready; });
-  }
-  ```
-- **Key Concept:** Condition variable requires same mutex for all operations; different mutexes break synchronization contract and cause undefined behavior
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q20
 ```cpp
 std::mutex mtx;
@@ -1195,63 +1020,17 @@ void coordinator() {
 ```
 
 **Answer:**
-```
-Worker blocks forever
-```
+
+
 
 **Explanation:**
+
 - **Missing notification** - critical bug
 - **Execution scenario:**
-  1. Worker locks mtx, calls cv.wait()
-  2. Predicate: done=false → waits
-  3. wait() releases lock, blocks
-  4. Coordinator locks mtx
-  5. Sets done=true
-  6. Unlocks (lock_guard destructor)
-  7. **Coordinator exits WITHOUT notifying**
-  8. Worker still waiting, never woken up
-  9. **Blocks forever** - done=true but worker doesn't know
 - **Why worker never wakes:**
-  - Waiting threads don't periodically check condition
-  - Must be explicitly woken by notification
-  - Without notify, thread sleeps indefinitely
-- **Predicate is true but doesn't help:**
-  - Predicate only checked when:
-    - Initially entering wait()
-    - After waking from notification
-    - After spurious wakeup
-  - **Never checked while waiting** without wakeup
-- **Common mistakes:**
-  - Forgetting notify call
-  - Exception thrown before notify
-  - Early return before notify
-- **Fix:**
-  ```cpp
-  void coordinator() {
-      {
-          std::lock_guard<std::mutex> lock(mtx);
-          done = true;
-      }
-      cv.notify_one();  // ESSENTIAL!
-  }
-  ```
-- **RAII pattern for notification:**
-  ```cpp
-  struct Notifier {
-      ~Notifier() { cv.notify_all(); }
-      std::condition_variable& cv;
-  };
+- Waiting threads don't periodically check condition
+- Must be explicitly woken by notification
 
-  void coordinator() {
-      Notifier n{cv};  // Guarantees notification
-      std::lock_guard<std::mutex> lock(mtx);
-      done = true;
-  }  // n destructor calls notify
-  ```
-- **Debugging:**
-  - Thread appears hung in cv.wait()
-  - Check all code paths for notify
-  - Ensure notification on ALL exits (including exceptions)
-- **Key Concept:** Notification is mandatory to wake waiting threads; setting condition true without notify leaves threads waiting forever
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---

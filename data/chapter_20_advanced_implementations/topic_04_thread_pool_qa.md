@@ -145,56 +145,21 @@ Implement this exercise.
 
 **Answer:**
 
+
+
 **Replace `std::queue` with `std::priority_queue`:**
 
-```cpp
-struct PriorityTask {
-    int priority;
-    std::function<void()> func;
-
-    bool operator<(const PriorityTask& other) const {
-        return priority < other.priority;  // Higher priority first
-    }
-};
-
-class PriorityThreadPool {
-private:
-    std::priority_queue<PriorityTask> tasks_;
-    // ... rest same ...
-
-public:
-    void submit(std::function<void()> func, int priority) {
-        std::lock_guard<std::mutex> lock(mutex_);
-        tasks_.push(PriorityTask{priority, std::move(func)});
-        cv_.notify_one();
-    }
-
-    void worker_loop() {
-        while (true) {
-            PriorityTask task;
-
-            {
-                std::unique_lock<std::mutex> lock(mutex_);
-                cv_.wait(lock, [this]() { return !tasks_.empty() || stop_; });
-
-                if (stop_ && tasks_.empty()) return;
-
-                task = std::move(const_cast<PriorityTask&>(tasks_.top()));
-                tasks_.pop();
-            }
-
-            task.func();
-        }
-    }
-};
-```
+- bool operator<(const PriorityTask& other) const { return priority < other.priority; // Higher priority first } };
+- class PriorityThreadPool { private: std::priority_queue<PriorityTask> tasks_; // ..
+- void worker_loop() { while (true) { PriorityTask task;
+- { std::unique_lock<std::mutex> lock(mutex_); cv_.wait(lock, [this]() { return !tasks_.empty() || stop_; });
+- if (stop_ && tasks_.empty()) return;
 
 **Usage:**
-```cpp
-pool.submit(low_priority_task, 1);
-pool.submit(high_priority_task, 10);
-// high_priority_task executes first
-```
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
 #### Q6: How would you implement dynamic thread pool sizing?
@@ -332,63 +297,34 @@ Implement this exercise.
 
 **Answer:**
 
-**Work stealing:** Idle threads steal tasks from busy threads' queues.
+
+
+**Work stealing:**
+
+
 
 **Architecture:**
+
 - Each thread has its own **local queue** (deque)
 - Thread pops from its own queue (LIFO, cache-friendly)
 - If empty, steals from another thread's queue (FIFO)
 
 **Benefits:**
+
 - Better cache locality (threads work on their own data)
 - Load balancing (busy threads offload work)
 
 **Implementation sketch:**
 
-```cpp
-class WorkStealingPool {
-private:
-    struct WorkerData {
-        std::deque<Task> local_queue;
-        std::mutex mutex;
-    };
+- std::vector<WorkerData> worker_queues_;
+- void worker_loop(int id) { while (!stop_) { Task task;
+- if (task) { task(); } else { std::this_thread::yield(); } } } }; ```
 
-    std::vector<WorkerData> worker_queues_;
+**Used by:**
 
-    void worker_loop(int id) {
-        while (!stop_) {
-            Task task;
 
-            // Try local queue first
-            {
-                std::lock_guard<std::mutex> lock(worker_queues_[id].mutex);
-                if (!worker_queues_[id].local_queue.empty()) {
-                    task = std::move(worker_queues_[id].local_queue.back());
-                    worker_queues_[id].local_queue.pop_back();
-                }
-            }
 
-            // If empty, steal from random other queue
-            if (!task) {
-                int victim = (id + 1) % worker_queues_.size();
-                std::lock_guard<std::mutex> lock(worker_queues_[victim].mutex);
-                if (!worker_queues_[victim].local_queue.empty()) {
-                    task = std::move(worker_queues_[victim].local_queue.front());
-                    worker_queues_[victim].local_queue.pop_front();
-                }
-            }
-
-            if (task) {
-                task();
-            } else {
-                std::this_thread::yield();
-            }
-        }
-    }
-};
-```
-
-**Used by:** Intel TBB, Fork-Join pools.
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
 #### Q10: How would you handle tasks that spawn more tasks?

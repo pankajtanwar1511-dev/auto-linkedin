@@ -336,62 +336,16 @@ std::transform(vec.begin(), vec.end(), out.begin(), [](int x) { return x * 2; })
 **Category:** #design_patterns
 **Concepts:** #composability #functional_programming
 
-**Question:** How can you implement functor composition in C++ to create reusable transformation pipelines?
+**Question:**
 
-
-
-**Answer**: Create a `ComposedFunctor` template that wraps two functors and applies them in sequence (f ∘ g). Use template deduction and `decltype` to handle arbitrary return types.
-
-**Explanation**:
-```cpp
-// Composition template
-template <typename F, typename G>
-class ComposedFunctor {
-    F f;
-    G g;
-public:
-    ComposedFunctor(F f_, G g_) : f(f_), g(g_) {}
-
-    template <typename T>
-    auto operator()(T x) const -> decltype(f(g(x))) {
-        return f(g(x));  // Apply g first, then f
-    }
-};
-
-// Helper function
-template <typename F, typename G>
-ComposedFunctor<F, G> compose(F f, G g) {
-    return ComposedFunctor<F, G>(f, g);
-}
-
-// Example functors
-struct Square {
-    int operator()(int x) const { return x * x; }
-};
-
-struct AddTen {
-    int operator()(int x) const { return x + 10; }
-};
-
-// Compose: square(addTen(x))
-auto pipeline = compose(Square(), AddTen());
-int result = pipeline(5);  // (5 + 10)^2 = 225
-
-// Chain multiple compositions
-auto complex = compose(compose(MultiplyByTwo(), Square()), AddTen());
-// Equivalent to: MultiplyByTwo(Square(AddTen(x)))
-```
-
-**Benefits**:
 - **Reusability**: Build complex operations from simple components
 - **Type safety**: Compile-time type checking
 - **Performance**: Inlining opportunities
 - **Clarity**: Declarative pipeline construction
 
-**Key Takeaway**: Functor composition enables functional programming patterns in C++, creating modular and reusable transformation pipelines.
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q9: How do you create a generic functor that works with different types and...
 **Difficulty:** #advanced
 **Category:** #generic_programming
@@ -603,81 +557,28 @@ int result = functor(42);  // ✅ Works because operator() is const
 **Category:** #stl_integration
 **Concepts:** #predicates #stl_algorithms
 
-**Question:** How are functors used as predicates in STL algorithms? Give examples with `std::find_if` and `std::sort`.
+**Question:**
 
-
-
-**Answer**: Functors can serve as **predicates** (return bool) for filtering, searching, and sorting operations. They provide custom comparison or matching logic.
-
-**Explanation**:
-```cpp
-// ✅ Predicate functor for finding
-class IsGreaterThan {
-    int threshold;
-public:
-    IsGreaterThan(int t) : threshold(t) {}
-    bool operator()(int x) const { return x > threshold; }
-};
-
-std::vector<int> vec = {1, 5, 3, 8, 2, 9};
-
-// Find first element > 5
-auto it = std::find_if(vec.begin(), vec.end(), IsGreaterThan(5));
-if (it != vec.end()) {
-    std::cout << "Found: " << *it << "\n";  // Prints: Found: 8
-}
-
-// ✅ Comparator functor for sorting
-class CompareByDistance {
-    Point origin;
-public:
-    CompareByDistance(Point o) : origin(o) {}
-
-    bool operator()(const Point& a, const Point& b) const {
-        return distance(origin, a) < distance(origin, b);
-    }
-};
-
-std::vector<Point> points = {{1,2}, {5,5}, {0,1}};
-Point origin{0, 0};
-
-// Sort points by distance from origin
-std::sort(points.begin(), points.end(), CompareByDistance(origin));
-
-// ✅ Predicate for removing elements
-class IsEven {
-public:
-    bool operator()(int x) const { return x % 2 == 0; }
-};
-
-// Remove all even numbers
-vec.erase(std::remove_if(vec.begin(), vec.end(), IsEven()), vec.end());
-```
-
-**Common STL Algorithms Using Functors**:
 - `std::find_if` / `std::find_if_not` - search with predicate
 - `std::sort` / `std::stable_sort` - custom comparison
 - `std::remove_if` - conditional removal
 - `std::count_if` - count matching elements
 - `std::transform` - apply transformation
-- `std::for_each` - apply operation to each element
 
-**Key Takeaway**: Functors enable customization of STL algorithms while maintaining state, making them more flexible than raw function pointers.
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q14: In autonomous vehicle sensor fusion, how would you implement a functor that...
-**Difficulty:** #advanced
-**Category:** #realworld_application
-**Concepts:** #sensor_fusion #state_estimation
 
-**Question:** In autonomous vehicle sensor fusion, how would you implement a functor that combines data from multiple sensor sources with different noise characteristics?
+**Concepts:**
 
 
+
+**Question:**
 
 **Answer**: Create a stateful functor that maintains separate Kalman filter states for each sensor type and performs weighted fusion based on sensor confidence/noise characteristics.
-
 **Explanation**:
+
 ```cpp
 struct SensorReading {
     double value;
@@ -691,80 +592,16 @@ class MultiSensorFusion {
         double estimate;
         double errorCovariance;
         double processNoise;
-    };
-
-    std::unordered_map<std::string, KalmanState> sensors;
-    double fusedEstimate;
-
-public:
-    MultiSensorFusion() : fusedEstimate(0.0) {}
-
-    // Process new sensor reading
-    double operator()(const std::string& sensorId, const SensorReading& reading) {
-        auto& state = sensors[sensorId];
-
-        // Kalman prediction step
-        double predictedError = state.errorCovariance + state.processNoise;
-
-        // Kalman update step
-        double kalmanGain = predictedError / (predictedError + reading.variance);
-        state.estimate = state.estimate + kalmanGain * (reading.value - state.estimate);
-        state.errorCovariance = (1 - kalmanGain) * predictedError;
-
-        // Fuse estimates from all sensors (inverse variance weighting)
-        double weightedSum = 0.0;
-        double totalWeight = 0.0;
-
-        for (const auto& [id, s] : sensors) {
-            double weight = 1.0 / (s.errorCovariance + 0.001);  // Inverse variance
-            weightedSum += weight * s.estimate;
-            totalWeight += weight;
-        }
-
-        fusedEstimate = weightedSum / totalWeight;
-        return fusedEstimate;
-    }
-
-    double getFusedEstimate() const { return fusedEstimate; }
-
-    std::unordered_map<std::string, double> getSensorConfidences() const {
-        std::unordered_map<std::string, double> confidences;
-        for (const auto& [id, state] : sensors) {
-            confidences[id] = 1.0 / (1.0 + state.errorCovariance);
-        }
-        return confidences;
-    }
-};
-
-// Usage in autonomous vehicle
-MultiSensorFusion distanceFusion;
-
-// LiDAR reading (high accuracy)
-SensorReading lidar{10.5, 0.05, std::chrono::steady_clock::now()};
-double fused1 = distanceFusion("lidar", lidar);
-
-// Radar reading (lower accuracy)
-SensorReading radar{10.8, 0.2, std::chrono::steady_clock::now()};
-double fused2 = distanceFusion("radar", radar);
-
-// Camera reading (lowest accuracy for distance)
-SensorReading camera{11.2, 0.5, std::chrono::steady_clock::now()};
-double fused3 = distanceFusion("camera", camera);
-
-// Get final fused estimate (weighted toward more accurate sensors)
-double finalEstimate = distanceFusion.getFusedEstimate();
+    // ... (additional code omitted for brevity)
 ```
 
-**Key Concepts**:
-- Kalman filtering for each sensor stream
-- Inverse variance weighting for fusion
-- Stateful tracking of multiple sensor estimates
-- Confidence metrics for sensor reliability
+- cpp struct SensorReading { double value; double variance; // Noise characteristic std::chrono::steady_clock::time_point timestamp; };
+- class MultiSensorFusion { // Kalman filter state for each sensor struct KalmanState { double estimate; double errorCovariance; double processNoise; };
+- std::unordered_map<std::string, KalmanState> sensors; double fusedEstimate;
 
-**Key Takeaway**: Functors excel at complex stateful algorithms like sensor fusion, encapsulating both the computation logic and the persistent state required for filtering and estimation.
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q15: What common mistake occurs when using functors with STL algorithms, and how...
 **Difficulty:** #mid
 **Category:** #debugging
@@ -827,17 +664,16 @@ std::cout << "Returned counter: " << result.getCount() << "\n";  // ✅ 3
 ---
 
 #### Q16: How can you implement a lock-free counter functor for high-throughput scenarios?
-**Difficulty:** #advanced
-**Category:** #performance
-**Concepts:** #lockfree_programming #atomics
 
-**Question:** How can you implement a lock-free counter functor for high-throughput scenarios?
+**Concepts:**
 
 
+
+**Question:**
 
 **Answer**: Use `std::atomic` for lock-free operations. Atomics provide thread-safe increment/decrement without mutex overhead, using CPU-level atomic instructions (e.g., LOCK prefix on x86).
-
 **Explanation**:
+
 ```cpp
 #include <atomic>
 #include <thread>
@@ -851,159 +687,43 @@ class LockFreeCounter {
 public:
     void operator()(int value) {
         count.fetch_add(1, std::memory_order_relaxed);
-        totalValue.fetch_add(value, std::memory_order_relaxed);
-    }
-
-    uint64_t getCount() const {
-        return count.load(std::memory_order_acquire);
-    }
-
-    uint64_t getTotalValue() const {
-        return totalValue.load(std::memory_order_acquire);
-    }
-
-    double getAverage() const {
-        uint64_t c = count.load(std::memory_order_acquire);
-        uint64_t t = totalValue.load(std::memory_order_acquire);
-        return c > 0 ? static_cast<double>(t) / c : 0.0;
-    }
-};
-
-// Benchmark: process 1 million items across 4 threads
-void worker(LockFreeCounter& counter, int start, int end) {
-    for (int i = start; i < end; i++) {
-        counter(i);
-    }
-}
-
-int main() {
-    LockFreeCounter counter;
-
-    constexpr int numThreads = 4;
-    constexpr int itemsPerThread = 250000;
-
-    std::vector<std::thread> threads;
-    auto start = std::chrono::high_resolution_clock::now();
-
-    for (int i = 0; i < numThreads; i++) {
-        threads.emplace_back(worker, std::ref(counter),
-                            i * itemsPerThread, (i + 1) * itemsPerThread);
-    }
-
-    for (auto& t : threads) {
-        t.join();
-    }
-
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-
-    std::cout << "Processed " << counter.getCount() << " items in "
-              << duration.count() << " ms\n";
-    std::cout << "Average: " << counter.getAverage() << "\n";
-
-    return 0;
-}
-
-// Typical output:
-// Processed 1000000 items in 45 ms
-// Average: 499999.5
+    // ... (additional code omitted for brevity)
 ```
 
-**Memory Ordering Explained**:
-- `memory_order_relaxed`: No synchronization, only atomicity (fastest)
-- `memory_order_acquire`: Synchronizes with releases (for reading)
-- `memory_order_release`: Synchronizes with acquires (for writing)
-- `memory_order_seq_cst`: Strongest guarantees (default, slowest)
+- cpp #include <atomic> #include <thread> #include <vector>
+- // ✅ Lock-free counter functor class LockFreeCounter { std::atomic<uint64_t> count{0}; std::atomic<uint64_t> totalValue{0};
+- public: void operator()(int value) { count.fetch_add(1, std::memory_order_relaxed); totalValue.fetch_add(value, std::memory_order_relaxed); }
 
-**Performance Comparison**:
-- Mutex-based: ~200-300ms for 1M ops
-- Lock-free atomic: ~40-60ms for 1M ops
-- **~4-5x faster** for simple counters
-
-**Key Takeaway**: Use atomics for lock-free high-performance counters. Choose appropriate memory ordering based on your synchronization needs (relaxed for counters, acquire/release for synchronized state).
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q17: What is the difference between a functor and `std::function`? When would you...
 **Difficulty:** #beginner
 **Category:** #comparison
 **Concepts:** #functor_vs_stdfunction
 
-**Question:** What is the difference between a functor and `std::function`? When would you use each?
+**Question:**
 
+- Functors are zero-overhead and statically typed; `std::function` adds runtime polymorphism but has overhead (heap allocation, virtual dispatch)
+- Multiplier times3(3); int result = times3(5); // Direct call, inlineable
+- // ✅ std::function - runtime polymorphism, overhead #include <functional>
+- std::function<int(int)> callable;
+- callable = [factor = 3](int x) { return x * factor; }; // Lambda int r1 = callable(5); // Virtual call, not inlineable
 
-
-**Answer**: A **functor** is a class with `operator()`, while `std::function` is a type-erased wrapper that can hold any callable (function pointer, lambda, functor, member function). Functors are zero-overhead and statically typed; `std::function` adds runtime polymorphism but has overhead (heap allocation, virtual dispatch).
-
-**Explanation**:
-```cpp
-// ✅ Functor - zero overhead, compile-time polymorphism
-class Multiplier {
-    int factor;
-public:
-    Multiplier(int f) : factor(f) {}
-    int operator()(int x) const { return x * factor; }
-};
-
-Multiplier times3(3);
-int result = times3(5);  // Direct call, inlineable
-
-// ✅ std::function - runtime polymorphism, overhead
-#include <functional>
-
-std::function<int(int)> callable;
-
-callable = [factor = 3](int x) { return x * factor; };  // Lambda
-int r1 = callable(5);  // Virtual call, not inlineable
-
-callable = times3;  // Can hold functor
-int r2 = callable(5);
-
-callable = [](int x) { return x * 2; };  // Change behavior at runtime
-int r3 = callable(5);
-```
-
-**Performance Comparison**:
-```cpp
-// Benchmark: 1 million calls
-
-// Functor: ~5ms (fully inlined)
-for (int i = 0; i < 1000000; i++) {
-    result = times3(i);
-}
-
-// std::function: ~35ms (virtual dispatch, heap allocation)
-std::function<int(int)> func = times3;
-for (int i = 0; i < 1000000; i++) {
-    result = func(i);
-}
-```
-
-**When to Use Each**:
-
-| Use Functor When | Use std::function When |
-|------------------|------------------------|
-| Performance critical | Need runtime polymorphism |
-| Type known at compile-time | Storing different callable types |
-| Want inlining | Callbacks with unknown types |
-| Template parameters | Non-template interfaces |
-
-**Key Takeaway**: Prefer functors for performance-critical code with compile-time types. Use `std::function` when you need to store/pass callables of different types at runtime.
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q18: How do you handle resource management (files, connections, etc.) in functors...
-**Difficulty:** #mid
-**Category:** #design
-**Concepts:** #functor_state_lifecycle
 
-**Question:** How do you handle resource management (files, connections, etc.) in functors that maintain stateful resources?
+**Concepts:**
 
 
+
+**Question:**
 
 **Answer**: Follow **RAII principles**: acquire resources in constructor, release in destructor. Use smart pointers (`unique_ptr`, `shared_ptr`) for heap resources. Ensure copy/move semantics are appropriate (often delete copy, implement move).
-
 **Explanation**:
+
 ```cpp
 #include <fstream>
 #include <memory>
@@ -1017,94 +737,27 @@ class LoggingFunctor {
 public:
     // Constructor - acquire resource
     explicit LoggingFunctor(const std::string& fname)
-        : logFile(std::make_unique<std::ofstream>(fname, std::ios::app)),
-          filename(fname),
-          messageCount(0) {
-
-        if (!logFile->is_open()) {
-            throw std::runtime_error("Failed to open log file: " + fname);
-        }
-
-        *logFile << "=== Log session started ===\n";
-    }
-
-    // Destructor - release resource
-    ~LoggingFunctor() {
-        if (logFile && logFile->is_open()) {
-            *logFile << "=== Log session ended (" << messageCount << " messages) ===\n";
-            logFile->close();
-        }
-    }
-
-    // Delete copy (file handle is unique)
-    LoggingFunctor(const LoggingFunctor&) = delete;
-    LoggingFunctor& operator=(const LoggingFunctor&) = delete;
-
-    // ✅ Implement move semantics
-    LoggingFunctor(LoggingFunctor&& other) noexcept
-        : logFile(std::move(other.logFile)),
-          filename(std::move(other.filename)),
-          messageCount(other.messageCount) {
-        other.messageCount = 0;
-    }
-
-    LoggingFunctor& operator=(LoggingFunctor&& other) noexcept {
-        if (this != &other) {
-            logFile = std::move(other.logFile);
-            filename = std::move(other.filename);
-            messageCount = other.messageCount;
-            other.messageCount = 0;
-        }
-        return *this;
-    }
-
-    // operator() - use resource
-    void operator()(const std::string& message) {
-        if (logFile && logFile->is_open()) {
-            *logFile << "[" << messageCount++ << "] " << message << "\n";
-            logFile->flush();  // Ensure written
-        }
-    }
-
-    int getMessageCount() const { return messageCount; }
-};
-
-// Usage
-void processData(const std::vector<std::string>& data) {
-    LoggingFunctor logger("process.log");
-
-    for (const auto& item : data) {
-        logger("Processing: " + item);
-        // ... process item ...
-    }
-
-    // ✅ File automatically closed when logger goes out of scope
-}
+    // ... (additional code omitted for brevity)
 ```
 
-**Key RAII Principles**:
-1. ✅ Acquire in constructor, release in destructor
-2. ✅ Use smart pointers for heap resources
-3. ✅ Delete copy if resource is unique
-4. ✅ Implement move for transferable ownership
-5. ✅ Handle exceptions in constructor (resource leaks)
+- cpp #include <fstream> #include <memory>
+- // ✅ RAII-compliant logging functor class LoggingFunctor { std::unique_ptr<std::ofstream> logFile; std::string filename; int messageCount;
+- if (!logFile->is_open()) { throw std::runtime_error("Failed to open log file: " + fname); }
 
-**Key Takeaway**: Treat functors with resources like any RAII class. Use smart pointers and proper copy/move semantics to ensure resource safety.
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q19: How can you create a variadic functor that accepts multiple argument types...
-**Difficulty:** #advanced
-**Category:** #template_metaprogramming
-**Concepts:** #variadic_templates #perfect_forwarding
 
-**Question:** How can you create a variadic functor that accepts multiple argument types and forwards them perfectly?
+**Concepts:**
 
 
+
+**Question:**
 
 **Answer**: Use **variadic templates** with **perfect forwarding** to accept any number of arguments of any type. Use `std::forward` to preserve value categories (lvalue/rvalue).
-
 **Explanation**:
+
 ```cpp
 #include <iostream>
 #include <utility>
@@ -1118,123 +771,27 @@ class VariadicLogger {
     // Helper to convert arguments to string
     template <typename T>
     std::string toString(T&& arg) const {
-        return std::to_string(std::forward<T>(arg));
-    }
-
-    std::string toString(const char* arg) const {
-        return std::string(arg);
-    }
-
-    std::string toString(const std::string& arg) const {
-        return arg;
-    }
-
-public:
-    // ✅ Variadic operator() with perfect forwarding
-    template <typename... Args>
-    void operator()(Args&&... args) {
-        // Fold expression (C++17) to build log string
-        std::string entry;
-        ((entry += toString(std::forward<Args>(args)) + " "), ...);
-        log.push_back(entry);
-    }
-
-    void printLog() const {
-        std::cout << "Call log (" << log.size() << " calls):\n";
-        for (size_t i = 0; i < log.size(); i++) {
-            std::cout << "  [" << i << "] " << log[i] << "\n";
-        }
-    }
-};
-
-// Example with call counting and type tracking
-template <typename ReturnType>
-class VariadicCounter {
-    int callCount;
-
-public:
-    VariadicCounter() : callCount(0) {}
-
-    // ✅ Works with any number and types of arguments
-    template <typename... Args>
-    ReturnType operator()(Args&&... args) {
-        callCount++;
-
-        // Can forward to other functions
-        return process(std::forward<Args>(args)...);
-    }
-
-private:
-    // Example processing functions
-    template <typename... Args>
-    ReturnType process(Args&&... args) {
-        // Use fold expression to combine arguments
-        if constexpr (std::is_arithmetic_v<ReturnType>) {
-            return (args + ...);  // Sum all arguments
-        } else {
-            return ReturnType{};
-        }
-    }
-
-public:
-    int getCallCount() const { return callCount; }
-};
-
-int main() {
-    VariadicLogger logger;
-
-    // ✅ Different argument types and counts
-    logger(42);
-    logger("Hello", "World");
-    logger(1, 2.5, "three", 4);
-    logger();  // No arguments
-
-    logger.printLog();
-
-    // Variadic counter
-    VariadicCounter<int> summer;
-
-    int r1 = summer(1, 2, 3);           // Sums to 6
-    int r2 = summer(10, 20);            // Sums to 30
-    int r3 = summer(100);               // Returns 100
-
-    std::cout << "Summer called " << summer.getCallCount() << " times\n";
-
-    return 0;
-}
-
-// Output:
-// Call log (4 calls):
-//   [0] 42
-//   [1] Hello World
-//   [2] 1 2.500000 three 4
-//   [3]
-// Summer called 3 times
+    // ... (additional code omitted for brevity)
 ```
 
-**Key Concepts**:
-- `template <typename... Args>` - variadic template parameter pack
-- `Args&&...` - universal reference pack
-- `std::forward<Args>(args)...` - perfect forwarding of pack
-- `(expression, ...)` - fold expression (C++17)
-- `std::forward` preserves value categories
+- cpp #include <iostream> #include <utility> #include <tuple> #include <vector>
+- // Variadic functor that logs all calls class VariadicLogger { std::vector<std::string> log;
+- // Helper to convert arguments to string template <typename T> std::string toString(T&& arg) const { return std::to_string(std::forward<T>(arg)); }
 
-**Key Takeaway**: Variadic templates with perfect forwarding enable generic functors that work with any argument types while preserving efficiency and value categories.
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q20: In an autonomous vehicle path planning system, how would you use a functor...
-**Difficulty:** #mid
-**Category:** #realworld_application
-**Concepts:** #custom_comparators
 
-**Question:** In an autonomous vehicle path planning system, how would you use a functor to implement a custom priority queue comparator for trajectory scoring?
+**Concepts:**
 
 
+
+**Question:**
 
 **Answer**: Create a functor that encapsulates the scoring logic (considering safety, efficiency, comfort) and use it as the comparator for `std::priority_queue`. The functor can maintain configuration parameters and weights.
-
 **Explanation**:
+
 ```cpp
 #include <queue>
 #include <vector>
@@ -1248,92 +805,13 @@ struct Trajectory {
     double timeToGoal;         // seconds
 };
 
-// ✅ Functor-based trajectory comparator
-class TrajectoryComparator {
-    // Configurable weights
-    double safetyWeight;
-    double efficiencyWeight;
-    double comfortWeight;
-    double timeWeight;
-
-public:
-    TrajectoryComparator(double safety = 0.5, double efficiency = 0.2,
-                        double comfort = 0.2, double time = 0.1)
-        : safetyWeight(safety), efficiencyWeight(efficiency),
-          comfortWeight(comfort), timeWeight(time) {
-        // Normalize weights
-        double total = safety + efficiency + comfort + time;
-        safetyWeight /= total;
-        efficiencyWeight /= total;
-        comfortWeight /= total;
-        timeWeight /= total;
-    }
-
-    // ✅ Comparison operator for priority queue (higher score = better)
-    // Note: priority_queue is max-heap by default, so return true if a has LOWER priority than b
-    bool operator()(const Trajectory& a, const Trajectory& b) const {
-        return computeScore(a) < computeScore(b);
-    }
-
-private:
-    double computeScore(const Trajectory& t) const {
-        // Higher score = better trajectory
-        // Invert collision risk (lower risk = better)
-        double safety = (1.0 - t.collisionRisk) * safetyWeight;
-
-        // Normalize efficiency (assuming 20-60 mpg range)
-        double efficiency = (t.fuelEfficiency / 60.0) * efficiencyWeight;
-
-        // Comfort is already normalized (0-1)
-        double comfort = t.comfortScore * comfortWeight;
-
-        // Time: shorter is better (invert and normalize, assuming 10-60s range)
-        double time = (1.0 - (t.timeToGoal / 60.0)) * timeWeight;
-
-        return safety + efficiency + comfort + time;
-    }
-};
-
-int main() {
-    // ✅ Use functor as comparator for priority queue
-    std::priority_queue<Trajectory, std::vector<Trajectory>, TrajectoryComparator>
-        trajectoryQueue(TrajectoryComparator(0.6, 0.2, 0.1, 0.1));  // Safety-prioritized
-
-    // Add candidate trajectories
-    trajectoryQueue.push({1, 0.1, 45.0, 0.9, 15.0});   // Safe, efficient, smooth, medium time
-    trajectoryQueue.push({2, 0.05, 40.0, 0.95, 12.0}); // Safer, less efficient, smoother, faster
-    trajectoryQueue.push({3, 0.3, 50.0, 0.7, 10.0});   // Risky, efficient, rough, fastest
-    trajectoryQueue.push({4, 0.02, 38.0, 0.98, 18.0}); // Safest, least efficient, smoothest, slowest
-
-    std::cout << "Best trajectories (in priority order):\n";
-    while (!trajectoryQueue.empty()) {
-        const auto& t = trajectoryQueue.top();
-        std::cout << "Trajectory " << t.id
-                  << " - Risk: " << t.collisionRisk
-                  << ", Efficiency: " << t.fuelEfficiency
-                  << ", Comfort: " << t.comfortScore
-                  << ", Time: " << t.timeToGoal << "s\n";
-        trajectoryQueue.pop();
-    }
-
-    return 0;
-}
-
-// Output (with safety-prioritized weights):
-// Best trajectories (in priority order):
-// Trajectory 4 - Risk: 0.02, Efficiency: 38, Comfort: 0.98, Time: 18s
-// Trajectory 2 - Risk: 0.05, Efficiency: 40, Comfort: 0.95, Time: 12s
-// Trajectory 1 - Risk: 0.1, Efficiency: 45, Comfort: 0.9, Time: 15s
-// Trajectory 3 - Risk: 0.3, Efficiency: 50, Comfort: 0.7, Time: 10s
+    // ... (additional code omitted for brevity)
 ```
 
-**Benefits of Functor Comparator**:
-1. **Configurable**: Adjust weights at runtime
-2. **Stateful**: Store configuration parameters
-3. **Reusable**: Same comparator for different queues
-4. **Testable**: Easy to unit test scoring logic
-5. **Type-safe**: Compile-time type checking
+- cpp #include <queue> #include <vector> #include <cmath>
+- // Normalize efficiency (assuming 20-60 mpg range) double efficiency = (t.fuelEfficiency / 60.0) * efficiencyWeight;
+- // Comfort is already normalized (0-1) double comfort = t.comfortScore * comfortWeight;
 
-**Key Takeaway**: Functors as custom comparators enable sophisticated priority logic in STL containers while maintaining clean, testable, and configurable code.
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---

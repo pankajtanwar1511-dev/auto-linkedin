@@ -633,51 +633,25 @@ Non-dependent expressions (those not involving template parameters) are evaluate
 **Concepts:** #static_polymorphism #algorithm_design #crtp
 
 **Answer:**
-Implement the algorithm in the CRTP base using static dispatch to call derived-specific operations, enabling customization without virtual function overhead.
+
+- Implement the algorithm in the CRTP base using static dispatch to call derived-specific operations, enabling customization without virtual function overhead.
 
 **Code example:**
-```cpp
-template<typename Derived>
-class SortAlgorithm {
-public:
-    template<typename Container>
-    void sort(Container& cont) {
-        std::cout << "Starting sort...\n";
-        auto begin = cont.begin();
-        auto end = cont.end();
-        static_cast<Derived*>(this)->sortImpl(begin, end);  // ✅ Customization point
-        std::cout << "Sort complete.\n";
-    }
-};
 
-class QuickSort : public SortAlgorithm<QuickSort> {
-public:
-    template<typename Iterator>
-    void sortImpl(Iterator begin, Iterator end) {
-        std::cout << "Using QuickSort\n";
-        std::sort(begin, end);  // Use std::sort as example
-    }
-};
-
-class BubbleSort : public SortAlgorithm<BubbleSort> {
-public:
-    template<typename Iterator>
-    void sortImpl(Iterator begin, Iterator end) {
-        std::cout << "Using BubbleSort\n";
-        // Bubble sort implementation
-    }
-};
-
-int main() {
-    std::vector<int> data = {3, 1, 4, 1, 5};
-    QuickSort qs;
-    qs.sort(data);  // Starting sort... Using QuickSort Sort complete.
-}
-```
+- int main() { std::vector<int> data = {3, 1, 4, 1, 5}; QuickSort qs; qs.sort(data); // Starting sort..
+- Using QuickSort Sort complete
 
 **Explanation:**
-The CRTP base implements the common algorithm structure (the "template method"), calling `sortImpl` via static dispatch to get the derived-specific behavior. Each derived class provides its own implementation. This achieves the Template Method design pattern at compile time with zero overhead. The compiler can inline everything, unlike virtual functions which prevent many optimizations.
 
-**Key takeaway:** CRTP enables compile-time polymorphic algorithms with the Template Method pattern.
+- The CRTP base implements the common algorithm structure (the "template method"), calling `sortImpl` via static dispatch to get the derived-specific behavior
+- Each derived class provides its own implementation
+- This achieves the Template Method design pattern at compile time with zero overhead
+- The compiler can inline everything, unlike virtual functions which prevent many optimizations.
+
+**Key takeaway:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---

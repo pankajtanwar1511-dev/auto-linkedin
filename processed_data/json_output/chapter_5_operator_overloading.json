@@ -533,12 +533,10 @@
             "destructor",
             "raii"
           ],
-          "answer": "If you define a custom destructor, copy constructor, or copy assignment operator, you usually need to define all three (rule of three). With move semantics, this extends to five (add move constructor and move assignment). If you use RAII correctly, you may need zero custom special functions.",
-          "explanation": "Classes managing resources need consistent copy and move semantics. If you properly use smart pointers and RAII wrappers, the compiler can generate all five correctly (rule of zero), making custom operators unnecessary.",
-          "code_examples": [
-            "// Rule of Five\nclass DynamicArray {\n    int* data;\n    size_t size;\npublic:\n    ~DynamicArray() { delete[] data; }  // 1. Destructor\n    \n    DynamicArray(const DynamicArray& other)  // 2. Copy constructor\n        : size(other.size), data(new int[size]) {\n        std::copy(other.data, other.data + size, data);\n    }\n    \n    DynamicArray& operator=(const DynamicArray& other) {  // 3. Copy assignment\n        if (this != &other) {\n            delete[] data;\n            size = other.size;\n            data = new int[size];\n            std::copy(other.data, other.data + size, data);\n        }\n        return *this;\n    }\n    \n    DynamicArray(DynamicArray&& other) noexcept  // 4. Move constructor\n        : data(other.data), size(other.size) {\n        other.data = nullptr;\n        other.size = 0;\n    }\n    \n    DynamicArray& operator=(DynamicArray&& other) noexcept {  // 5. Move assignment\n        if (this != &other) {\n            delete[] data;\n            data = other.data;\n            size = other.size;\n            other.data = nullptr;\n            other.size = 0;\n        }\n        return *this;\n    }\n};"
-          ],
-          "key_takeaway": "When managing resources, implement all five special member functions or use RAII wrappers to follow the rule of zero; inconsistent implementation leads to memory leaks or double-deletion bugs."
+          "answer": "- If you define a custom destructor, copy constructor, or copy assignment operator, you usually need to define all three (rule of three)\n- With move semantics, this extends to five (add move constructor and move assignment)\n- If you use RAII correctly, you may need zero custom special functions.",
+          "explanation": "- Classes managing resources need consistent copy and move semantics\n- If you properly use smart pointers and RAII wrappers, the compiler can generate all five correctly (rule of zero), making custom operators unnecessary.",
+          "code_examples": [],
+          "key_takeaway": "**Note:** Full detailed explanation with additional examples available in source materials."
         },
         {
           "question_number": 19,

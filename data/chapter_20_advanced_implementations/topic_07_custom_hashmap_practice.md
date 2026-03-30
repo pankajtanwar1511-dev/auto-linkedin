@@ -304,60 +304,28 @@ int main() {
 ```
 
 **Answer:**
-```
-Size: 3 (wrong - should be 1)
-Lookup: Returns first inserted value "one" (or implementation-defined)
-```
+
+
 
 **Explanation:**
+
 - `insert()` doesn't check if key already exists
 - Three insertions with key=1 → three separate entries in bucket
 - `size_` becomes 3 (incorrect, should be 1 for unique keys)
 - Bucket list contains: `[(1,"one"), (1,"uno"), (1,"eins")]`
 - `find()` returns first match → "one"
-- Violates hash map invariant: unique keys
-- Wasted memory and incorrect semantics
-- **Key Concept:** Hash map insert must check for duplicate keys before adding; either update existing value or return false; allowing duplicates violates map semantics and wastes memory
 
 **Fixed Version:**
-```cpp
-bool insert(const K& key, const V& value) {
-    size_t index = std::hash<K>{}(key) % buckets_.size();
 
-    auto& bucket = buckets_[index];
+- auto& bucket = buckets_[index];
+- // Check for existing key for (auto& [k, v] : bucket) { if (k == key) { return false; // Key exists, don't insert } }
+- bucket.push_back({key, value}); size_++; return true; }
+- // Or insert_or_assign for update semantics void insert_or_assign(const K& key, const V& value) { size_t index = std::hash<K>{}(key) % buckets_.size();
+- auto& bucket = buckets_[index];
 
-    // Check for existing key
-    for (auto& [k, v] : bucket) {
-        if (k == key) {
-            return false;  // Key exists, don't insert
-        }
-    }
-
-    bucket.push_back({key, value});
-    size_++;
-    return true;
-}
-
-// Or insert_or_assign for update semantics
-void insert_or_assign(const K& key, const V& value) {
-    size_t index = std::hash<K>{}(key) % buckets_.size();
-
-    auto& bucket = buckets_[index];
-
-    for (auto& [k, v] : bucket) {
-        if (k == key) {
-            v = value;  // Update existing
-            return;
-        }
-    }
-
-    bucket.push_back({key, value});  // Insert new
-    size_++;
-}
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q6
 ```cpp
 template<typename K, typename V>

@@ -63,11 +63,11 @@ class UI {
 ```
 
 **Answer:**
-```
-Bad architecture - violates layered architecture principles
-```
+
+
 
 **Explanation:**
+
 - UI layer directly accessing data layer - skips business logic layer entirely
 - Tight coupling: UI knows about SQL implementation details
 - Cannot reuse business logic - tied to UI trigger
@@ -75,45 +75,16 @@ Bad architecture - violates layered architecture principles
 - **Key Concept:** Layered architecture enforces separation where each layer only communicates with adjacent layer below
 
 **Fixed Version (Layered Architecture):**
-```cpp
-// Layer 3: UI (Presentation)
-class UI {
-    BusinessLogic* logic;
 
-    void onButtonClick() {
-        logic->createUser("John", "john@example.com");  // Call business layer
-    }
-};
+- void onButtonClick() { logic->createUser("John", "john@example.com"); // Call business layer } };
+- // Layer 2: Business Logic (Domain) class BusinessLogic { IRepository* repo;
+- public: void createUser(const std::string& name, const std::string& email) { // Validation if (name.empty()) throw std::invalid_argument("Name required");
+- User user{name, email}; repo->save(user); // Call data layer } };
+- // Layer 1: Data (Persistence) class IRepository { public: virtual void save(const User& user) = 0; };
 
-// Layer 2: Business Logic (Domain)
-class BusinessLogic {
-    IRepository* repo;
+**Note:** Full detailed explanation with additional examples available in source materials.
 
-public:
-    void createUser(const std::string& name, const std::string& email) {
-        // Validation
-        if (name.empty()) throw std::invalid_argument("Name required");
-
-        User user{name, email};
-        repo->save(user);  // Call data layer
-    }
-};
-
-// Layer 1: Data (Persistence)
-class IRepository {
-public:
-    virtual void save(const User& user) = 0;
-};
-
-class SQLRepository : public IRepository {
-public:
-    void save(const User& user) override {
-        std::string sql = "INSERT INTO users VALUES (...)";
-        executeSQL(sql);
-    }
-};
-```
-
+---
 #### Q3
 ```cpp
 // Should this be event-driven or direct calls?
@@ -133,11 +104,11 @@ public:
 ```
 
 **Answer:**
-```
-Event-driven architecture would be better - eliminates tight coupling
-```
+
+
 
 **Explanation:**
+
 - Sensor directly coupled to 3 components - adding new consumer requires modifying Sensor
 - Synchronous processing - Sensor waits for all consumers to complete
 - Cannot add/remove consumers dynamically
@@ -145,46 +116,13 @@ Event-driven architecture would be better - eliminates tight coupling
 - **Key Concept:** Event-driven architecture decouples producers from consumers via publish-subscribe pattern
 
 **Better: Event-Driven Architecture:**
-```cpp
-class Sensor {
-    EventBus* bus;
 
-public:
-    void read() {
-        Data d = readHardware();
-        bus->publish(Event{EventType::SensorData, d});  // Publish and forget
-    }
-};
+- public: void read() { Data d = readHardware(); bus->publish(Event{EventType::SensorData, d}); // Publish and forget } };
+- class Logger { public: Logger(EventBus* bus) { bus->subscribe(EventType::SensorData, [this](const Event& e) { logData(e.data); }); } }; ```
 
-// Consumers subscribe independently
-class Planner {
-public:
-    Planner(EventBus* bus) {
-        bus->subscribe(EventType::SensorData, [this](const Event& e) {
-            updateData(e.data);
-        });
-    }
-};
+**Note:** Full detailed explanation with additional examples available in source materials.
 
-class Controller {
-public:
-    Controller(EventBus* bus) {
-        bus->subscribe(EventType::SensorData, [this](const Event& e) {
-            reactToData(e.data);
-        });
-    }
-};
-
-class Logger {
-public:
-    Logger(EventBus* bus) {
-        bus->subscribe(EventType::SensorData, [this](const Event& e) {
-            logData(e.data);
-        });
-    }
-};
-```
-
+---
 #### Q4
 ```cpp
 // What architecture pattern would you use?
@@ -196,11 +134,11 @@ public:
 ```
 
 **Answer:**
-```
-Entity-Component-System (ECS) architecture
-```
+
+
 
 **Explanation:**
+
 - Many entities (50+ sensors) benefit from data-oriented design
 - Varied composition (some sensors have different component combinations) requires flexibility
 - Performance-critical (60fps) needs cache-friendly memory layout (component arrays)
@@ -208,52 +146,12 @@ Entity-Component-System (ECS) architecture
 - **Key Concept:** ECS separates data (Components) from logic (Systems) for performance and flexibility in entity-based systems
 
 **Implementation:**
-```cpp
-// Components (data only - POD types)
-struct Position { double x, y; };
-struct Velocity { double dx, dy; };
-struct Health { int hp; };
-struct Renderable { std::string sprite; };
 
-// Systems (logic only - operate on components)
-class MovementSystem {
-public:
-    void update(ComponentManager<Position>& pos,
-                ComponentManager<Velocity>& vel, double dt) {
-        for (auto& [id, velocity] : vel.getAll()) {
-            if (auto* p = pos.get(id)) {
-                p->x += velocity.dx * dt;
-                p->y += velocity.dy * dt;
-            }
-        }
-    }
-};
 
-class RenderSystem {
-public:
-    void render(ComponentManager<Position>& pos,
-                ComponentManager<Renderable>& renderable) {
-        for (auto& [id, render] : renderable.getAll()) {
-            if (auto* p = pos.get(id)) {
-                draw(render.sprite, p->x, p->y);
-            }
-        }
-    }
-};
 
-// Create sensors with different component combinations
-Entity sensor1 = entityManager.create();
-components.add(sensor1, Position{0, 0});
-components.add(sensor1, Velocity{1, 0});
-// sensor1: movable sensor (no health, no rendering)
+**Note:** Full detailed explanation with additional examples available in source materials.
 
-Entity sensor2 = entityManager.create();
-components.add(sensor2, Position{10, 10});
-components.add(sensor2, Health{100});
-components.add(sensor2, Renderable{"sensor.png"});
-// sensor2: static sensor with health and rendering
-```
-
+---
 #### Q5
 ```cpp
 // Architectural issue?
@@ -271,17 +169,16 @@ void processOrder() {
 ```
 
 **Answer:**
-```
+```cpp
 No transaction coordination - partial failures cause inconsistency
 ```
-
+- No transaction coordination - partial failures cause inconsistency ```
 **Explanation:**
 - If `chargePayment()` succeeds but `updateInventory()` fails, money is charged but inventory is wrong
 - No compensation mechanism to undo successful steps
 - Catch block cannot determine which step failed and what to rollback
 - Distributed transaction problem - different systems (payment, inventory, email)
 - **Key Concept:** Use Saga pattern for distributed transactions to ensure consistency through compensation
-
 **Solution 1: Database Transaction (single system):**
 ```cpp
 void processOrder() {
@@ -299,46 +196,6 @@ void processOrder() {
 }
 ```
 
-**Solution 2: Saga Pattern (distributed systems):**
-```cpp
-class OrderSaga {
-    std::vector<std::function<void()>> compensations;
-
-public:
-    void processOrder() {
-        try {
-            // Step 1: Charge payment
-            chargePayment();
-            compensations.push_back([this](){ refundPayment(); });
-
-            // Step 2: Update inventory
-            updateInventory();
-            compensations.push_back([this](){ restoreInventory(); });
-
-            // Step 3: Send email (best effort)
-            sendEmail();
-        } catch (...) {
-            // Compensate in reverse order
-            for (auto it = compensations.rbegin(); it != compensations.rend(); ++it) {
-                try {
-                    (*it)();  // Execute compensation
-                } catch (...) {
-                    // Log compensation failure
-                }
-            }
-            throw;
-        }
-    }
-
-private:
-    void refundPayment() {
-        // Reverse the payment charge
-    }
-
-    void restoreInventory() {
-        // Restore inventory to previous state
-    }
-};
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
