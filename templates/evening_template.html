@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="styles.css">
+    {{ extra_css | safe }}
+</head>
+<body>
+    <div class="slide">
+        <header class="slide-header theme-{{ theme }}">
+            <div class="header-left">
+                <span class="header-icon">{{ header_icon }}</span>
+                <span class="header-title">C++ Weekly Learning</span>
+            </div>
+            <div class="header-right">{{ header_right }}</div>
+        </header>
+
+        <div class="topic-header {{ section_class }}">
+            <div class="topic-name">{{ full_topic_name }}</div>
+            {% if slide_type != 'title' %}
+            <div class="section-name">{{ section_type }}</div>
+            {% endif %}
+        </div>
+
+        <main class="slide-content">
+            {% if slide_type == 'title' %}
+            <div class="title-slide-content">
+                <div class="title-icon">{{ emoji }}</div>
+                <h1 class="title-main">{{ session_name }}</h1>
+                <h2 class="title-subtitle">{{ topic_name }}</h2>
+                {% if subtitle %}
+                <p style="font-size: 18px; color: #64748b; margin: 10px 0;">{{ subtitle }}</p>
+                {% endif %}
+            </div>
+            {% elif slide_type == 'overview' %}
+            <div class="title-slide-content">
+                <div class="title-icon">{{ emoji }}</div>
+                <h1 class="title-main">{{ session_name }}</h1>
+                <h2 class="title-subtitle">{{ topic_name }}</h2>
+                <div class="sections-list">
+                    {{ sections_html | safe }}
+                </div>
+            </div>
+            {% else %}
+            <div class="{{ section_class }}">
+                {% if show_concept_title %}
+                <div class="concept-title">
+                    <span class="icon">{{ icon }}</span>
+                    <span>{{ concept_title }}</span>
+                </div>
+                {% endif %}
+                <div class="concept-body">
+                    {{ content_html | safe }}
+                </div>
+            </div>
+            {% endif %}
+        </main>
+
+        <footer class="slide-footer">
+            <div class="footer-brand">C++ Master Pro</div>
+            <div class="footer-counter">[{{ slide_num }}/{{ total_slides }}]</div>
+        </footer>
+    </div>
+</body>
+</html>

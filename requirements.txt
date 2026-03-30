@@ -1,0 +1,33 @@
+# LinkedIn Content Automation - Dependencies
+# Python 3.10+
+
+# Template Rendering
+jinja2>=3.1.0
+
+# HTML to Image Conversion
+html2image>=2.0.0
+selenium>=4.0.0
+
+# Image Processing
+pillow>=10.0.0
+
+# HTTP Client & LinkedIn API
+requests>=2.31.0
+requests-oauthlib>=1.3.0
+
+# Task Scheduling
+apscheduler>=3.10.0
+
+# Timezone Handling
+pytz>=2023.3
+
+# Environment Variables
+python-dotenv>=1.0.0
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+
+# Code Quality (optional)
+pylint>=3.0.0
+black>=23.0.0
