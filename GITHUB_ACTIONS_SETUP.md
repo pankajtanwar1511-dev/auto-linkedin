@@ -79,24 +79,44 @@ Once set up, the workflow will run automatically on an **alternating pattern**:
 
 ### Morning Post (Every Day)
 - **Workflow starts:** Every day at 8:00 AM IST (2:30 AM UTC)
-- **Random delay:** 0-60 minutes (posts between 8:00-9:00 AM IST)
+- **Rotating time windows:** Changes each day for natural variation
 - **Frequency:** 7 days/week
 
 ### Evening Post (Alternate Days Only)
 - **Workflow starts:** Tuesday, Thursday, Saturday at 6:00 PM IST (12:30 PM UTC)
-- **Random delay:** 0-60 minutes (posts between 6:00-7:00 PM IST)
+- **Rotating time windows:** Changes each day for natural variation
 - **Frequency:** 3 days/week
 
+### Rotating Time Windows (40-minute windows)
+
+**Morning Windows:**
+| Day | Time Window | Posts at |
+|-----|-------------|----------|
+| Monday | 8:00-8:40 AM | Random time in window |
+| Tuesday | 8:40-9:20 AM | Random time in window |
+| Wednesday | 9:20-10:00 AM | Random time in window |
+| Thursday | 8:00-8:40 AM | Cycle repeats |
+| Friday | 8:40-9:20 AM | |
+| Saturday | 9:20-10:00 AM | |
+| Sunday | 8:00-8:40 AM | |
+
+**Evening Windows (Tue/Thu/Sat only):**
+| Day | Time Window | Posts at |
+|-----|-------------|----------|
+| Tuesday | 6:40-7:20 PM | Random time in window |
+| Thursday | 6:00-6:40 PM | Random time in window |
+| Saturday | 7:20-8:00 PM | Random time in window |
+
 ### Weekly Pattern
-| Day | Morning | Evening | Total Posts/Day |
-|-----|---------|---------|----------------|
-| Monday | ✅ | ❌ | 1 post |
-| Tuesday | ✅ | ✅ | 2 posts |
-| Wednesday | ✅ | ❌ | 1 post |
-| Thursday | ✅ | ✅ | 2 posts |
-| Friday | ✅ | ❌ | 1 post |
-| Saturday | ✅ | ✅ | 2 posts |
-| Sunday | ✅ | ❌ | 1 post |
+| Day | Morning Window | Evening Window | Total Posts/Day |
+|-----|---------------|----------------|----------------|
+| Monday | 8:00-8:40 AM | - | 1 post |
+| Tuesday | 8:40-9:20 AM | 6:40-7:20 PM | 2 posts |
+| Wednesday | 9:20-10:00 AM | - | 1 post |
+| Thursday | 8:00-8:40 AM | 6:00-6:40 PM | 2 posts |
+| Friday | 8:40-9:20 AM | - | 1 post |
+| Saturday | 9:20-10:00 AM | 7:20-8:00 PM | 2 posts |
+| Sunday | 8:00-8:40 AM | - | 1 post |
 | **Weekly Total** | | | **10 posts/week** |
 
 **Why alternating pattern?**
@@ -216,20 +236,33 @@ if datetime.datetime.now().weekday() >= 5:  # 5=Sat, 6=Sun
 
 **GitHub Actions Free Tier:**
 - 2,000 minutes/month (public repos)
-- Your usage breakdown (alternating pattern):
-  - **Mon, Wed, Fri, Sun:** 1 post/day × 30 min avg = 30 min
-  - **Tue, Thu, Sat:** 2 posts/day × 60 min avg = 60 min
-  - **Average per week:** (4 days × 30 min) + (3 days × 60 min) = 300 min
-  - **Monthly: ~1,200 minutes**
-  - **Usage: 60% of free tier** ✅
+
+**Your usage with rotating windows (10 posts/week):**
+
+Per week breakdown:
+- **Morning posts (7/week):**
+  - 3 posts @ slot 0 (0-40 min): ~21 min avg each = 63 min
+  - 2 posts @ slot 1 (40-80 min): ~61 min avg each = 122 min
+  - 2 posts @ slot 2 (80-120 min): ~101 min avg each = 202 min
+- **Evening posts (3/week):**
+  - Tuesday @ slot 1: ~61 min
+  - Thursday @ slot 0: ~21 min
+  - Saturday @ slot 2: ~101 min
+- **Weekly average:** ~570 minutes
+- **Monthly (4.3 weeks):** ~2,450 minutes
+
+**Free tier analysis:**
+- Usage: ~123% of free tier (slight overage)
+- Overage: ~450 min/month × $0.008 = **~$3.60/month**
+- Trade-off: Natural, human-like posting pattern worth minimal cost
 
 **For 59-day campaign:**
 - Week 1-8: 10 posts/week = 80 posts
 - Week 9: 8 posts (Days 57-59)
-- Total: ~1,180 minutes per month
-- **Well within free tier!** ✅
+- Total campaign: ~4,800 minutes over 59 days
+- Monthly cost during campaign: **~$3-4/month**
 
-**Cost:** $0 (completely free)
+**Cost:** $0 (free tier) + ~$3.60/month overage = **~$7.20 total for 2-month campaign**
 
 ---
 

@@ -106,17 +106,29 @@ class AutoPoster:
         Returns:
             True if successful
         """
-        # Random delay for natural posting times
+        # Rotating time windows for natural posting times
         # Only apply when running via automation (check if GITHUB_ACTIONS env var exists)
         if os.getenv('GITHUB_ACTIONS') == 'true' and not dry_run:
             # Determine if morning or evening based on current UTC hour
             current_hour_utc = datetime.utcnow().hour
             current_weekday = datetime.now().weekday()  # 0=Monday, 6=Sunday
 
+            # Calculate rotating time slot (cycles through 0, 1, 2)
+            time_slot = current_weekday % 3
+
+            # Base delay for each time slot (40-minute windows)
+            # Slot 0: 0-40 min   (Mon, Thu, Sun mornings | Thu evening)
+            # Slot 1: 40-80 min  (Tue, Fri mornings     | Tue evening)
+            # Slot 2: 80-120 min (Wed, Sat mornings     | Sat evening)
+            base_delay = time_slot * 40
+            random_offset = random.randint(0, 40)
+            delay_minutes = base_delay + random_offset
+
             if current_hour_utc < 6:  # Morning run (triggered at 2:30 AM UTC = 8:00 AM IST)
-                # Random delay: 0-60 minutes (8:00-9:00 AM IST)
-                delay_minutes = random.randint(0, 60)
                 time_label = "morning"
+                # Morning windows: 8:00-8:40, 8:40-9:20, 9:20-10:00
+                time_windows = ["8:00-8:40 AM", "8:40-9:20 AM", "9:20-10:00 AM"]
+                window = time_windows[time_slot]
             else:  # Evening run (triggered at 12:30 PM UTC = 6:00 PM IST)
                 # Check if today is an "even post day" (Tue, Thu, Sat = days 1, 3, 5)
                 # Pattern: Mon(1 post), Tue(2 posts), Wed(1), Thu(2), Fri(1), Sat(2), Sun(1)
@@ -126,13 +138,15 @@ class AutoPoster:
                     self.logger.info("⏭️  Skipping evening post (odd-day pattern)")
                     return True  # Skip evening post on odd days
 
-                # Random delay: 0-60 minutes (6:00-7:00 PM IST)
-                delay_minutes = random.randint(0, 60)
                 time_label = "evening"
+                # Evening windows: 6:00-6:40, 6:40-7:20, 7:20-8:00
+                time_windows = ["6:00-6:40 PM", "6:40-7:20 PM", "7:20-8:00 PM"]
+                window = time_windows[time_slot]
 
             delay_seconds = delay_minutes * 60
 
-            self.logger.info(f"⏰ {time_label.capitalize()} post - Random delay: {delay_minutes} minutes")
+            self.logger.info(f"⏰ {time_label.capitalize()} post - Window: {window}")
+            self.logger.info(f"⏰ Random delay: {delay_minutes} minutes from workflow start")
 
             if delay_seconds > 0:
                 time.sleep(delay_seconds)
