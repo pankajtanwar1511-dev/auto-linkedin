@@ -42,20 +42,22 @@ Memory leak: lost pointers to earlier allocations
   - Resource waste (multiple database connections, etc.)
 - **Why this happens:** Check and assignment are NOT atomic
 - **Common fix 1:** Meyers Singleton (C++11 thread-safe)
-  ```cpp
-  static Manager& getInstance() {
-      static Manager instance;  // Thread-safe since C++11
-      return instance;
-  }
-  ```
+
+```cpp
+static Manager& getInstance() {
+    static Manager instance;  // Thread-safe since C++11
+    return instance;
+}
+```
 - **Common fix 2:** Double-checked locking with mutex
-  ```cpp
-  static mutex mtx;
-  if (!instance) {
-      lock_guard lock(mtx);
-      if (!instance) instance = new Manager();
-  }
-  ```
+
+```cpp
+static mutex mtx;
+if (!instance) {
+    lock_guard lock(mtx);
+    if (!instance) instance = new Manager();
+}
+```
 - **Common fix 3:** std::call_once
 - **Key Concept:** Lazy Singleton initialization without synchronization causes race conditions and violates single-instance guarantee
 
@@ -102,12 +104,13 @@ Possible crash or corruption during static destruction phase
   - Double destruction
 - **Why this is common:** Singletons often depend on each other
 - **Common fix 1:** Phoenix Singleton (never destroyed)
-  ```cpp
-  static Logger& getInstance() {
-      static Logger* instance = new Logger();  // Never deleted
-      return *instance;
-  }
-  ```
+
+```cpp
+static Logger& getInstance() {
+    static Logger* instance = new Logger();  // Never deleted
+    return *instance;
+}
+```
 - **Common fix 2:** Dependency injection (avoid Singleton-to-Singleton calls)
 - **Common fix 3:** Document initialization order dependencies
 - **Common fix 4:** Use Nifty Counter idiom for guaranteed ordering
@@ -181,16 +184,18 @@ Each template instantiation has its own static instance
   - `Singleton<Config>::getInstance()` has its own `static T instance` (T=Config)
   - **No sharing between template instantiations**
 - **Memory layout:**
-  ```
-  Address 0x1000: Logger instance (inside Singleton<Logger>::getInstance())
-  Address 0x2000: Config instance (inside Singleton<Config>::getInstance())
-  ```
+
+```
+Address 0x1000: Logger instance (inside Singleton<Logger>::getInstance())
+Address 0x2000: Config instance (inside Singleton<Config>::getInstance())
+```
 - **How to verify:**
-  ```cpp
-  Logger& l1 = Logger::getInstance();
-  Logger& l2 = Singleton<Logger>::getInstance();  // Same instance
-  Config& c = Config::getInstance();  // Different instance
-  ```
+
+```cpp
+Logger& l1 = Logger::getInstance();
+Logger& l2 = Singleton<Logger>::getInstance();  // Same instance
+Config& c = Config::getInstance();  // Different instance
+```
 - **CRTP pattern (Curiously Recurring Template Pattern):**
   - Each derived class uses itself as template parameter
   - Base class provides common Singleton logic

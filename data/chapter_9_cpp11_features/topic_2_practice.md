@@ -76,10 +76,11 @@ Compilation error
 - `s == 0` compares Status with int
 - Type mismatch, no implicit conversion
 - **Fix:** Explicit cast or compare with enum value
-  ```cpp
-  if (s == Status::OK)  // Correct
-  if (static_cast<int>(s) == 0)  // Also works
-  ```
+
+```cpp
+if (s == Status::OK)  // Correct
+if (static_cast<int>(s) == 0)  // Also works
+```
 - Old-style enum would compile (implicit conversion)
 - enum class provides type safety
 - **Key Concept:** enum class prevents implicit conversion; ensures type safety
@@ -166,9 +167,10 @@ Compiles; prints "ptr is null"
 - Comparison works (both represent null)
 - Prints "ptr is null"
 - **Best practice:** Compare with nullptr, not NULL
-  ```cpp
-  if (ptr == nullptr)  // Modern C++
-  ```
+
+```cpp
+if (ptr == nullptr)  // Modern C++
+```
 - nullptr is type-safe replacement for NULL
 - **Key Concept:** nullptr and NULL both represent null, but nullptr is type-safe
 
@@ -191,12 +193,13 @@ Compilation error
 - | operator not defined for enum class
 - Returns int, can't assign to Flags without cast
 - **Fix:** Overload operators or use explicit casts
-  ```cpp
-  Flags operator|(Flags a, Flags b) {
-      return static_cast<Flags>(
-          static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
-  }
-  ```
+
+```cpp
+Flags operator|(Flags a, Flags b) {
+    return static_cast<Flags>(
+        static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+}
+```
 - Or define with underlying type operations:
   ```cpp
   auto combined = static_cast<Flags>(
@@ -227,11 +230,12 @@ NO - map unchanged
 - Modifications affect copy only
 - Original map unchanged
 - **Fix:** Use reference
-  ```cpp
-  for (auto& pair : map) {  // Reference
-      pair.second = "modified";  // Modifies original
-  }
-  ```
+
+```cpp
+for (auto& pair : map) {  // Reference
+    pair.second = "modified";  // Modifies original
+}
+```
 - Remember: map key is const, only value modifiable
 - Pattern: auto& for modification, auto for read-only
 - **Key Concept:** Range-for auto copies; use auto& to modify container elements
@@ -388,9 +392,10 @@ hello
 - vec unchanged
 - vec[0] still "hello"
 - **Better:** Use const auto& for read-only
-  ```cpp
-  for (const auto& s : vec)  // No copy
-  ```
+
+```cpp
+for (const auto& s : vec)  // No copy
+```
 - Or auto& for modification
 - Copying strings is expensive
 - **Key Concept:** auto copies expensive objects; use const auto& to avoid copies
@@ -474,9 +479,10 @@ Compilation error
 - `Running` not in scope
 - Must use `Status::Running`
 - **Fix:**
-  ```cpp
-  case Status::Running:  // Correct
-  ```
+
+```cpp
+case Status::Running:  // Correct
+```
 - Old-style enums inject names into enclosing scope
 - enum class keeps names scoped
 - Prevents name pollution
@@ -506,11 +512,12 @@ Undefined behavior (iterator invalidation)
 - Undefined behavior: crash or infinite loop
 - Never modify container during range-for iteration
 - **Fix:** Use index-based loop or collect values first
-  ```cpp
-  std::vector<int> toAdd;
-  for (const auto& x : vec) toAdd.push_back(x * 2);
-  vec.insert(vec.end(), toAdd.begin(), toAdd.end());
-  ```
+
+```cpp
+std::vector<int> toAdd;
+for (const auto& x : vec) toAdd.push_back(x * 2);
+vec.insert(vec.end(), toAdd.begin(), toAdd.end());
+```
 - **Key Concept:** Modifying container during range-for invalidates iterators; causes undefined behavior
 
 ---

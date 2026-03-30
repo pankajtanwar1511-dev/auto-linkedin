@@ -654,9 +654,10 @@ Undefined behavior
 - Classic dangling reference bug
 - Reference capture must outlive lambda
 - **Fix:** Capture by value
-  ```cpp
-  return [=]() { return x; };  // Captures copy
-  ```
+
+```cpp
+return [=]() { return x; };  // Captures copy
+```
 - Or use shared state:
   ```cpp
   auto x = std::make_shared<int>(42);

@@ -488,14 +488,15 @@ File leaks on all three early returns
 - **Multiple exit points:** Easy to forget cleanup
 - **Manual resource management:** Error-prone
 - **RAII solution:**
-  ```cpp
-  class FileHandle {
-      FILE* f;
-  public:
-      FileHandle(const char* name) : f(fopen(name, "r")) {}
-      ~FileHandle() { if (f) fclose(f); }
-  };
-  ```
+
+```cpp
+class FileHandle {
+    FILE* f;
+public:
+    FileHandle(const char* name) : f(fopen(name, "r")) {}
+    ~FileHandle() { if (f) fclose(f); }
+};
+```
 - **All exits covered:** Destructor runs on all code paths
 - **Key Concept:** Manual resource management fails with multiple exits; RAII ensures cleanup on all paths
 
@@ -584,9 +585,10 @@ Caught
 - "Caught" prints
 - **Problem:** Resource acquired but constructor throws
 - **Solution:** Use smart pointers or two-phase construction
-  ```cpp
-  std::unique_ptr<int[]> data{new int[100]};
-  ```
+
+```cpp
+std::unique_ptr<int[]> data{new int[100]};
+```
 - **Key Concept:** Constructor exceptions cause leaks if raw resources acquired; use RAII members instead
 
 ---

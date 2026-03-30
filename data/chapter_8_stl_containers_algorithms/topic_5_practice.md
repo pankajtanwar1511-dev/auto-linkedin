@@ -54,22 +54,24 @@ Compilation error
 - Default std::hash doesn't work for custom types
 - Compilation error: no matching hash function
 - **Fix 1:** Specialize std::hash<Point>
-  ```cpp
-  namespace std {
-      template<> struct hash<Point> {
-          size_t operator()(const Point& p) const {
-              return hash<int>()(p.x) ^ (hash<int>()(p.y) << 1);
-          }
-      };
-  }
-  ```
+
+```cpp
+namespace std {
+    template<> struct hash<Point> {
+        size_t operator()(const Point& p) const {
+            return hash<int>()(p.x) ^ (hash<int>()(p.y) << 1);
+        }
+    };
+}
+```
 - **Fix 2:** Provide custom hash as template parameter
-  ```cpp
-  struct PointHash {
-      size_t operator()(const Point& p) const { ... }
-  };
-  unordered_set<Point, PointHash> s;
-  ```
+
+```cpp
+struct PointHash {
+    size_t operator()(const Point& p) const { ... }
+};
+unordered_set<Point, PointHash> s;
+```
 - **Key Concept:** Unordered containers require both operator== and hash function; custom types need explicit hash
 
 ---
@@ -127,14 +129,15 @@ Undefined behavior
 - Next iteration: `++it` increments invalidated iterator
 - Undefined behavior (may crash, infinite loop, or appear to work)
 - **Fix:** Use return value of erase()
-  ```cpp
-  for (auto it = s.begin(); it != s.end();) {
-      if (*it == 3)
-          it = s.erase(it);  // Returns next valid iterator
-      else
-          ++it;
-  }
-  ```
+
+```cpp
+for (auto it = s.begin(); it != s.end();) {
+    if (*it == 3)
+        it = s.erase(it);  // Returns next valid iterator
+    else
+        ++it;
+}
+```
 - Or use remove-if pattern (C++20):
   ```cpp
   std::erase_if(s, [](int x) { return x == 3; });

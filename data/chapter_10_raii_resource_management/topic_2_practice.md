@@ -336,10 +336,11 @@ Not thread-safe; race condition possible
   - Possible double-delete
 - **No synchronization:** Race condition on check and allocation
 - **Fix:** Use std::mutex or std::call_once
-  ```cpp
-  std::once_flag initFlag;
-  std::call_once(initFlag, [this]{ data = new int[100]; });
-  ```
+
+```cpp
+std::once_flag initFlag;
+std::call_once(initFlag, [this]{ data = new int[100]; });
+```
 - **Key Concept:** Lazy initialization without synchronization causes race conditions; use std::call_once
 
 ---
@@ -416,11 +417,12 @@ Compilation error: Resource not movable
 - Return vec tries to move vector (moves elements)
 - **Both operations fail**
 - **Fix:** Add move constructor
-  ```cpp
-  Resource(Resource&& other) : data(other.data) {
-      other.data = nullptr;
-  }
-  ```
+
+```cpp
+Resource(Resource&& other) : data(other.data) {
+    other.data = nullptr;
+}
+```
 - **Rule of Five:** If you delete copy, implement move
 - **Key Concept:** Vectors require movable elements; deleting copy without implementing move breaks containers
 
@@ -603,13 +605,14 @@ Race condition: both threads may allocate
 - **Possible crash:** Both try to delete in destructor
 - **No synchronization:** Race on read-modify-write
 - **Fix:** std::call_once
-  ```cpp
-  std::once_flag initFlag;
-  T& get() const {
-      std::call_once(initFlag, [this]{ ptr = new T(); });
-      return *ptr;
-  }
-  ```
+
+```cpp
+std::once_flag initFlag;
+T& get() const {
+    std::call_once(initFlag, [this]{ ptr = new T(); });
+    return *ptr;
+}
+```
 - **Key Concept:** Lazy initialization in multi-threaded code requires synchronization; use std::call_once
 
 ---

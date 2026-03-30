@@ -55,9 +55,10 @@ Compilation error
 - Compilation error
 - Without override: would hide, not override
 - **Fix:** Add const to Derived
-  ```cpp
-  void method() const override { }
-  ```
+
+```cpp
+void method() const override { }
+```
 - **Key Concept:** override checks const-qualification; const is part of function signature
 
 ---
@@ -87,9 +88,10 @@ Compilation error
 - override keyword detects mismatch
 - Compilation error
 - **Fix:** Match parameter type exactly
-  ```cpp
-  void func(int x) override { }
-  ```
+
+```cpp
+void func(int x) override { }
+```
 - Even compatible types must match exactly
 - **Key Concept:** override requires exact parameter type match; no implicit conversions
 
@@ -119,9 +121,10 @@ Compilation error
 - Compilation error: nothing to override
 - Without override: would hide Base::method()
 - **Fix:** Make Base::method() virtual
-  ```cpp
-  virtual void method() { }
-  ```
+
+```cpp
+virtual void method() { }
+```
 - override prevents accidentally hiding functions
 - **Key Concept:** override only works with virtual functions; catches non-virtual errors
 
@@ -300,9 +303,10 @@ Compiles successfully
 - Implicitly overriding (implementing abstract method)
 - final prevents further overriding
 - **Best practice:** Use override explicitly
-  ```cpp
-  void method() override final { }
-  ```
+
+```cpp
+void method() override final { }
+```
 - Makes intent clearer
 - Catches errors if Interface changes
 - **Key Concept:** override is optional but recommended; final alone is valid
@@ -334,9 +338,10 @@ Compilation error
 - Not an override
 - Compilation error with override keyword
 - **Fix:** Match reference qualifier
-  ```cpp
-  void method() & override { }
-  ```
+
+```cpp
+void method() & override { }
+```
 - Reference qualifiers are part of signature
 - **Key Concept:** Reference qualifiers must match; part of function signature
 
@@ -548,9 +553,10 @@ Uses 10 (Base default); calls Derived implementation
 - Derived::method() receives x = 10 (not 20!)
 - Confusing behavior
 - **Best practice:** Don't change defaults in overrides
-  ```cpp
-  void method(int x = 10) override { }  // Match Base
-  ```
+
+```cpp
+void method(int x = 10) override { }  // Match Base
+```
 - **Key Concept:** Default arguments use static type; runtime dispatch uses dynamic type
 
 ---

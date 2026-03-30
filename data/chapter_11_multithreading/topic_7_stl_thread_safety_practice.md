@@ -289,19 +289,20 @@ Improvement: Use std::shared_mutex for read-write lock
 - find() exclusive access (even though it's read-only)
 - **Performance issue:** Readers block each other unnecessarily
 - **Improvement:** Use std::shared_mutex
-  ```cpp
-  std::shared_mutex mtx;
 
-  void insert(int key, int value) {
-      std::unique_lock lock(mtx);  // Exclusive
-      map[key] = value;
-  }
+```cpp
+std::shared_mutex mtx;
 
-  void find(int key) {
-      std::shared_lock lock(mtx);  // Shared
-      // ... find logic
-  }
-  ```
+void insert(int key, int value) {
+    std::unique_lock lock(mtx);  // Exclusive
+    map[key] = value;
+}
+
+void find(int key) {
+    std::shared_lock lock(mtx);  // Shared
+    // ... find logic
+}
+```
 - **Benefits:** Multiple concurrent readers
 - **Pattern:** Readers-writer lock for read-heavy workloads
 - **Key Concept:** Thread-safe but can optimize with shared_mutex for concurrent reads
@@ -340,18 +341,20 @@ Multiple threads modify shared vector
   - Corrupted vector
   - Wrong results
 - **Fix 1:** Lock before each push_back (slow)
-  ```cpp
-  std::mutex mtx;
-  std::lock_guard lock(mtx);
-  results.push_back(i * i);
-  ```
+
+```cpp
+std::mutex mtx;
+std::lock_guard lock(mtx);
+results.push_back(i * i);
+```
 - **Fix 2:** Local vectors + merge (better)
-  ```cpp
-  std::vector<int> local_results;
-  // ... fill local_results ...
-  std::lock_guard lock(mtx);
-  results.insert(results.end(), local_results.begin(), local_results.end());
-  ```
+
+```cpp
+std::vector<int> local_results;
+// ... fill local_results ...
+std::lock_guard lock(mtx);
+results.insert(results.end(), local_results.begin(), local_results.end());
+```
 - **Fix 3:** Pre-allocate and assign to indices
 - **Key Concept:** Shared container modification requires synchronization; minimize lock contention with local buffers
 
@@ -392,10 +395,11 @@ Undefined behavior (data race)
 - **Even reading while writing is UB** without synchronization
 - **Not just about element:** Hash table structure accessed
 - **Fix:** Protect both operations with mutex
-  ```cpp
-  std::mutex mtx;
-  // Both threads lock mtx before accessing map
-  ```
+
+```cpp
+std::mutex mtx;
+// Both threads lock mtx before accessing map
+```
 - **Key Concept:** Concurrent read-write is data race; even non-modifying operations require synchronization during writes
 
 ---

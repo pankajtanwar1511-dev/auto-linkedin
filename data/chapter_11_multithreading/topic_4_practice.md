@@ -42,9 +42,10 @@ May work or spurious wakeup may cause issues
   - Sometimes fails (spurious wakeup before notification)
   - Undefined behavior (ready not checked)
 - **Fix:** Always use predicate
-  ```cpp
-  cv.wait(lock, []{ return ready; });
-  ```
+
+```cpp
+cv.wait(lock, []{ return ready; });
+```
 - **Predicate rechecked after wakeup** - handles spurious wakeups automatically
 - **Why spurious wakeups exist:** Performance optimization in kernel scheduling
 - **Rule:** NEVER use cv.wait() without predicate in production code
@@ -93,15 +94,16 @@ Race condition possible but predicate likely saves it
   - No memory synchronization between threads
   - May fail on different architectures/compilers
 - **Correct version:**
-  ```cpp
-  void producer() {
-      {
-          std::lock_guard<std::mutex> lock(mtx);
-          ready = true;
-      }
-      cv.notify_one();
-  }
-  ```
+
+```cpp
+void producer() {
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        ready = true;
+    }
+    cv.notify_one();
+}
+```
 - **Rule:** Shared state (ready) must be protected by same mutex as cv
 - **Key Concept:** Race on condition variable state; predicate helps but doesn't fix data race
 
@@ -151,12 +153,13 @@ Output: "Done"
   - Notification was "lost" but doesn't matter
 - **Without predicate:** Would wait forever (notification already sent)
 - **Predicate equivalence:**
-  ```cpp
-  // cv.wait(lock, pred) is equivalent to:
-  while (!pred()) {
-      cv.wait(lock);
-  }
-  ```
+
+```cpp
+// cv.wait(lock, pred) is equivalent to:
+while (!pred()) {
+    cv.wait(lock);
+}
+```
 - **Pattern is CORRECT and safe** with predicate
 - **Demonstrates:** Predicates make condition variables robust to timing
 - **Key Concept:** Predicate prevents lost wakeups; checks condition before waiting regardless of notification timing
@@ -210,9 +213,10 @@ Output: "0 1 2 3 4" (order guaranteed within consumer)
   - Others go back to sleep
   - **Wastes CPU cycles** on unnecessary wakeups
 - **Better approach:** Use notify_one()
-  ```cpp
-  cv.notify_one();  // Wake just one waiting thread
-  ```
+
+```cpp
+cv.notify_one();  // Wake just one waiting thread
+```
 - **When to use notify_all():**
   - Multiple threads can proceed (e.g., broadcast "shutdown")
   - Different predicates for different threads
@@ -397,9 +401,10 @@ Compilation error
 **Explanation:**
 - **Type mismatch:** cv.wait() requires unique_lock, not lock_guard
 - **Compiler error:**
-  ```
-  no matching function for call to 'wait(std::lock_guard<std::mutex>&, ...)'
-  ```
+
+```
+no matching function for call to 'wait(std::lock_guard<std::mutex>&, ...)'
+```
 - **Why unique_lock required:**
   - wait() must **unlock** mutex while waiting
   - Then **relock** when waking up
@@ -407,20 +412,22 @@ Compilation error
   - **lock_guard is RAII-only:** locks in constructor, unlocks in destructor
   - **unique_lock supports manual control:** lock(), unlock(), release()
 - **Internal cv.wait() implementation:**
-  ```cpp
-  void wait(unique_lock& lock, Predicate pred) {
-      while (!pred()) {
-          lock.unlock();       // Need unlock capability
-          // ... wait for notification ...
-          lock.lock();         // Need lock capability
-      }
-  }
-  ```
+
+```cpp
+void wait(unique_lock& lock, Predicate pred) {
+    while (!pred()) {
+        lock.unlock();       // Need unlock capability
+        // ... wait for notification ...
+        lock.lock();         // Need lock capability
+    }
+}
+```
 - **Correct version:**
-  ```cpp
-  std::unique_lock<std::mutex> lock(mtx);
-  cv.wait(lock, []{ return true; });
-  ```
+
+```cpp
+std::unique_lock<std::mutex> lock(mtx);
+cv.wait(lock, []{ return true; });
+```
 - **Other places needing unique_lock:**
   - cv.wait()
   - cv.wait_for()
@@ -483,13 +490,14 @@ Output: "42"
   - **Inside lock:** Simpler reasoning, atomic state change + notify
   - **Outside lock:** Must ensure state fully updated before notify
 - **Recommended pattern:**
-  ```cpp
-  {
-      std::lock_guard<std::mutex> lock(mtx);
-      q.push(42);
-  }  // Lock released here
-  cv.notify_one();  // Notify after unlock
-  ```
+
+```cpp
+{
+    std::lock_guard<std::mutex> lock(mtx);
+    q.push(42);
+}  // Lock released here
+cv.notify_one();  // Notify after unlock
+```
 - **But both are correct** - choose based on preference
 - **Key Concept:** Notify inside lock is correct but potentially less efficient; notify outside lock after state change is preferred
 
@@ -529,19 +537,19 @@ Output: "Working"
 **Explanation:**
 - **Late wait pattern** - waiter starts waiting AFTER notification
 - **Timeline:**
-  ```
-  Time | Setup             | Worker
-  -----|-------------------|------------------------
-  T0   | start             | start, sleep(2s)
-  T1   | lock, ready=true  | (sleeping)
-  T2   | notify_one()      | (sleeping)
-  T3   | unlock, exit      | (sleeping)
-  T4   |                   | wake from sleep at T2
-  T5   |                   | lock, call wait()
-  T6   |                   | predicate: ready=true!
-  T7   |                   | returns immediately
-  T8   |                   | prints "Working"
-  ```
+
+| Time | Setup             | Worker |
+| -----|-------------------|------------------------ |
+| T0   | start             | start, sleep(2s) |
+| T1   | lock, ready=true  | (sleeping) |
+| T2   | notify_one()      | (sleeping) |
+| T3   | unlock, exit      | (sleeping) |
+| T4   |                   | wake from sleep at T2 |
+| T5   |                   | lock, call wait() |
+| T6   |                   | predicate: ready=true! |
+| T7   |                   | returns immediately |
+| T8   |                   | prints "Working" |
+
 - **Why notification is "lost":**
   - notify_one() called at T2
   - Worker not waiting yet (still sleeping)
@@ -692,15 +700,16 @@ Compilation error
   - Can use: unique_lock, shared_lock, lock_guard (no wait support though)
   - More flexible but slightly slower than condition_variable
 - **Correct usage example:**
-  ```cpp
-  std::shared_mutex sm;
-  std::condition_variable_any cv;
 
-  void worker() {
-      std::shared_lock<std::shared_mutex> lock(sm);
-      cv.wait(lock, []{ return true; });
-  }
-  ```
+```cpp
+std::shared_mutex sm;
+std::condition_variable_any cv;
+
+void worker() {
+    std::shared_lock<std::shared_mutex> lock(sm);
+    cv.wait(lock, []{ return true; });
+}
+```
 - **But wait() with shared_lock is unusual:**
   - shared_lock for reading (shared access)
   - Waiting usually for exclusive access scenarios
@@ -816,14 +825,15 @@ Output: "Timeout" (if flag not set within 1 second)
   9. wait_until returns (doesn't return bool like wait_for!)
   10. Ternary checks flag: false → prints "Timeout"
 - **Key difference from wait_for:**
-  ```cpp
-  // wait_for returns bool
-  if (cv.wait_for(lock, 1s, pred)) { /* success */ }
 
-  // wait_until returns cv_status but with predicate doesn't need checking
-  cv.wait_until(lock, timepoint, pred);
-  if (pred()) { /* success */ } else { /* timeout */ }
-  ```
+```cpp
+// wait_for returns bool
+if (cv.wait_for(lock, 1s, pred)) { /* success */ }
+
+// wait_until returns cv_status but with predicate doesn't need checking
+cv.wait_until(lock, timepoint, pred);
+if (pred()) { /* success */ } else { /* timeout */ }
+```
 - **Spurious wakeups before deadline:**
   - If wakes at T+0.5s spuriously
   - Predicate false → continues waiting

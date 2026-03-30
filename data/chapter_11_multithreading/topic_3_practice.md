@@ -168,12 +168,13 @@ Expected: 50 (only one should pass check)
 - **Result: value=100** instead of expected 50
 - **Classic race pattern:** Check and act must be atomic
 - **Fix:** Move check inside lock
-  ```cpp
-  std::lock_guard<std::mutex> lock(mtx);
-  if (value < 100) {
-      value += 50;
-  }
-  ```
+
+```cpp
+std::lock_guard<std::mutex> lock(mtx);
+if (value < 100) {
+    value += 50;
+}
+```
 - **Key Concept:** TOCTOU race - check-then-act must be atomic; protect both check and action
 
 ---
@@ -219,15 +220,16 @@ Possible deadlock
   5. Circular wait - deadlock
 - **Classic bank account deadlock**
 - **Fix 1:** Lock in consistent order (e.g., by address)
-  ```cpp
-  if (&from < &to) {
-      std::lock_guard lock1(from.mtx);
-      std::lock_guard lock2(to.mtx);
-  } else {
-      std::lock_guard lock1(to.mtx);
-      std::lock_guard lock2(from.mtx);
-  }
-  ```
+
+```cpp
+if (&from < &to) {
+    std::lock_guard lock1(from.mtx);
+    std::lock_guard lock2(to.mtx);
+} else {
+    std::lock_guard lock1(to.mtx);
+    std::lock_guard lock2(from.mtx);
+}
+```
 - **Fix 2:** Use std::lock(from.mtx, to.mtx) with adopt_lock
 - **Key Concept:** Pointer-based deadlock when lock order depends on runtime arguments; use std::lock or consistent ordering
 
@@ -274,10 +276,11 @@ Potential crash or wrong value
   2. **Another thread adds item** (now index would be valid)
   3. Returns -1 (wrong, but safe)
 - **Fix:** Protect reads with same mutex
-  ```cpp
-  std::lock_guard<std::mutex> lock(mtx);
-  if (index < data.size()) return data[index];
-  ```
+
+```cpp
+std::lock_guard<std::mutex> lock(mtx);
+if (index < data.size()) return data[index];
+```
 - **Key Concept:** TOCTOU / unsynchronized read with synchronized write causes data race; protect all accesses
 
 ---
@@ -625,12 +628,13 @@ Both threads might print (race on check-then-act)
 - **Atomic operations don't make sequences atomic**
 - **Each individual operation is atomic** but composite is not
 - **Fix:** Use compare_exchange
-  ```cpp
-  int expected = 0;
-  if (flag.compare_exchange_strong(expected, 1)) {
-      std::cout << "Executed\n";
-  }
-  ```
+
+```cpp
+int expected = 0;
+if (flag.compare_exchange_strong(expected, 1)) {
+    std::cout << "Executed\n";
+}
+```
 - **compare_exchange is atomic check-and-set**
 - **Key Concept:** Atomic check-then-act race; atomic variables don't make compound operations atomic
 
@@ -676,11 +680,12 @@ Expected: 2
 - **Lock too late:** Read must also be protected
 - **Both threads read same value** before either writes
 - **Fix:** Move read inside lock
-  ```cpp
-  std::lock_guard<std::mutex> lock(mtx);
-  int temp = counter;
-  counter = temp + 1;
-  ```
+
+```cpp
+std::lock_guard<std::mutex> lock(mtx);
+int temp = counter;
+counter = temp + 1;
+```
 - **Or simpler:** `counter++` inside lock
 - **Common mistake:** Only protecting write
 - **Key Concept:** Read-modify-write race when read unprotected; entire operation must be atomic
@@ -765,11 +770,12 @@ Deadlock
 - **Program hangs at lg1 construction**
 - **Bug:** Missing std::adopt_lock parameter
 - **Should be:**
-  ```cpp
-  std::lock_guard<std::mutex> lg1(m1, std::adopt_lock);
-  std::lock_guard<std::mutex> lg2(m2, std::adopt_lock);
-  std::lock_guard<std::mutex> lg3(m3, std::adopt_lock);
-  ```
+
+```cpp
+std::lock_guard<std::mutex> lg1(m1, std::adopt_lock);
+std::lock_guard<std::mutex> lg2(m2, std::adopt_lock);
+std::lock_guard<std::mutex> lg3(m3, std::adopt_lock);
+```
 - **adopt_lock tells lock_guard:** "Mutex already locked, just adopt ownership"
 - **Pattern:** std::lock + adopt_lock for multiple mutexes
 - **Key Concept:** Missing adopt_lock causes self-deadlock; adopt_lock tells RAII wrapper mutex already locked
@@ -859,23 +865,25 @@ Compilation error: 'current' was not declared in this scope
   - Read and write not atomic
   - Another thread could modify between locks
 - **Fix 1:** Declare current before first lock
-  ```cpp
-  int current;
-  {
-      std::lock_guard lock(mtx);
-      current = cache[key];
-  }
-  int updated = current + 1;
-  {
-      std::lock_guard lock(mtx);
-      cache[key] = updated;
-  }
-  ```
+
+```cpp
+int current;
+{
+    std::lock_guard lock(mtx);
+    current = cache[key];
+}
+int updated = current + 1;
+{
+    std::lock_guard lock(mtx);
+    cache[key] = updated;
+}
+```
 - **Fix 2 (better):** Single lock for entire operation
-  ```cpp
-  std::lock_guard lock(mtx);
-  cache[key] = cache[key] + 1;
-  ```
+
+```cpp
+std::lock_guard lock(mtx);
+cache[key] = cache[key] + 1;
+```
 - **Key Concept:** Scoping error plus race condition; compound operations need single critical section
 
 ---

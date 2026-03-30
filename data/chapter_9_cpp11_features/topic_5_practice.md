@@ -440,11 +440,12 @@ Compilation error (C++11)
 - square has local variable temp
 - Compilation error in C++11
 - **C++11 fix:**
-  ```cpp
-  constexpr int square(int x) {
-      return x * x;
-  }
-  ```
+
+```cpp
+constexpr int square(int x) {
+    return x * x;
+}
+```
 - **C++14+:** Relaxed rules, allows local variables
 - **C++14:** This code would compile
 - **Key Concept:** C++11 constexpr functions very limited; C++14 relaxed restrictions

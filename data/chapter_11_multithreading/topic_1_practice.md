@@ -360,16 +360,18 @@ Cannot retrieve return value with std::thread
 - No mechanism to retrieve result
 - t.join() only waits, doesn't return value
 - **Alternative 1:** Use std::async and std::future
-  ```cpp
-  auto f = std::async(compute);
-  int result = f.get(); // 42
-  ```
+
+```cpp
+auto f = std::async(compute);
+int result = f.get(); // 42
+```
 - **Alternative 2:** Pass output parameter by reference
-  ```cpp
-  void compute(int& result) { result = 42; }
-  int res;
-  std::thread t(compute, std::ref(res));
-  ```
+
+```cpp
+void compute(int& result) { result = 42; }
+int res;
+std::thread t(compute, std::ref(res));
+```
 - **Alternative 3:** Use std::promise/std::future
 - **Key Concept:** std::thread discards return values; use std::async or output parameters for results
 
@@ -440,13 +442,15 @@ Compilation error
 - **Compilation error in some compilers**
 - **C++17 guaranteed copy elision:** Might work
 - **Fix 1:** Use emplace_back (constructs in-place)
-  ```cpp
-  threads.emplace_back([i]{ std::cout << i << "\n"; });
-  ```
+
+```cpp
+threads.emplace_back([i]{ std::cout << i << "\n"; });
+```
 - **Fix 2:** Explicit move
-  ```cpp
-  threads.push_back(std::move(std::thread([i]{ ... })));
-  ```
+
+```cpp
+threads.push_back(std::move(std::thread([i]{ ... })));
+```
 - **Key Concept:** Container usage with move-only types requires emplace_back or explicit move
 
 ---

@@ -499,12 +499,13 @@ Compilation error in C++11
 - **C++11 alternative:** Template function or functor
 - **C++14+:** `[](auto x)` creates template lambda
 - **Equivalent C++11 code:**
-  ```cpp
-  struct Lambda {
-      template<typename T>
-      auto operator()(T x) const { return x * 2; }
-  };
-  ```
+
+```cpp
+struct Lambda {
+    template<typename T>
+    auto operator()(T x) const { return x * 2; }
+};
+```
 - **Key Concept:** Generic lambdas require C++14; C++11 lambdas need explicit types
 
 ---
@@ -558,10 +559,11 @@ Compilation error in C++11
 - unique_ptr is move-only (non-copyable)
 - C++11 std::function requires copyable callables
 - **C++11 workaround:** shared_ptr (copyable)
-  ```cpp
-  auto ptr = std::make_shared<int>(42);
-  f = [ptr]() { return *ptr; };
-  ```
+
+```cpp
+auto ptr = std::make_shared<int>(42);
+f = [ptr]() { return *ptr; };
+```
 - **C++14+:** Init captures support move-only types
 - **Key Concept:** C++11 std::function requires copyable callables; use shared_ptr for C++11
 

@@ -33,10 +33,11 @@ Lambda executes during fut.get()
   - **Lazy evaluation pattern**
   - No thread created
 - **Contrast with async launch:**
-  ```cpp
-  auto fut = std::async(std::launch::async, []{ return 42; });
-  // Lambda starts immediately in new thread
-  ```
+
+```cpp
+auto fut = std::async(std::launch::async, []{ return 42; });
+// Lambda starts immediately in new thread
+```
 - **Use case for deferred:**
   - Expensive computation that might not be needed
   - Want to delay execution decision

@@ -240,12 +240,13 @@ Never fails
   - **Seq_cst synchronization:** Thread2 sees consistent global view
   - **No way for y==1 to be visible before x==1**
 - **With relaxed, assertion COULD fail:**
-  ```cpp
-  // Relaxed version (WRONG)
-  x.store(1, std::memory_order_relaxed);
-  y.store(1, std::memory_order_relaxed);
-  // Thread2 might see y==1 but x==0 due to reordering
-  ```
+
+```cpp
+// Relaxed version (WRONG)
+x.store(1, std::memory_order_relaxed);
+y.store(1, std::memory_order_relaxed);
+// Thread2 might see y==1 but x==0 due to reordering
+```
 - **Seq_cst performance cost:**
   - Expensive: Full memory barriers
   - Prevents CPU/compiler optimizations

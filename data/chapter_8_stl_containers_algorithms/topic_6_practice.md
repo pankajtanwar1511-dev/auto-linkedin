@@ -49,9 +49,10 @@ Compilation error
 - Advancing list iterator 5 steps = O(n) not O(1)
 - std::sort algorithm won't compile with list iterators
 - **Fix:** Use list::sort() member function
-  ```cpp
-  lst.sort();  // Member function works with bidirectional iterators
-  ```
+
+```cpp
+lst.sort();  // Member function works with bidirectional iterators
+```
 - list::sort() uses merge sort internally
 - Iterator categories hierarchy: input < forward < bidirectional < random access
 - Algorithm requirements must match iterator capabilities
@@ -82,9 +83,10 @@ std::cout << v.size();
 - std::remove is an algorithm, doesn't know container
 - Only container can modify its size
 - **Complete pattern:** Erase-remove idiom
-  ```cpp
-  v.erase(std::remove(v.begin(), v.end(), 3), v.end());
-  ```
+
+```cpp
+v.erase(std::remove(v.begin(), v.end(), 3), v.end());
+```
 - Now size() would return 4
 - **Key Concept:** std::remove only reorders, doesn't erase; must call erase() to update size (erase-remove idiom)
 
@@ -145,10 +147,11 @@ Undefined behavior
 - Undefined behavior (crash, infinite loop, or corruption)
 - Never modify container while iterating with invalidatable iterators
 - **Fix:** Use temporary vector
-  ```cpp
-  std::vector<int> result;
-  std::transform(v.begin(), v.end(), std::back_inserter(result), ...);
-  ```
+
+```cpp
+std::vector<int> result;
+std::transform(v.begin(), v.end(), std::back_inserter(result), ...);
+```
 - Or copy first, then append
 - **Key Concept:** Modifying vector during iteration invalidates iterators; never insert/erase while iterating with range
 
@@ -216,17 +219,18 @@ Compilation error
 - MyAlloc missing `rebind` template
 - Compilation error: cannot rebind allocator type
 - **Fix:** Add rebind support
-  ```cpp
-  template<typename T>
-  class MyAlloc {
-  public:
-      using value_type = T;
-      template<typename U>
-      struct rebind { using other = MyAlloc<U>; };
-      T* allocate(std::size_t n) { return new T[n]; }
-      void deallocate(T* p, std::size_t) { delete[] p; }
-  };
-  ```
+
+```cpp
+template<typename T>
+class MyAlloc {
+public:
+    using value_type = T;
+    template<typename U>
+    struct rebind { using other = MyAlloc<U>; };
+    T* allocate(std::size_t n) { return new T[n]; }
+    void deallocate(T* p, std::size_t) { delete[] p; }
+};
+```
 - C++11+ alternative: derive from std::allocator
 - Rebind allows list to create allocator for its internal node type
 - **Key Concept:** Container allocators must support rebind for internal structures; list uses nodes, not raw values
@@ -284,14 +288,15 @@ Undefined behavior
 - Next iteration: `++it` increments invalidated iterator
 - Undefined behavior (crash or skip elements)
 - **Fix:** Use return value of erase
-  ```cpp
-  for (auto it = v.begin(); it != v.end();) {
-      if (*it % 2 == 0)
-          it = v.erase(it);  // erase returns next valid iterator
-      else
-          ++it;  // Only increment if not erasing
-  }
-  ```
+
+```cpp
+for (auto it = v.begin(); it != v.end();) {
+    if (*it % 2 == 0)
+        it = v.erase(it);  // erase returns next valid iterator
+    else
+        ++it;  // Only increment if not erasing
+}
+```
 - Or use erase-remove_if idiom:
   ```cpp
   v.erase(std::remove_if(v.begin(), v.end(),
@@ -329,10 +334,11 @@ Undefined behavior
 - const on keys exists for safety
 - Never use const_cast to modify keys
 - **Correct approach:** Extract old, insert new
-  ```cpp
-  m.erase("a");
-  m["x"] = 1;
-  ```
+
+```cpp
+m.erase("a");
+m["x"] = 1;
+```
 - **Key Concept:** Map keys are const for invariant protection; const_cast on keys breaks hash table, causes undefined behavior
 
 ---
@@ -389,10 +395,11 @@ false (or true if lucky - undefined behavior)
 - May return false (wrong), true (lucky), or crash
 - Result is unpredictable and meaningless
 - **Fix:** Sort first
-  ```cpp
-  std::sort(v.begin(), v.end());
-  bool found = std::binary_search(v.begin(), v.end(), 8);
-  ```
+
+```cpp
+std::sort(v.begin(), v.end());
+bool found = std::binary_search(v.begin(), v.end(), 8);
+```
 - Always verify algorithm preconditions
 - For unsorted: use std::find (O(n) linear search)
 - **Key Concept:** std::binary_search requires sorted input; violating precondition causes undefined behavior
@@ -420,10 +427,11 @@ Undefined behavior
 - Undefined behavior: crash, corruption, or silent failure
 - result.size() remains 0 (algorithm doesn't update size)
 - **Fix:** Use back_inserter
-  ```cpp
-  std::copy_if(v.begin(), v.end(), std::back_inserter(result),
-               [](int x) { return x % 2 == 0; });
-  ```
+
+```cpp
+std::copy_if(v.begin(), v.end(), std::back_inserter(result),
+             [](int x) { return x % 2 == 0; });
+```
 - Or pre-allocate space:
   ```cpp
   result.resize(v.size());  // Overallocate
@@ -456,18 +464,20 @@ Compilation error
 - No operator+ for (const char*, std::string) in that order
 - Compilation error: no matching operator+
 - **Fix:** Explicitly construct std::string
-  ```cpp
-  std::string result = std::accumulate(v.begin(), v.end(), std::string(""));
-  ```
+
+```cpp
+std::string result = std::accumulate(v.begin(), v.end(), std::string(""));
+```
   Wait, that's what's already written! Actually this SHOULD compile.
 - Let me reconsider: This actually compiles in C++11+
 - The issue might be missing `<numeric>` header
 - Or older compilers
 - Modern C++: this compiles and returns "hello world"
 - **Alternative fix:** Use std::accumulate with explicit type
-  ```cpp
-  std::accumulate(v.begin(), v.end(), std::string{});
-  ```
+
+```cpp
+std::accumulate(v.begin(), v.end(), std::string{});
+```
 - Better modern solution: Use std::reduce or fold expressions (C++17+)
 - **Key Concept:** std::accumulate requires compatible types; string concatenation works with std::string initial value
 
@@ -498,14 +508,16 @@ Undefined behavior
 - operator[] doesn't check bounds (no bounds checking)
 - reserve() allocates memory, doesn't construct elements
 - **Fix 1:** Use resize() instead
-  ```cpp
-  v.resize(10);  // Constructs 10 default elements
-  v[5] = 100;    // Now safe
-  ```
+
+```cpp
+v.resize(10);  // Constructs 10 default elements
+v[5] = 100;    // Now safe
+```
 - **Fix 2:** Use push_back
-  ```cpp
-  v.push_back(100);  // Adds element, increases size
-  ```
+
+```cpp
+v.push_back(100);  // Adds element, increases size
+```
 - reserve vs resize:
   - reserve(): capacity only, size unchanged
   - resize(): constructs elements, updates size
@@ -543,11 +555,12 @@ May be 1 or undefined behavior (implementation-dependent)
 - May print 1 (iterator still valid)
 - May crash or garbage (iterator invalidated)
 - **Safe approach:** Re-acquire iterator after modification
-  ```cpp
-  d.push_front(0);
-  auto new_it = d.begin() + 1;
-  std::cout << *new_it;
-  ```
+
+```cpp
+d.push_front(0);
+auto new_it = d.begin() + 1;
+std::cout << *new_it;
+```
 - **Key Concept:** Deque push_front/back may invalidate iterators; implementation-dependent, safest to re-acquire
 
 ---
@@ -648,19 +661,22 @@ Undefined behavior
 - Classic dangling reference bug
 - Reference capture must outlive lambda
 - **Fix 1:** Capture by value with mutable
-  ```cpp
-  return [count]() mutable { return ++count; };
-  ```
+
+```cpp
+return [count]() mutable { return ++count; };
+```
 - **Fix 2:** Use shared state
-  ```cpp
-  auto count = std::make_shared<int>(0);
-  return [count]() { return ++(*count); };
-  ```
+
+```cpp
+auto count = std::make_shared<int>(0);
+return [count]() { return ++(*count); };
+```
 - **Fix 3:** Return stateful object
-  ```cpp
-  struct Counter { int count = 0; int operator()() { return ++count; } };
-  return Counter{};
-  ```
+
+```cpp
+struct Counter { int count = 0; int operator()() { return ++count; } };
+return Counter{};
+```
 - **Key Concept:** Capturing local by reference creates dangling reference when lambda outlives scope; use capture by value or shared ownership
 
 ---
