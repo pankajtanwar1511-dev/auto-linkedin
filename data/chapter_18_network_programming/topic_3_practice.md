@@ -513,47 +513,30 @@ int main() {
 ```
 
 **Answer:**
-```
+```cpp
 select() blocks indefinitely even after signal - shutdown delayed until next FD activity
 ```
-
+- select() blocks indefinitely even after signal - shutdown delayed until next FD activity ```
 **Explanation:**
 - `keep_running = false` set by signal handler
 - But select() remains blocked waiting for FD activity
 - Loop condition `while (keep_running)` not checked until select() returns
 - Server doesn't shut down until a client connects or sends data
-- **Key Concept:** Use select() timeout or pselect() with signal mask for timely signal response; blocking select() delays signal handling until FD activity
-
 **Fixed Version:**
 ```cpp
 while (keep_running) {
     struct timeval timeout = {1, 0};  // 1 second timeout
     fd_set read_fds = master_fds;
     int ready = select(max_fd + 1, &read_fds, NULL, NULL, &timeout);
-
     if (ready < 0 && errno == EINTR) continue;  // Signal interrupted
-
-    // Handle ready FDs...
-}
+    // ... (abbreviated)
 ```
+- if (ready < 0 && errno == EINTR) continue; // Signal interrupted
+- // Handle ready FDs..
 
-**Alternative (pselect):**
-```cpp
-sigset_t mask, oldmask;
-sigemptyset(&mask);
-sigaddset(&mask, SIGINT);
-sigprocmask(SIG_BLOCK, &mask, &oldmask);
-
-while (keep_running) {
-    fd_set read_fds = master_fds;
-    struct timespec timeout = {1, 0};
-    pselect(max_fd + 1, &read_fds, NULL, NULL, &timeout, &oldmask);
-    // Signal can interrupt pselect atomically
-}
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q10
 ```cpp
 #include <sys/select.h>

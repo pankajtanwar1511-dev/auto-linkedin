@@ -436,21 +436,22 @@ int main() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Double-close error (implicit conversion silently transfers ownership)
 ```
 
+- Double-close error (implicit conversion silently transfers ownership) ```
+
 **Explanation:**
+
 - `operator int()` allows implicit conversion to raw FD
 - `takes_ownership(fd)` implicitly converts, passes raw FD
 - Function closes descriptor
 - Destructor also closes → double-close
-- Implicit conversions hide ownership transfer
-- Caller doesn't realize ownership transferred
-- Should use explicit conversion or release() method
-- **Key Concept:** Implicit conversion operators on RAII types dangerous; silently convert to raw resources enabling ownership confusion; prefer explicit get() and release() methods; avoid operator T() for resource handles
 
 **Fixed Version:**
+
 ```cpp
 class FileDescriptor {
     int fd_;
@@ -459,35 +460,15 @@ public:
     FileDescriptor(int fd) : fd_(fd) {}
 
     ~FileDescriptor() {
-        if (fd_ >= 0) {
-            close(fd_);
-        }
-    }
-
-    // Explicit getter (no implicit conversion)
-    int get() const { return fd_; }
-
-    // Explicit ownership transfer
-    int release() {
-        int tmp = fd_;
-        fd_ = -1;
-        return tmp;
-    }
-
-    // No operator int() !
-};
-
-int main() {
-    FileDescriptor fd(open("file.txt", O_RDONLY));
-
-    // takes_ownership(fd);  // Compilation error - can't convert
-
-    takes_ownership(fd.release());  // Explicit ownership transfer - clear intent
-}
+    // ... (abbreviated)
 ```
 
----
+- cpp class FileDescriptor { int fd_;
+- public: FileDescriptor(int fd) : fd_(fd) {}
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q9
 ```cpp
 class FileDescriptor {
@@ -573,20 +554,22 @@ int main() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Spurious failure (read() may return -1 with errno=EINTR due to signal interruption)
 ```
 
+- Spurious failure (read() may return -1 with errno=EINTR due to signal interruption) ```
+
 **Explanation:**
+
 - System calls can be interrupted by signals → return -1, set errno to EINTR
 - EINTR means "try again", not a real error
 - Naive `read()` wrapper propagates EINTR to caller
 - Caller may incorrectly treat as fatal error
-- Should retry read() on EINTR
-- Common pattern in POSIX programming
-- **Key Concept:** System calls can be interrupted by signals (EINTR); RAII wrappers should handle EINTR transparently by retrying; exposing EINTR to callers forces error-prone retry logic throughout codebase
 
 **Fixed Version:**
+
 ```cpp
 ssize_t read(void* buf, size_t count) {
     ssize_t result;
@@ -595,20 +578,12 @@ ssize_t read(void* buf, size_t count) {
     } while (result < 0 && errno == EINTR);  // Retry on EINTR
 
     return result;
-}
-
-// Similarly for write, close, etc.
-void close_internal() {
-    int result;
-    do {
-        result = close(fd_);
-    } while (result < 0 && errno == EINTR);
-
-    if (result < 0) {
-        // Log error but don't throw (destructor)
-        std::cerr << "close() failed: " << strerror(errno) << "\n";
-    }
-}
+    // ... (abbreviated)
 ```
+
+- return result; }
+- // Similarly for write, close, etc
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---

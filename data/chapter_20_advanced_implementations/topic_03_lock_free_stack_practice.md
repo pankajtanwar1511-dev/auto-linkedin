@@ -104,17 +104,16 @@ std::optional<T> peek() const {
         return std::nullopt;
     }
 
-    return head.ptr->data;  // ← DANGER!
-}
+    // ... (abbreviated)
 ```
+
+- cpp std::optional<T> peek() const { TaggedPointer head = head_.load(std::memory_order_acquire);
+- if (head.ptr == nullptr) { return std::nullopt; }
 
 **Challenges:**
 
-**1) Use-after-free:**
 - Head may be popped and freed between load and data access
 - Solution: Reference counting or hazard pointers
-
-**2) Stale data:**
 - Value may be immediately popped after peek
 - Document: "peek() provides snapshot, may be stale"
 
@@ -128,23 +127,15 @@ std::optional<T> peek() const {
         if (head.ptr == nullptr) {
             return std::nullopt;
         }
-
-        // Mark as hazard
-        hazard_ptr.store(head.ptr, std::memory_order_release);
-
-        // Verify still head
-        if (head_.load(std::memory_order_acquire).ptr == head.ptr) {
-            T value = head.ptr->data;
-            hazard_ptr.store(nullptr, std::memory_order_release);
-            return value;
-        }
-        // Retry if head changed
-    }
-}
+    // ... (abbreviated)
 ```
 
----
+- cpp std::optional<T> peek() const { while (true) { TaggedPointer head = head_.load(std::memory_order_acquire);
+- if (head.ptr == nullptr) { return std::nullopt; }
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q4
 Implement a lock-free stack that supports both LIFO (stack) and FIFO (queue) operations.
 
@@ -198,22 +189,16 @@ bool contains(const T& value) const {
         if (current.ptr->data == value) {
             return true;  // ← Snapshot, may be stale
         }
-
-        Node* next = current.ptr->next;  // ← May be freed mid-iteration!
-        current.ptr = next;
-    }
-
-    return false;
-}
+    // ... (abbreviated)
 ```
+
+- cpp bool contains(const T& value) const { TaggedPointer current = head_.load(std::memory_order_acquire);
+- while (current.ptr != nullptr) { if (current.ptr->data == value) { return true; // ← Snapshot, may be stale }
 
 **Issues:**
 
-**1) Use-after-free:**
 - Node may be deleted during iteration
 - Solution: Hazard pointers for each visited node
-
-**2) Stale result:**
 - Value may be added/removed immediately after check
 - Document: "Best-effort check, may be outdated"
 
@@ -227,22 +212,15 @@ bool contains(const T& value) const {
 
     while (current.ptr != nullptr) {
         hazards.push_back(current.ptr);
-
-        if (current.ptr->data == value) {
-            hazards.clear();
-            return true;
-        }
-
-        current.ptr = current.ptr->next;
-    }
-
-    hazards.clear();
-    return false;
-}
+    // ... (abbreviated)
 ```
 
----
+- cpp bool contains(const T& value) const { thread_local std::vector<Node*> hazards;
+- TaggedPointer current = head_.load(std::memory_order_acquire);
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q6
 Benchmark the lock-free stack vs `std::stack` with mutex. Under what conditions does each perform better?
 
@@ -416,43 +394,16 @@ private:
     std::atomic<size_t> size_{0};
     const size_t capacity_;
 
-public:
-    explicit BoundedLockFreeStack(size_t capacity)
-        : head_(TaggedPointer{}), capacity_(capacity) {}
-
-    bool try_push(const T& value) {
-        // Check capacity first (may have race, recheck after CAS)
-        if (size_.load(std::memory_order_relaxed) >= capacity_) {
-            return false;
-        }
-
-        Node* new_node = new Node(value);
-        TaggedPointer new_head(new_node, 0);
-        TaggedPointer old_head = head_.load(std::memory_order_relaxed);
-
-        do {
-            // Recheck capacity
-            if (size_.load(std::memory_order_relaxed) >= capacity_) {
-                delete new_node;
-                return false;
-            }
-
-            new_node->next = old_head.ptr;
-            new_head.tag = old_head.tag + 1;
-        } while (!head_.compare_exchange_weak(
-            old_head, new_head,
-            std::memory_order_release,
-            std::memory_order_relaxed
-        ));
-
-        size_.fetch_add(1, std::memory_order_relaxed);
-        return true;
-    }
-
-    // ... rest same as unbounded ...
-};
+    // ... (abbreviated)
 ```
 
-**Caveat:** Capacity check is approximate (size_ may change between check and CAS).
+- public: explicit BoundedLockFreeStack(size_t capacity) : head_(TaggedPointer{}), capacity_(capacity) {}
+- size_.fetch_add(1, std::memory_order_relaxed); return true; }
+
+**Caveat:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---

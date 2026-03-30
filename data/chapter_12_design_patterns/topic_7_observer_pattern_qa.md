@@ -561,9 +561,12 @@ Open/Closed Principle: software entities should be open for extension but closed
 **Concepts:** #mvc #observer #separation_of_concerns
 
 **Answer:**
-MVC uses Observer pattern: Model is subject, Views are observers. Model changes notify all Views to update.
+
+- MVC uses Observer pattern: Model is subject, Views are observers
+- Model changes notify all Views to update.
 
 **Code example:**
+
 ```cpp
 // Model (Subject)
 class DataModel {
@@ -572,37 +575,26 @@ class DataModel {
 
 public:
     void setData(int d) {
-        data = d;
-        notifyViews();  // Notify all views
-    }
-
-private:
-    void notifyViews() {
-        for (auto& wp : views) {
-            if (auto view = wp.lock()) {
-                view->refresh();  // View updates itself
-            }
-        }
-    }
-};
-
-// View (Observer)
-class ChartView : public View {
-    DataModel& model;
-public:
-    void refresh() override {
-        // Redraw chart with model.getData()
-    }
-};
+    // ... (abbreviated)
 ```
 
-**Explanation:**
-MVC separates data (Model), presentation (View), and control (Controller). Observer pattern connects Model and View: when Model changes, all Views automatically refresh. Enables multiple Views of same Model (e.g., table view + chart view). Views don't need to poll Model for changes.
+- cpp // Model (Subject) class DataModel { vector<weak_ptr<View>> views; // Observers int data;
+- public: void setData(int d) { data = d; notifyViews(); // Notify all views }
 
-**Key takeaway:** Observer pattern is fundamental to MVC - Model notifies Views of changes automatically.
+**Explanation:**
+
+- MVC separates data (Model), presentation (View), and control (Controller)
+- Observer pattern connects Model and View: when Model changes, all Views automatically refresh
+- Enables multiple Views of same Model (e.g., table view + chart view)
+- Views don't need to poll Model for changes.
+
+**Key takeaway:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q17: How do you implement Observer pattern with lambda callbacks instead of interfaces?
 **Difficulty:** #intermediate
 **Category:** #modern_cpp #callbacks
@@ -688,9 +680,11 @@ Synchronous: simple, predictable order, but caller blocked during notifications.
 **Concepts:** #deadlock #lock_ordering #lock_free
 
 **Answer:**
-Release subject's lock before invoking observer callbacks to avoid deadlock when observers acquire their own locks.
+
+- Release subject's lock before invoking observer callbacks to avoid deadlock when observers acquire their own locks.
 
 **Code example:**
+
 ```cpp
 // ❌ DEADLOCK: Subject holds lock during callback
 class Subject {
@@ -699,45 +693,34 @@ public:
     void notify() {
         lock_guard lock(mtx);  // Subject locked
         for (auto& obs : observers) {
-            obs->update();  // ❌ Observer might try to attach() -> deadlock!
-        }
-    }
-};
-
-// ✅ SAFE: Release lock before callbacks
-class Subject {
-    mutex mtx;
-public:
-    void notify() {
-        vector<shared_ptr<Observer>> snapshot;
-        {
-            lock_guard lock(mtx);
-            snapshot = copyObservers();  // Copy under lock
-        }  // Release lock
-
-        for (auto& obs : snapshot) {
-            obs->update();  // ✅ Safe - no lock held
-        }
-    }
-};
+    // ... (abbreviated)
 ```
 
-**Explanation:**
-Deadlock occurs when: (1) Subject holds lock, (2) calls observer, (3) observer calls back into subject (attach/detach), (4) tries to acquire same lock. Solution: copy observer list under lock, release lock, then notify. Observers can safely call back into subject without deadlock.
+- for (auto& obs : snapshot) { obs->update(); // ✅ Safe - no lock held } } }; ```
 
-**Key takeaway:** Copy observers under lock, release lock before notifying to prevent deadlock.
+**Explanation:**
+
+- Solution: copy observer list under lock, release lock, then notify
+- Observers can safely call back into subject without deadlock.
+
+**Key takeaway:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q20: How do you implement one-time observers (auto-detach after first notification)?
 **Difficulty:** #intermediate
 **Category:** #design_patterns #lifecycle
 **Concepts:** #one_time_observer #auto_detach
 
 **Answer:**
-Observer marks itself for removal during update; subject removes marked observers after notification.
+
+- Observer marks itself for removal during update; subject removes marked observers after notification.
 
 **Code example:**
+
 ```cpp
 class Subject {
     vector<Observer*> observers;
@@ -746,37 +729,21 @@ class Subject {
 public:
     void notify() {
         for (auto* obs : observers) {
-            obs->update();
-            if (obs->shouldRemove()) {
-                toRemove.push_back(obs);
-            }
-        }
-
-        // Remove one-time observers
-        for (auto* obs : toRemove) {
-            detach(obs);
-        }
-        toRemove.clear();
-    }
-};
-
-class OneTimeObserver : public Observer {
-    bool notified = false;
-public:
-    void update() override {
-        cout << "One-time notification\n";
-        notified = true;
-    }
-
-    bool shouldRemove() const override {
-        return notified;
-    }
-};
+    // ... (abbreviated)
 ```
 
-**Explanation:**
-One-time observers useful for event completion (wait for single event), resource cleanup (react once to condition), or future-like patterns. Observers mark themselves during update, subject removes them after iteration (avoids modifying collection during iteration).
+- cpp class Subject { vector<Observer*> observers; vector<Observer*> toRemove;
+- // Remove one-time observers for (auto* obs : toRemove) { detach(obs); } toRemove.clear(); } };
 
-**Key takeaway:** One-time observers auto-detach after first notification by marking themselves for removal.
+**Explanation:**
+
+- One-time observers useful for event completion (wait for single event), resource cleanup (react once to condition), or future-like patterns
+- Observers mark themselves during update, subject removes them after iteration (avoids modifying collection during iteration).
+
+**Key takeaway:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---

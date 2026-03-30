@@ -537,20 +537,22 @@ int main() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Compilation error (implicitly deleted move constructor) or double-delete
 ```
 
+- Compilation error (implicitly deleted move constructor) or double-delete ```
+
 **Explanation:**
+
 - Copy constructor deleted → prevents copying
 - No move constructor defined → compiler attempts implicit move
 - Implicit move performs memberwise move (shallow copy)
 - `memory_` pointer copied → both objects point to same memory
-- First object destructs → `delete[] memory_`
-- Second object destructs → `delete[] memory_` AGAIN on freed memory → double-delete
-- **Key Concept:** Deleting copy constructor doesn't prevent moves; must explicitly define move semantics or delete move operations for RAII types
 
 **Fixed Version:**
+
 ```cpp
 MemoryPool(MemoryPool&& other) noexcept
     : memory_(other.memory_), free_list_(other.free_list_) {
@@ -559,27 +561,15 @@ MemoryPool(MemoryPool&& other) noexcept
 }
 
 MemoryPool& operator=(MemoryPool&& other) noexcept {
-    if (this != &other) {
-        delete[] memory_;
-
-        memory_ = other.memory_;
-        free_list_ = other.free_list_;
-
-        other.memory_ = nullptr;
-        other.free_list_ = nullptr;
-    }
-    return *this;
-}
-
-~MemoryPool() {
-    if (memory_) {  // Check before delete
-        delete[] memory_;
-    }
-}
+    // ... (abbreviated)
 ```
 
----
+- MemoryPool& operator=(MemoryPool&& other) noexcept { if (this != &other) { delete[] memory_;
+- memory_ = other.memory_; free_list_ = other.free_list_;
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q10
 ```cpp
 template<typename T>

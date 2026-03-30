@@ -109,46 +109,42 @@ Implement this exercise.
 template<typename Vec>
 void benchmark(const std::string& name) {
     auto start = std::chrono::high_resolution_clock::now();
-
-    Vec v;
-    for (int i = 0; i < 1000000; ++i) {
-        v.push_back(i);
-    }
-
-    auto end = std::chrono::high_resolution_clock::now();
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-
-    std::cout << name << ": " << ms << " ms\n";
-}
-
-int main() {
-    benchmark<Vector<int>>("Custom Vector");
-    benchmark<std::vector<int>>("std::vector");
-
-    return 0;
-}
+    // ... (abbreviated)
 ```
+
+- cpp #include <chrono> #include <vector> #include <iostream>
+- template<typename Vec> void benchmark(const std::string& name) { auto start = std::chrono::high_resolution_clock::now();
 
 **Typical output:**
-```
+
+```cpp
 Custom Vector: 42 ms
 std::vector: 38 ms
 ```
 
-Our implementation is competitive!
+- Custom Vector: 42 ms std::vector: 38 ms ```
+- Our implementation is competitive
 
----
+**Q6:**
 
-### **Q6-Q10:** Additional practice questions...
 
-**Q6:** Implement `assign(count, value)` that replaces vector contents.
 
-**Q7:** Add allocator support (template parameter `Allocator`).
+**Q7:**
 
-**Q8:** Implement reverse iterators (`rbegin()`, `rend()`).
 
-**Q9:** Add comparison operators (`==`, `!=`, `<`, etc.).
 
-**Q10:** Implement range-based `insert(pos, first, last)`.
+**Q8:**
+
+
+
+**Q9:**
+
+
+
+**Q10:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---

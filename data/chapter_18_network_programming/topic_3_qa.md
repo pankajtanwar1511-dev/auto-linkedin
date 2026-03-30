@@ -4,18 +4,12 @@
 
 #### Q1: What is select() and what problem does it solve? [BEGINNER]
 
-**Tags**: #fundamentals #io-multiplexing #event-driven
 
+**:**
+
+**Tags**: #fundamentals #io-multiplexing #event-driven
 **Answer**: select() is a system call that monitors multiple file descriptors and blocks until one or more become "ready" for I/O operations without blocking.
 
-**Detailed explanation**:
-
-**Problem it solves**:
-Without select(), handling multiple clients requires either:
-1. **Blocking approach**: One thread per client (expensive, limited scalability)
-2. **Polling approach**: Loop through all sockets checking if data available (wastes CPU)
-
-**How select() helps**:
 ```cpp
 // Instead of this (thread per client):
 while (true) {
@@ -24,40 +18,22 @@ while (true) {
     t.detach();
 }
 
-// Use this (single thread, multiple clients):
-fd_set read_fds;
-FD_ZERO(&read_fds);
-FD_SET(server_fd, &read_fds);
-FD_SET(client1_fd, &read_fds);
-FD_SET(client2_fd, &read_fds);
-
-select(max_fd + 1, &read_fds, NULL, NULL, NULL);  // Blocks until ANY ready
-
-// Now check which ones are ready
-if (FD_ISSET(server_fd, &read_fds)) { /* new connection */ }
-if (FD_ISSET(client1_fd, &read_fds)) { /* client 1 has data */ }
-if (FD_ISSET(client2_fd, &read_fds)) { /* client 2 has data */ }
+    // ... (abbreviated)
 ```
 
-**Key advantages**:
-- Single thread monitors hundreds of connections
-- No context switching overhead
-- Only processes FDs that are actually ready
-- Efficient for idle connections (chat, long-polling)
+- select(max_fd + 1, &read_fds, NULL, NULL, NULL); // Blocks until ANY ready
 
-**Interview tip**: Mention that select() enables **event-driven programming** - instead of constantly checking for work, the kernel notifies you when work is available.
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q2: Explain the master set pattern and why it's necessary. [INTERMEDIATE]
 
-**Tags**: #design-pattern #fd-set #state-management
 
+**:**
+
+**Tags**: #design-pattern #fd-set #state-management
 **Answer**: The master set pattern maintains a permanent copy of the fd_set because select() modifies the set in place, removing non-ready file descriptors.
 
-**Detailed explanation**:
-
-**The problem**:
 ```cpp
 fd_set fds;
 FD_SET(server_fd, &fds);
@@ -66,45 +42,15 @@ FD_SET(client2_fd, &fds);
 
 select(max_fd + 1, &fds, NULL, NULL, NULL);
 
-// ❌ After select() returns, fds only contains READY FDs
-// If only client1_fd was ready:
-//   - fds now only has client1_fd
-//   - server_fd and client2_fd are removed
-// Next select() call won't monitor server_fd or client2_fd!
+    // ... (abbreviated)
 ```
 
-**The solution**:
-```cpp
-fd_set master_fds;  // Permanent copy - never modified
-fd_set read_fds;    // Working copy - modified by select()
+- cpp fd_set fds; FD_SET(server_fd, &fds); FD_SET(client1_fd, &fds); FD_SET(client2_fd, &fds);
+- select(max_fd + 1, &fds, NULL, NULL, NULL);
 
-FD_ZERO(&master_fds);
-FD_SET(server_fd, &master_fds);
-FD_SET(client1_fd, &master_fds);
-FD_SET(client2_fd, &master_fds);
-
-while (true) {
-    read_fds = master_fds;  // ✅ Restore from master
-
-    select(max_fd + 1, &read_fds, NULL, NULL, NULL);
-
-    // Check ready_fds (modified)
-    // Next iteration: restore from master_fds again
-}
-```
-
-**Why this works**:
-1. **master_fds**: Never passed to select(), stays pristine
-2. **read_fds**: Copied from master before each select() call
-3. **After select()**: read_fds modified (only ready FDs remain)
-4. **Next iteration**: Restore read_fds from master_fds
-
-**Real-world analogy**: master_fds is like a backup copy. select() damages the working copy, so you restore from backup each time.
-
-**Interview tip**: Mention that forgetting this pattern causes **connections to become unresponsive** - one of the most common select() bugs.
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q3: What are the three timeout modes of select() and when would you use each? [INTERMEDIATE]
 
 

@@ -1147,12 +1147,12 @@
             "destructors",
             "raii"
           ],
-          "answer": "The Rule of Five states that if you define any of destructor, copy constructor, copy assignment, move constructor, or move assignment, you should explicitly define all five to ensure correct resource management and copying behavior.",
-          "explanation": "For polymorphic classes, the Rule of Five is critical because derived classes may allocate resources that need proper cleanup. If the base class manages resources, all five special members should be defined (or explicitly deleted/defaulted). Polymorphic classes should typically have virtual destructors, protected copy/move constructors to prevent slicing, and deleted or carefully implemented assignment operators. Following the Rule of Five prevents resource leaks, double deletions, and slicing issues.",
+          "answer": "**Code example:**\n\n```cpp\nclass Resource {\n    int* data;\npublic:\n    Resource() : data(new int[100]) {}\n    ~Resource() { delete[] data; }\n    \n    Resource(const Resource& other) : data(new int[100]) {\n    // ... (abbreviated)\n```",
+          "explanation": "- For polymorphic classes, the Rule of Five is critical because derived classes may allocate resources that need proper cleanup\n- If the base class manages resources, all five special members should be defined (or explicitly deleted/defaulted)\n- Following the Rule of Five prevents resource leaks, double deletions, and slicing issues.",
           "code_examples": [
-            "class Resource {\n    int* data;\npublic:\n    Resource() : data(new int[100]) {}\n    ~Resource() { delete[] data; }\n    \n    Resource(const Resource& other) : data(new int[100]) {\n        std::copy(other.data, other.data+100, data);\n    }\n    \n    Resource& operator=(const Resource& other) {\n        if (this != &other) {\n            int* newData = new int[100];\n            std::copy(other.data, other.data+100, newData);\n            delete[] data;\n            data = newData;\n        }\n        return *this;\n    }\n    \n    Resource(Resource&& other) noexcept : data(other.data) {\n        other.data = nullptr;\n    }\n    \n    Resource& operator=(Resource&& other) noexcept {\n        if (this != &other) {\n            delete[] data;\n            data = other.data;\n            other.data = nullptr;\n        }\n        return *this;\n    }\n};"
+            "class Resource {\n    int* data;\npublic:\n    Resource() : data(new int[100]) {}\n    ~Resource() { delete[] data; }\n    \n    Resource(const Resource& other) : data(new int[100]) {\n    // ... (abbreviated)"
           ],
-          "key_takeaway": "Define or delete all five special members when managing resources, especially in polymorphic hierarchies."
+          "key_takeaway": "**Note:** Full detailed explanation with additional examples available in source materials."
         },
         {
           "question_number": 12,

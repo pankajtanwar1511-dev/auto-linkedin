@@ -20,59 +20,30 @@
 ---
 #### Q2: Explain the difference between a range and a view.
 
-**Answer:**
 
+**Answer:**
 **Range:**
 - A range is any type that provides `begin()` and `end()` (or equivalent)
 - Can own its data (like `std::vector`) or not (like a view)
 - May be expensive to copy (if it owns data)
 - Examples: `std::vector`, `std::array`, `std::list`, views
-
 **View:**
 - A view is a special kind of range that:
-  1. **Non-owning**: Doesn't own the data (refers to another range)
-  2. **O(1) operations**: Cheap to construct, copy, move, assign
-  3. **Lazy**: Computes elements on-demand
-  4. **Composable**: Can be chained with `|`
-
+1. **Non-owning**: Doesn't own the data (refers to another range)
 ```cpp
 std::vector<int> vec{1, 2, 3, 4, 5};  // Range (owns data)
-
 auto v = vec | views::filter([](int n) { return n % 2 == 0; });
 // View (doesn't own data, refers to vec)
-
 std::cout << sizeof(vec);  // Typically 24 bytes (ptr, size, capacity)
 std::cout << sizeof(v);    // Very small (just iterator state)
-
-vec.push_back(6);
-// v now includes 6 (because it refers to vec)
+    // ... (abbreviated)
 ```
+- cpp std::vector<int> vec{1, 2, 3, 4, 5}; // Range (owns data)
+- auto v = vec | views::filter([](int n) { return n % 2 == 0; }); // View (doesn't own data, refers to vec)
 
-**Key Distinction:**
-
-| Property | Range | View |
-|----------|-------|------|
-| Owns data? | Maybe (vector: yes, view: no) | No (always non-owning) |
-| Copy cost | Can be expensive | O(1) cheap |
-| Evaluation | Usually eager | Always lazy |
-| Composable | No | Yes (with `\|`) |
-| Concept | `std::ranges::range` | `std::ranges::view` |
-
-**Example:**
-```cpp
-// Range that owns data
-std::vector<int> owned{1, 2, 3};
-
-// View that refers to owned
-auto v = owned | views::all;  // views::all creates a view
-
-// views::all is O(1) - just stores iterators, doesn't copy data
-```
-
-**Important:** All views are ranges, but not all ranges are views.
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q3: What is lazy evaluation in the context of views, and why is it beneficial?
 
 

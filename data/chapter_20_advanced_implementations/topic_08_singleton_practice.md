@@ -35,20 +35,22 @@ int main() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Race condition (possible double initialization or partial construction visibility)
 ```
 
+- Race condition (possible double initialization or partial construction visibility) ```
+
 **Explanation:**
+
 - Two threads call `getInstance()` simultaneously
 - Both threads check `if (!instance_)` → both see `nullptr`
 - Both threads execute `new Singleton()` → two instances created!
 - Second assignment overwrites first → memory leak
-- Or: one thread sees partially constructed object (data race)
-- Classic singleton race condition
-- **Key Concept:** Naive singleton implementation not thread-safe; concurrent getInstance() calls can create multiple instances; requires synchronization (mutex, std::call_once, or Meyer's singleton)
 
 **Fixed Version:**
+
 ```cpp
 // Option 1: Meyer's Singleton (C++11 thread-safe)
 class Singleton {
@@ -57,32 +59,15 @@ class Singleton {
 public:
     static Singleton& getInstance() {
         static Singleton instance;  // Thread-safe initialization
-        return instance;
-    }
-
-    Singleton(const Singleton&) = delete;
-    Singleton& operator=(const Singleton&) = delete;
-};
-
-// Option 2: std::call_once
-class Singleton {
-    static std::unique_ptr<Singleton> instance_;
-    static std::once_flag init_flag_;
-
-    Singleton() {}
-
-public:
-    static Singleton& getInstance() {
-        std::call_once(init_flag_, []() {
-            instance_.reset(new Singleton());
-        });
-        return *instance_;
-    }
-};
+    // ... (abbreviated)
 ```
 
----
+- cpp // Option 1: Meyer's Singleton (C++11 thread-safe) class Singleton { Singleton() {}
+- public: static Singleton& getInstance() { static Singleton instance; // Thread-safe initialization return instance; }
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q2
 ```cpp
 class Singleton {

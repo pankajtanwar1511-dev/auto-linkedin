@@ -90,13 +90,11 @@ public:
 **Category:** #design
 **Concepts:** #code_reuse #mixin_pattern
 
-**Question:** How does CRTP enable code reuse without virtual functions? Give an example of a logging mixin.
-
-
+**Question:**
 
 **Answer**: CRTP enables code reuse by allowing a base template class to provide common functionality that can be customized by derived classes through template parameter specialization. Each derived class gets its own instantiation of the base class, sharing implementation but not data.
-
 **Explanation**:
+
 ```cpp
 // Logging mixin using CRTP
 template <typename T>
@@ -105,42 +103,15 @@ public:
     void log(const std::string& message) const {
         std::cout << "[" << static_cast<const T*>(this)->getLogPrefix()
                   << "] " << message << "\n";
-    }
-};
-
-class DatabaseConnection : public Loggable<DatabaseConnection> {
-public:
-    void connect() {
-        this->log("Connecting to database...");
-        // Connection logic
-        this->log("Connected successfully");
-    }
-
-    std::string getLogPrefix() const { return "DB"; }
-};
-
-class FileHandler : public Loggable<FileHandler> {
-public:
-    void open(const std::string& filename) {
-        this->log("Opening file: " + filename);
-        // File open logic
-        this->log("File opened");
-    }
-
-    std::string getLogPrefix() const { return "FILE"; }
-};
+    // ... (abbreviated)
 ```
 
-**Benefits**:
-- No virtual function overhead
-- Each class gets customized logging behavior
-- Shared `log()` implementation
-- Compile-time type safety
+- std::string getLogPrefix() const { return "DB"; } };
+- std::string getLogPrefix() const { return "FILE"; } }; ```
 
-**Key Takeaway**: CRTP mixins provide reusable functionality across unrelated classes without runtime overhead, making it ideal for cross-cutting concerns like logging, metrics, and caching.
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q4: Why does this code fail to compile? How do you fix it?
 **Difficulty:** #mid
 **Category:** #debugging

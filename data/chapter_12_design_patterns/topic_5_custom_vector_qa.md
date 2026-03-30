@@ -535,9 +535,11 @@ Removing elements (via `pop_back`, `resize`) doesn't reduce capacity, so memory 
 **Concepts:** #emplace #perfect_forwarding #in_place_construction #variadic_templates #move_semantics
 
 **Answer:**
-`push_back` takes a constructed object (copy or move), while `emplace_back` constructs the object in-place using perfect forwarding, avoiding temporary objects.
+
+
 
 **Code example:**
+
 ```cpp
 struct Expensive {
     int x;
@@ -546,28 +548,19 @@ struct Expensive {
     Expensive(int x, std::string s) : x(x), s(std::move(s)) {
         std::cout << "Expensive constructed\n";
     }
-
-    Expensive(const Expensive&) {
-        std::cout << "Expensive copied\n";
-    }
-};
-
-Vector<Expensive> v;
-
-// push_back: constructs temporary, then moves
-v.push_back(Expensive(42, "hello"));
-// Output: Expensive constructed (temp)
-//         Expensive copied/moved (into vector)
-
-// emplace_back: constructs directly in vector
-v.emplace_back(42, "hello");
-// Output: Expensive constructed (in-place)
+    // ... (abbreviated)
 ```
 
+- cpp struct Expensive { int x; std::string s;
+- Expensive(int x, std::string s) : x(x), s(std::move(s)) { std::cout << "Expensive constructed\n"; }
+
 **Explanation:**
-`push_back(Expensive(42, "hello"))` creates a temporary `Expensive` object, then copies/moves it into the vector (2 operations). `emplace_back(42, "hello")` forwards the arguments to the constructor and constructs the object directly in the vector's memory using placement new (1 operation). This eliminates the temporary and is more efficient for complex types.
+
+- `push_back(Expensive(42, "hello"))` creates a temporary `Expensive` object, then copies/moves it into the vector (2 operations)
+- This eliminates the temporary and is more efficient for complex types.
 
 **Implementation:**
+
 ```cpp
 template <typename... Args>
 void emplace_back(Args&&... args) {
@@ -576,10 +569,16 @@ void emplace_back(Args&&... args) {
 }
 ```
 
-**Key takeaway:** Use `emplace_back` for complex types to avoid temporary construction/destruction.
+- cpp template <typename..
+- Args> void emplace_back(Args&&..
+
+**Key takeaway:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q17: How do you prevent memory leaks in Vector when T's destructor throws?
 **Difficulty:** #advanced
 **Category:** #exception_safety #memory

@@ -20,28 +20,18 @@ Manager* Manager::instance = nullptr;
 ```
 
 **Answer:**
-```
+
+```cpp
 Race condition: multiple threads may create multiple instances
 Memory leak: lost pointers to earlier allocations
 ```
 
+- Race condition: multiple threads may create multiple instances Memory leak: lost pointers to earlier allocations ```
+
 **Explanation:**
+
 - **Thread interleaving scenario:**
-  1. Thread A: checks `if (!instance)` → true (null)
-  2. Thread B: checks `if (!instance)` → true (null, before A assigns)
-  3. Thread A: executes `instance = new Manager()` → creates Manager #1
-  4. Thread B: executes `instance = new Manager()` → creates Manager #2
-  5. **Result: Manager #1 pointer lost, memory leaked**
-  6. instance now points to Manager #2 only
-- **Classic check-then-act race condition (TOCTOU)**
-- **Multiple instance violation:** Singleton guarantee broken
-- **Memory leak:** First allocated Manager never deleted
-- **Possible outcomes:**
-  - Different threads see different Manager instances
-  - State inconsistency across threads
-  - Resource waste (multiple database connections, etc.)
-- **Why this happens:** Check and assignment are NOT atomic
-- **Common fix 1:** Meyers Singleton (C++11 thread-safe)
+1. Thread A: checks `if (!instance)` → true (null)
 
 ```cpp
 static Manager& getInstance() {
@@ -49,20 +39,12 @@ static Manager& getInstance() {
     return instance;
 }
 ```
-- **Common fix 2:** Double-checked locking with mutex
 
-```cpp
-static mutex mtx;
-if (!instance) {
-    lock_guard lock(mtx);
-    if (!instance) instance = new Manager();
-}
-```
-- **Common fix 3:** std::call_once
-- **Key Concept:** Lazy Singleton initialization without synchronization causes race conditions and violates single-instance guarantee
+- cpp static Manager& getInstance() { static Manager instance; // Thread-safe since C++11 return instance; } ``` -
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q2
 ```cpp
 class Service {
@@ -80,30 +62,18 @@ public:
 ```
 
 **Answer:**
-```
+
+```cpp
 Undefined behavior: accessing destroyed Singleton
 Possible crash or corruption during static destruction phase
 ```
 
+- Undefined behavior: accessing destroyed Singleton Possible crash or corruption during static destruction phase ```
+
 **Explanation:**
+
 - **Static destruction order problem:**
-  1. Program ends, static destruction phase begins
-  2. **Destruction order of static locals is REVERSE of initialization order**
-  3. If Logger::getInstance() called before Service::getInstance(), Logger destroyed AFTER Service
-  4. If Service::getInstance() called first, Service destroyed first
-  5. **But destruction order is NOT deterministic across compilation units**
-- **Problem scenario:**
-  1. Logger static local destroyed first (memory freed)
-  2. Service destructor runs
-  3. Calls `Logger::getInstance().log(...)`
-  4. **Access to destroyed object** → undefined behavior
-- **Possible outcomes:**
-  - Crash (segmentation fault)
-  - Corrupted memory access
-  - Silent failure (appears to work but UB)
-  - Double destruction
-- **Why this is common:** Singletons often depend on each other
-- **Common fix 1:** Phoenix Singleton (never destroyed)
+1. Program ends, static destruction phase begins
 
 ```cpp
 static Logger& getInstance() {
@@ -111,15 +81,12 @@ static Logger& getInstance() {
     return *instance;
 }
 ```
-- **Common fix 2:** Dependency injection (avoid Singleton-to-Singleton calls)
-- **Common fix 3:** Document initialization order dependencies
-- **Common fix 4:** Use Nifty Counter idiom for guaranteed ordering
-- **Design guideline:** Avoid Singleton dependencies between Singletons
-- **Real-world issue:** Logger, Config, and Database Singletons commonly hit this
-- **Key Concept:** Static destruction order fiasco causes UB when Singletons reference each other in destructors; use Phoenix pattern or avoid dependencies
+
+- cpp static Logger& getInstance() { static Logger* instance = new Logger(); // Never deleted return *instance; } ``` -
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q3
 ```cpp
 class Config {
@@ -169,47 +136,27 @@ class Config : public Singleton<Config> {};
 ```
 
 **Answer:**
-```
+
+```cpp
 Two separate instances: one for Logger, one for Config
 Each template instantiation has its own static instance
 ```
 
-**Explanation:**
-- **Template instantiation creates separate classes:**
-  1. `Singleton<Logger>` is ONE complete class
-  2. `Singleton<Config>` is ANOTHER complete class
-  3. These are as different as `vector<int>` and `vector<double>`
-- **Static member per instantiation:**
-  - `Singleton<Logger>::getInstance()` has its own `static T instance` (T=Logger)
-  - `Singleton<Config>::getInstance()` has its own `static T instance` (T=Config)
-  - **No sharing between template instantiations**
-- **Memory layout:**
+- Two separate instances: one for Logger, one for Config Each template instantiation has its own static instance ```
 
-```
+**Explanation:**
+
+- **Template instantiation creates separate classes:**
+1. `Singleton<Logger>` is ONE complete class
+
+```cpp
 Address 0x1000: Logger instance (inside Singleton<Logger>::getInstance())
 Address 0x2000: Config instance (inside Singleton<Config>::getInstance())
 ```
-- **How to verify:**
 
-```cpp
-Logger& l1 = Logger::getInstance();
-Logger& l2 = Singleton<Logger>::getInstance();  // Same instance
-Config& c = Config::getInstance();  // Different instance
-```
-- **CRTP pattern (Curiously Recurring Template Pattern):**
-  - Each derived class uses itself as template parameter
-  - Base class provides common Singleton logic
-  - Each derived class gets its own Singleton instance
-- **Advantages:**
-  - Reduces code duplication (don't rewrite getInstance() for each Singleton)
-  - Type-safe (can't accidentally access wrong Singleton)
-  - Zero runtime overhead (templates resolved at compile time)
-- **Common pitfall:** Thinking template static members are shared across all instantiations
-- **Use case:** When you have many Singletons and want DRY (Don't Repeat Yourself) code
-- **Key Concept:** Template instantiations are separate types with separate static members; CRTP Singleton base provides Singleton behavior per derived class
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q5
 ```cpp
 class Database {

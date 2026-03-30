@@ -72,28 +72,17 @@ void consumer() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Race condition possible but predicate likely saves it
 ```
 
+- Race condition possible but predicate likely saves it ```
+
 **Explanation:**
+
 - **ready modified without lock** - data race!
 - **Consumer uses lock but producer doesn't** - inconsistent synchronization
-- **Race condition on ready:**
-  - Producer: writes ready=true (unsynchronized)
-  - Consumer: reads ready in predicate (synchronized)
-  - Concurrent read-write without synchronization = undefined behavior
-- **Why it "likely works":**
-  - Predicate is checked BEFORE waiting
-  - If producer runs first: ready=true, consumer sees it immediately
-  - If consumer waits: notification arrives, predicate rechecks ready
-  - **Predicate acts as safety net** for missed notifications
-- **Why it's STILL WRONG:**
-  - Data race on bool is undefined behavior
-  - Compiler can reorder operations
-  - No memory synchronization between threads
-  - May fail on different architectures/compilers
-- **Correct version:**
 
 ```cpp
 void producer() {
@@ -104,11 +93,12 @@ void producer() {
     cv.notify_one();
 }
 ```
-- **Rule:** Shared state (ready) must be protected by same mutex as cv
-- **Key Concept:** Race on condition variable state; predicate helps but doesn't fix data race
+
+- cpp void producer() { { std::lock_guard<std::mutex> lock(mtx); ready = true; } cv.notify_one(); } ``` -
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q3
 ```cpp
 std::mutex mtx;
@@ -244,42 +234,23 @@ void worker() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Output: "Timeout" (no notifier)
 ```
 
+- Output: "Timeout" (no notifier) ```
+
 **Explanation:**
+
 - **wait_for:** Waits with timeout (relative duration)
 - **Execution:**
-  1. Worker locks mutex
-  2. Calls wait_for with 100ms timeout
-  3. Predicate checked: ready=false
-  4. Thread blocks, releases lock
-  5. No notifier exists to set ready=true
-  6. After 100ms: timeout expires
-  7. Thread wakes, reacquires lock
-  8. **Predicate rechecked:** ready still false
-  9. wait_for returns false (timeout occurred)
-  10. Prints "Timeout"
 - **Return value of wait_for:**
-  - **true:** Predicate became true (condition met)
-  - **false:** Timeout occurred, predicate still false
-- **Important: Spurious wakeups during timeout**
-  - If spurious wakeup occurs at 50ms
-  - Predicate rechecked: still false
-  - Goes back to waiting for remaining 50ms
-- **Timeout behavior:**
-  - Returns when: predicate true OR timeout
-  - Always rechecks predicate before returning
-  - Can return true BEFORE timeout if condition met
-- **Use cases:**
-  - Avoid infinite waiting
-  - Implement retry logic
-  - Responsive shutdown mechanisms
-- **Key Concept:** wait_for() with timeout; returns false if timeout occurs with predicate still false
+- **true:** Predicate became true (condition met)
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q6
 ```cpp
 std::mutex mtx;
@@ -345,43 +316,27 @@ int main() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Only one thread prints (0, 1, or 2), others wait forever
 ```
 
+- Only one thread prints (0, 1, or 2), others wait forever ```
+
 **Explanation:**
+
 - **notify_one() limitation** - wakes only ONE thread
 - **3 threads waiting, 1 notification** - 2 threads left waiting
-- **Execution flow:**
-  1. All 3 worker threads start
-  2. Each locks mtx, calls wait(), releases lock
-  3. All 3 are now waiting
-  4. Main sets start=true
-  5. Main calls notify_one()
-  6. **Only ONE thread wakes** (e.g., thread 0)
-  7. Thread 0 checks predicate: start=true
-  8. Thread 0 prints "0 " and exits
-  9. **Threads 1 and 2 NEVER wake up** - still waiting
-  10. main() joins t0 (succeeds), joins t1 (blocks forever)
-- **Why others don't wake:**
-  - notify_one() picks arbitrary one waiting thread
-  - No subsequent notifications sent
-  - Other threads have no reason to wake
-- **Fix: Use notify_all()**
-  ```cpp
-  cv.notify_all();  // Wake ALL waiting threads
-  ```
-- **When this happens:**
-  - Multiple threads waiting on same condition
-  - All should proceed when condition becomes true
-  - Broadcast notification needed
-- **notify_one() use case:**
-  - Producer-consumer with one item: wake one consumer
-  - Only one thread can/should proceed
-- **Key Concept:** notify_one() wakes only one thread; use notify_all() for multiple waiters that should all proceed
+
+```cpp
+cv.notify_all();  // Wake ALL waiting threads
+```
+
+- cpp cv.notify_all(); // Wake ALL waiting threads ``` -
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q8
 ```cpp
 std::mutex mtx;
@@ -394,52 +349,27 @@ void waiter() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Compilation error
 ```
 
+- Compilation error ```
+
 **Explanation:**
+
 - **Type mismatch:** cv.wait() requires unique_lock, not lock_guard
 - **Compiler error:**
 
-```
+```cpp
 no matching function for call to 'wait(std::lock_guard<std::mutex>&, ...)'
 ```
-- **Why unique_lock required:**
-  - wait() must **unlock** mutex while waiting
-  - Then **relock** when waking up
-  - lock_guard doesn't support manual unlock/lock
-  - **lock_guard is RAII-only:** locks in constructor, unlocks in destructor
-  - **unique_lock supports manual control:** lock(), unlock(), release()
-- **Internal cv.wait() implementation:**
 
-```cpp
-void wait(unique_lock& lock, Predicate pred) {
-    while (!pred()) {
-        lock.unlock();       // Need unlock capability
-        // ... wait for notification ...
-        lock.lock();         // Need lock capability
-    }
-}
-```
-- **Correct version:**
+- no matching function for call to 'wait(std::lock_guard<std::mutex>&, ...)' ``` -
 
-```cpp
-std::unique_lock<std::mutex> lock(mtx);
-cv.wait(lock, []{ return true; });
-```
-- **Other places needing unique_lock:**
-  - cv.wait()
-  - cv.wait_for()
-  - cv.wait_until()
-  - Any operation requiring temporary unlock
-- **When to use lock_guard vs unique_lock:**
-  - **lock_guard:** Simple scope-based locking (no cv)
-  - **unique_lock:** Need manual control or cv operations
-- **Key Concept:** condition_variable requires unique_lock for unlock/relock capability; lock_guard insufficient
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q9
 ```cpp
 std::mutex mtx;
@@ -462,34 +392,17 @@ void consumer() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Output: "42"
 ```
 
+- Output: "42" ```
+
 **Explanation:**
+
 - **Notify inside lock** - works but debated pattern
 - **Execution flow:**
-  1. Producer locks mtx
-  2. Pushes 42 to queue
-  3. **Calls notify_one() while holding lock**
-  4. Producer unlocks (lock_guard destructor)
-  5. Consumer (waiting) wakes up
-  6. Consumer tries to reacquire lock
-  7. Lock available now, consumer acquires it
-  8. Predicate: !q.empty() = true
-  9. Prints "42"
-- **Why it works:**
-  - Notification doesn't require lock to be released
-  - notify_one() is just a signal to OS scheduler
-  - Consumer will wake and wait for lock
-- **Performance consideration:**
-  - **Inside lock:** Notified thread wakes, immediately blocks on lock
-  - **Outside lock:** Lock already released, thread can proceed immediately
-  - **Micro-optimization:** Notify outside lock
-- **Correctness consideration:**
-  - **Inside lock:** Simpler reasoning, atomic state change + notify
-  - **Outside lock:** Must ensure state fully updated before notify
-- **Recommended pattern:**
 
 ```cpp
 {
@@ -498,11 +411,12 @@ Output: "42"
 }  // Lock released here
 cv.notify_one();  // Notify after unlock
 ```
-- **But both are correct** - choose based on preference
-- **Key Concept:** Notify inside lock is correct but potentially less efficient; notify outside lock after state change is preferred
+
+- cpp { std::lock_guard<std::mutex> lock(mtx); q.push(42); } // Lock released here cv.notify_one(); // Notify after unlock ``` -
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q10
 ```cpp
 std::mutex mtx;
@@ -530,48 +444,27 @@ int main() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Output: "Working"
 ```
 
+- Output: "Working" ```
+
 **Explanation:**
+
 - **Late wait pattern** - waiter starts waiting AFTER notification
 - **Timeline:**
 
-| Time | Setup             | Worker |
-| -----|-------------------|------------------------ |
-| T0   | start             | start, sleep(2s) |
-| T1   | lock, ready=true  | (sleeping) |
-| T2   | notify_one()      | (sleeping) |
-| T3   | unlock, exit      | (sleeping) |
-| T4   |                   | wake from sleep at T2 |
-| T5   |                   | lock, call wait() |
-| T6   |                   | predicate: ready=true! |
-| T7   |                   | returns immediately |
-| T8   |                   | prints "Working" |
+```cpp
+cv.wait(lock);  // Would wait forever, missed notification
+```
 
-- **Why notification is "lost":**
-  - notify_one() called at T2
-  - Worker not waiting yet (still sleeping)
-  - Notification doesn't persist
-- **Why it still works:**
-  - **Predicate checked FIRST** when calling wait()
-  - ready=true already, so condition met
-  - wait() returns immediately without blocking
-- **Without predicate: would fail**
-  ```cpp
-  cv.wait(lock);  // Would wait forever, missed notification
-  ```
-- **Key insight:**
-  - Condition variables don't store notifications
-  - Notifications are transient events
-  - **Predicates make them persistent** by checking actual state
-- **Pattern is SAFE** with predicate
-- **Demonstrates robustness** of predicate-based waiting
-- **Key Concept:** Late wait OK with predicate; predicate checks actual state regardless of notification timing
+- cpp cv.wait(lock); // Would wait forever, missed notification ``` -
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q11
 ```cpp
 std::mutex mtx;
@@ -596,46 +489,28 @@ void setter() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Output: "Got 10"
 ```
 
+- Output: "Got 10" ```
+
 **Explanation:**
+
 - **Multiple notifications** with predicate handling
 - **Execution scenario:**
-  1. Waiter locks, calls wait(value==10)
-  2. Predicate: value=0, false → waits
-  3. Setter: sets value=1, notifies
-  4. Waiter wakes, predicate: value=1, false → waits again
-  5. Setter: sets value=2, notifies
-  6. Waiter wakes, predicate: value=2, false → waits again
-  7. ... (repeats for 3-9)
-  8. Setter: sets value=10, notifies
-  9. Waiter wakes, predicate: value=10, **TRUE**
-  10. wait() returns, prints "Got 10"
-- **Predicate rechecked on every wakeup:**
-  - Spurious wakeup? Recheck and continue waiting
-  - Notification received? Recheck and proceed only if true
-  - **Automatic handling** of intermediate states
-- **Why intermediate values don't matter:**
-  - Predicate filters out unwanted wakeups
-  - Only final value=10 satisfies condition
-- **Efficiency consideration:**
-  - Waiter woken 10 times (9 unnecessary)
-  - Could optimize with different approach:
-    ```cpp
-    value = 10;  // Set final value directly
+
+```cpp
+value = 10;  // Set final value directly
     cv.notify_one();  // Single notification
-    ```
-- **Spurious wakeups mixed in:**
-  - If spurious wakeup at value=5
-  - Predicate: value=5, false → waits
-  - Indistinguishable from real notification
-- **Demonstrates predicate robustness**
-- **Key Concept:** Multiple notifications handled automatically by predicate; only wakes for good when predicate true
+```
+
+- cpp value = 10; // Set final value directly cv.notify_one(); // Single notification ``` -
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q12
 ```cpp
 std::mutex m1;
@@ -674,50 +549,27 @@ void worker() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Compilation error
 ```
 
+- Compilation error ```
+
 **Explanation:**
+
 - **Multiple type errors** in this code
 - **Error 1: shared_lock not constructed properly**
-  ```cpp
-  std::shared_lock<std::shared_mutex> smtx;  // No mutex provided!
-  ```
-  - shared_lock requires a shared_mutex to lock
-  - Should be:
-    ```cpp
-    std::shared_mutex sm;
-    std::shared_lock<std::shared_mutex> smtx(sm);
-    ```
-- **Error 2: Passing lock by value**
-  - cv.wait(smtx, ...) tries to copy smtx
-  - shared_lock is not copyable (deleted copy constructor)
-  - Need to pass by reference: `cv.wait(smtx, ...)`
-  - But wait() expects non-const reference
-- **What is condition_variable_any:**
-  - Works with ANY lock type (not just unique_lock)
-  - Can use: unique_lock, shared_lock, lock_guard (no wait support though)
-  - More flexible but slightly slower than condition_variable
-- **Correct usage example:**
 
 ```cpp
-std::shared_mutex sm;
-std::condition_variable_any cv;
-
-void worker() {
-    std::shared_lock<std::shared_mutex> lock(sm);
-    cv.wait(lock, []{ return true; });
-}
+std::shared_lock<std::shared_mutex> smtx;  // No mutex provided!
 ```
-- **But wait() with shared_lock is unusual:**
-  - shared_lock for reading (shared access)
-  - Waiting usually for exclusive access scenarios
-  - More common: unique_lock with shared_mutex
-- **Key Concept:** condition_variable_any works with any lock type but requires proper lock construction; shared_lock must be constructed with actual mutex
+
+- cpp std::shared_lock<std::shared_mutex> smtx; // No mutex provided
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q14
 ```cpp
 std::mutex mtx;
@@ -750,44 +602,23 @@ int main() {
 ```
 
 **Answer:**
-```
+
+```cpp
 All three consumers print "done"
 ```
 
+- All three consumers print "done" ```
+
 **Explanation:**
+
 - **notify_all() broadcast** - wakes ALL waiting threads
 - **Execution timeline:**
-  1. All 3 consumers start immediately
-  2. Each locks mtx, calls wait(), releases lock
-  3. All 3 now waiting (blocked)
-  4. Producer sleeps 50ms
-  5. Producer locks, sets ready=true, unlocks
-  6. Producer calls notify_all()
-  7. **All 3 consumers wake simultaneously**
-  8. Each tries to reacquire mtx (one succeeds, others wait)
-  9. First consumer: predicate true, prints "Consumer X done"
-  10. Releases lock, second consumer acquires it
-  11. Second consumer: predicate true, prints "Consumer Y done"
-  12. Third consumer: predicate true, prints "Consumer Z done"
 - **Order is non-deterministic:**
-  - Could be "1 2 3" or "3 1 2" or any permutation
-  - Depends on OS scheduling
-  - All eventually print
-- **Why notify_all() needed:**
-  - 3 threads waiting
-  - All should proceed (same condition, all can execute)
-  - notify_one() would leave 2 waiting forever
-- **Predicate ensures correctness:**
-  - All threads check ready=true
-  - All proceed only after condition met
-- **Appropriate use of notify_all():**
-  - Multiple threads waiting on same condition
-  - All should proceed when condition becomes true
-  - Broadcast signal
-- **Key Concept:** notify_all() wakes all waiting threads; appropriate when multiple threads should all proceed on same condition
+- Could be "1 2 3" or "3 1 2" or any permutation
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q15
 ```cpp
 std::mutex mtx;
@@ -804,27 +635,17 @@ void waiter() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Output: "Timeout" (if flag not set within 1 second)
 ```
 
+- Output: "Timeout" (if flag not set within 1 second) ```
+
 **Explanation:**
+
 - **wait_until with absolute time point** - different from wait_for
 - **wait_for vs wait_until:**
-  - **wait_for:** Relative duration (e.g., 1 second from now)
-  - **wait_until:** Absolute time point (e.g., specific timestamp)
-- **Execution:**
-  1. Waiter calculates deadline: now() + 1s
-  2. Locks mtx, calls wait_until()
-  3. Predicate checked: flag=false
-  4. Waits with deadline of T+1s
-  5. No other thread sets flag or notifies
-  6. At T+1s: deadline reached
-  7. Thread wakes, reacquires lock
-  8. Predicate rechecked: flag still false
-  9. wait_until returns (doesn't return bool like wait_for!)
-  10. Ternary checks flag: false → prints "Timeout"
-- **Key difference from wait_for:**
 
 ```cpp
 // wait_for returns bool
@@ -834,18 +655,12 @@ if (cv.wait_for(lock, 1s, pred)) { /* success */ }
 cv.wait_until(lock, timepoint, pred);
 if (pred()) { /* success */ } else { /* timeout */ }
 ```
-- **Spurious wakeups before deadline:**
-  - If wakes at T+0.5s spuriously
-  - Predicate false → continues waiting
-  - Waits until deadline T+1s
-- **Use case for wait_until:**
-  - Waiting until specific time (e.g., scheduled event)
-  - Coordination at absolute time
-  - Example: "Wait until 3:00 PM"
-- **Key Concept:** wait_until() waits until absolute time point; use for scheduled/absolute-time waiting vs wait_for for relative timeouts
+
+- cpp // wait_for returns bool if (cv.wait_for(lock, 1s, pred)) { /* success */ }
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q16
 ```cpp
 std::mutex mtx;
@@ -910,44 +725,23 @@ void waiter() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Output: "Counter is 5" (or higher)
 ```
 
+- Output: "Counter is 5" (or higher) ```
+
 **Explanation:**
+
 - **Conditional notification** - notify only when condition met
 - **Typical scenario:**
-  1. Waiter starts: locks, waits for counter>=5
-  2. 5 threads call increment() concurrently
-  3. Thread 1: counter=0→1, no notify
-  4. Thread 2: counter=1→2, no notify
-  5. Thread 3: counter=2→3, no notify
-  6. Thread 4: counter=3→4, no notify
-  7. Thread 5: counter=4→5, **notify_one()**
-  8. Waiter wakes: predicate counter>=5 true
-  9. Prints "Counter is 5"
 - **Why "or higher":**
-  - If more increment() calls happen before waiter wakes
-  - Thread 6 might increment to 6 before waiter acquires lock
-  - Predicate counter>=5 still true at 6,7,8,...
-- **Race between notification and print:**
-  - Notification sent at counter=5
-  - Before waiter wakes and acquires lock
-  - More increments might occur
-  - **Predicate handles this:** >=5 works for any higher value
-- **Optimization: Notify only when needed**
-  - Avoids unnecessary wakeup attempts
-  - If condition already met, notification may be redundant
-  - But doesn't hurt (waiter already proceeded)
-- **Predicate robustness:**
-  - Handles race conditions naturally
-  - counter might be >5 when finally checked
-  - Using >= instead of == makes it robust
-- **Common pattern in counting scenarios**
-- **Key Concept:** Predicate handles races between notification and wakeup; using >= instead of == makes condition robust to additional updates
+- If more increment() calls happen before waiter wakes
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q18
 ```cpp
 std::mutex mtx;

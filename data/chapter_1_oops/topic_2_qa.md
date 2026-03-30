@@ -308,9 +308,11 @@ The signatures `void func() const` and `void func()` are distinct—they can coe
 **Concepts:** #rule_of_five #copy_constructor #move_semantics #destructors #raii
 
 **Answer:**
-The Rule of Five states that if you define any of destructor, copy constructor, copy assignment, move constructor, or move assignment, you should explicitly define all five to ensure correct resource management and copying behavior.
+
+
 
 **Code example:**
+
 ```cpp
 class Resource {
     int* data;
@@ -319,41 +321,22 @@ public:
     ~Resource() { delete[] data; }
     
     Resource(const Resource& other) : data(new int[100]) {
-        std::copy(other.data, other.data+100, data);
-    }
-    
-    Resource& operator=(const Resource& other) {
-        if (this != &other) {
-            int* newData = new int[100];
-            std::copy(other.data, other.data+100, newData);
-            delete[] data;
-            data = newData;
-        }
-        return *this;
-    }
-    
-    Resource(Resource&& other) noexcept : data(other.data) {
-        other.data = nullptr;
-    }
-    
-    Resource& operator=(Resource&& other) noexcept {
-        if (this != &other) {
-            delete[] data;
-            data = other.data;
-            other.data = nullptr;
-        }
-        return *this;
-    }
-};
+    // ... (abbreviated)
 ```
 
 **Explanation:**
-For polymorphic classes, the Rule of Five is critical because derived classes may allocate resources that need proper cleanup. If the base class manages resources, all five special members should be defined (or explicitly deleted/defaulted). Polymorphic classes should typically have virtual destructors, protected copy/move constructors to prevent slicing, and deleted or carefully implemented assignment operators. Following the Rule of Five prevents resource leaks, double deletions, and slicing issues.
 
-**Key takeaway:** Define or delete all five special members when managing resources, especially in polymorphic hierarchies.
+- For polymorphic classes, the Rule of Five is critical because derived classes may allocate resources that need proper cleanup
+- If the base class manages resources, all five special members should be defined (or explicitly deleted/defaulted)
+- Following the Rule of Five prevents resource leaks, double deletions, and slicing issues.
+
+**Key takeaway:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q12: Can you override a non-virtual function?
 **Difficulty:** #beginner  
 **Category:** #syntax #fundamentals  

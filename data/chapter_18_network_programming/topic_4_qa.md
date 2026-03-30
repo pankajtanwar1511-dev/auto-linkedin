@@ -38,9 +38,12 @@ fds.push_back({client_fd, POLLIN, 0});  // Works for any FD number
 
 #### Q2: Explain the pollfd structure and its three fields [BEGINNER]
 
-**Answer**: pollfd is the data structure passed to poll() containing FD and event information.
 
+**:**
+
+**Answer**: pollfd is the data structure passed to poll() containing FD and event information.
 **Structure definition**:
+
 ```cpp
 struct pollfd {
     int fd;           // File descriptor to monitor
@@ -49,46 +52,9 @@ struct pollfd {
 };
 ```
 
-**Field roles**:
-
-1. **fd**: The file descriptor
-   - Listening socket, client socket, pipe, etc.
-   - Set to -1 to ignore this entry
-
-2. **events**: What we want to monitor (set by user)
-   ```cpp
-   pfd.events = POLLIN;           // Want to read
-   pfd.events = POLLOUT;          // Want to write
-   pfd.events = POLLIN | POLLOUT; // Want both
-   ```
-
-3. **revents**: What actually happened (set by kernel)
-   ```cpp
-   if (pfd.revents & POLLIN)  { /* data available */ }
-   if (pfd.revents & POLLOUT) { /* can write */ }
-   if (pfd.revents & POLLHUP) { /* disconnected */ }
-   ```
-
-**Key insight**: events is INPUT (what you ask for), revents is OUTPUT (what you get).
-
-**Example**:
-```cpp
-struct pollfd pfd;
-pfd.fd = client_fd;
-pfd.events = POLLIN;    // ← We set this
-pfd.revents = 0;        // ← Kernel will set this
-
-poll(&pfd, 1, -1);
-
-// After poll():
-if (pfd.revents & POLLIN) {
-    // Kernel set POLLIN in revents
-    recv(client_fd, buffer, size, 0);
-}
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q3: What are the event flags in poll() and which are input vs output? [BEGINNER]
 
 **Answer**: poll() has 6 main event flags, divided into input (user-set) and output (kernel-set).
@@ -137,55 +103,22 @@ pfd.events = POLLIN;
 
 #### Q4: What are poll()'s timeout modes? [BEGINNER]
 
-**Answer**: poll() has three timeout modes, specified in milliseconds.
 
+**:**
+
+**Answer**: poll() has three timeout modes, specified in milliseconds.
 **Timeout parameter**:
+
 ```cpp
 int poll(struct pollfd *fds, nfds_t nfds, int timeout);
 //                                          ^^^^^^^ milliseconds
 ```
 
-**Three modes**:
+- cpp int poll(struct pollfd *fds, nfds_t nfds, int timeout); // ^^^^^^^ milliseconds ```
 
-1. **Block forever** (timeout = -1)
-```cpp
-int ready = poll(fds, nfds, -1);  // Wait until activity
-// Returns only when FD ready or signal
-```
-
-2. **Non-blocking poll** (timeout = 0)
-```cpp
-int ready = poll(fds, nfds, 0);  // Return immediately
-
-if (ready == 0) {
-    // No activity right now - do other work
-    process_background_jobs();
-}
-```
-
-3. **Timed wait** (timeout > 0)
-```cpp
-int ready = poll(fds, nfds, 5000);  // Wait max 5 seconds
-
-if (ready == 0) {
-    // Timeout expired - no activity in 5 seconds
-    handle_timeout();
-}
-```
-
-**Comparison with select()**:
-
-| Timeout | select() | poll() |
-|---------|----------|--------|
-| **Block forever** | NULL | -1 |
-| **Non-blocking** | {0, 0} | 0 |
-| **5 seconds** | {5, 0} | 5000 |
-| **500 ms** | {0, 500000} | 500 |
-
-**Key difference**: poll() uses milliseconds, select() uses microseconds (more precise).
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q5: How does poll() compare to select()? [INTERMEDIATE]
 
 
@@ -348,21 +281,12 @@ int ppoll(struct pollfd *fds, nfds_t nfds,
 ---
 #### Q15: How portable is poll() compared to select()? [ADVANCED]
 
-**Answer**: poll() is POSIX standard but less portable than select() on very old systems.
 
+**:**
+
+**Answer**: poll() is POSIX standard but less portable than select() on very old systems.
 **Portability matrix**:
 
-| System | select() | poll() | ppoll() | epoll() |
-|--------|----------|--------|---------|---------|
-| Linux | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
-| BSD (FreeBSD/OpenBSD) | ✅ Yes | ✅ Yes | ✅ Yes | ❌ No (use kqueue) |
-| macOS | ✅ Yes | ✅ Yes | ✅ Yes | ❌ No (use kqueue) |
-| Solaris | ✅ Yes | ✅ Yes | ❌ No | ❌ No (use /dev/poll) |
-| Windows | ✅ Yes (Winsock) | ❌ No | ❌ No | ❌ No (use IOCP) |
-| AIX | ✅ Yes | ✅ Yes | ❌ No | ❌ No |
-| POSIX.1-2001 | ✅ Standard | ✅ Standard | ❌ Extension | ❌ Linux-only |
-
-**Historical context**:
 ```cpp
 // select(): BSD 4.2 (1983) - 40+ years old
 // poll(): SVR4 (1988), POSIX.1-2001
@@ -370,34 +294,12 @@ int ppoll(struct pollfd *fds, nfds_t nfds,
 // Very old systems (pre-2001) may lack poll()
 ```
 
-**Portable abstraction**:
-```cpp
-class IOMultiplexer {
-public:
-    virtual void add_fd(int fd, int events) = 0;
-    virtual int wait(int timeout_ms) = 0;
-};
+- cpp // select(): BSD 4.2 (1983) - 40+ years old // poll(): SVR4 (1988), POSIX.1-2001
+- // Very old systems (pre-2001) may lack poll() ```
 
-#ifdef __linux__
-class EpollMultiplexer : public IOMultiplexer { ... };
-#elif defined(__FreeBSD__)
-class KqueueMultiplexer : public IOMultiplexer { ... };
-#elif defined(_WIN32)
-class IOCPMultiplexer : public IOMultiplexer { ... };
-#else
-class PollMultiplexer : public IOMultiplexer { ... };
-#endif
-```
-
-**Recommendation**:
-- **Cross-platform library**: Use libevent or Boost.Asio (abstracts platform differences)
-- **Linux-only**: Use epoll() directly
-- **BSD-only**: Use kqueue() directly
-- **Maximum portability**: Use select() (but accept 1024 FD limit)
-- **Modern POSIX**: Use poll() (works on 99% of systems)
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q16: How do you migrate existing select() code to poll()? [EXPERT]
 
 

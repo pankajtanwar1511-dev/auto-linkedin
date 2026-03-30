@@ -27,19 +27,22 @@ public:
 ```
 
 **Answer:**
-```
+
+```cpp
 Data race (queue_ accessed without synchronization from multiple threads)
 ```
 
+- Data race (queue_ accessed without synchronization from multiple threads) ```
+
 **Explanation:**
+
 - `log()` called from any thread, pushes to queue
 - `worker_thread()` pops from queue
 - Concurrent access to `queue_` → data race
 - `std::queue` not thread-safe
-- Need mutex to protect queue
-- **Key Concept:** STL containers not thread-safe; concurrent access requires external synchronization; must protect shared queue with mutex
 
 **Fixed Version:**
+
 ```cpp
 class AsyncLogger {
     std::queue<std::string> queue_;
@@ -48,32 +51,15 @@ class AsyncLogger {
     std::thread worker_;
     bool stop_ = false;
 
-    void worker_thread() {
-        while (true) {
-            std::unique_lock<std::mutex> lock(mutex_);
-            cv_.wait(lock, [this] { return !queue_.empty() || stop_; });
-
-            if (stop_ && queue_.empty()) break;
-
-            std::string msg = std::move(queue_.front());
-            queue_.pop();
-            lock.unlock();
-
-            write_to_file(msg);
-        }
-    }
-
-public:
-    void log(const std::string& msg) {
-        std::lock_guard<std::mutex> lock(mutex_);
-        queue_.push(msg);
-        cv_.notify_one();
-    }
-};
+    // ... (abbreviated)
 ```
 
----
+- if (stop_ && queue_.empty()) break;
+- std::string msg = std::move(queue_.front()); queue_.pop(); lock.unlock();
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q2
 ```cpp
 class AsyncLogger {
@@ -438,20 +424,22 @@ private:
 ```
 
 **Answer:**
-```
+
+```cpp
 Undefined behavior (worker thread accesses uninitialized members)
 ```
 
+- Undefined behavior (worker thread accesses uninitialized members) ```
+
 **Explanation:**
+
 - Constructor initializer list executes top-to-bottom
 - `worker_` initialized before `queue_` and `mutex_`
 - Worker thread starts immediately
 - Accesses `queue_` and `mutex_` before they're initialized
-- Undefined behavior
-- Initialize members before starting thread
-- **Key Concept:** Member initialization order matters; worker threads must start after all members initialized; use two-phase initialization or reorder members
 
 **Fixed Version:**
+
 ```cpp
 class AsyncLogger {
     std::queue<std::string> queue_;  // Declare first
@@ -460,27 +448,15 @@ class AsyncLogger {
 
 public:
     AsyncLogger() {
-        worker_ = std::thread(&AsyncLogger::worker_thread, this);  // Now safe
-    }
-};
-
-// Or two-phase initialization
-class AsyncLogger {
-    std::thread worker_;
-
-public:
-    AsyncLogger() {  // Don't start thread here
-        // Initialize members
-    }
-
-    void start() {  // Explicit start
-        worker_ = std::thread(&AsyncLogger::worker_thread, this);
-    }
-};
+    // ... (abbreviated)
 ```
 
----
+- cpp class AsyncLogger { std::queue<std::string> queue_; // Declare first std::mutex mutex_; std::thread worker_; // Declare last
+- public: AsyncLogger() { worker_ = std::thread(&AsyncLogger::worker_thread, this); // Now safe } };
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q10
 ```cpp
 class AsyncLogger {
@@ -511,19 +487,22 @@ class AsyncLogger {
 ```
 
 **Answer:**
-```
+
+```cpp
 Design inconsistency (tracks current_size_ but uses buffer_.size() for flushing)
 ```
 
+- Design inconsistency (tracks current_size_ but uses buffer_.size() for flushing) ```
+
 **Explanation:**
+
 - Maintains `current_size_` (bytes) but flushes based on count
 - If intent is byte-based flushing, should check `current_size_ >= BATCH_SIZE`
 - If intent is count-based, don't need `current_size_`
 - Mixed metrics confusing
-- Clarify: flush by count or by bytes?
-- **Key Concept:** Consistent metrics for batching; decide on count-based or size-based flushing; tracking both but using only one creates confusion
 
 **Fixed Version:**
+
 ```cpp
 // Option 1: Flush by count
 void worker_thread() {
@@ -532,23 +511,12 @@ void worker_thread() {
         buffer_.push_back(msg);
 
         if (buffer_.size() >= BATCH_SIZE) {
-            flush_buffer();
-        }
-    }
-}
-
-// Option 2: Flush by size (bytes)
-void worker_thread() {
-    while (true) {
-        std::string msg = dequeue();
-        buffer_.push_back(msg);
-        current_size_ += msg.size();
-
-        if (current_size_ >= MAX_BATCH_BYTES) {  // Use size!
-            flush_buffer();
-        }
-    }
-}
+    // ... (abbreviated)
 ```
+
+- cpp // Option 1: Flush by count void worker_thread() { while (true) { std::string msg = dequeue(); buffer_.push_back(msg);
+- if (buffer_.size() >= BATCH_SIZE) { flush_buffer(); } } }
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---

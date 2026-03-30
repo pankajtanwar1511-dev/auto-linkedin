@@ -410,58 +410,26 @@ C++17 allows lambdas to be implicitly `constexpr` if they meet constexpr require
 **Category:** std::scoped_lock
 **Concepts:** Deadlock prevention, mutex ordering
 
-**Question:** Will this code deadlock? Explain the behavior of std::scoped_lock.
-
+**Question:**
 ```cpp
 std::mutex m1, m2, m3;
-
 // Thread 1
 void task1() {
     std::scoped_lock lock(m1, m2, m3);
     // critical section
 }
-
-// Thread 2
-void task2() {
-    std::scoped_lock lock(m3, m1, m2);
-    // critical section
-}
-
-// Thread 3
-void task3() {
-    std::scoped_lock lock(m2, m3, m1);
-    // critical section
-}
+    // ... (abbreviated)
 ```
-
+- cpp std::mutex m1, m2, m3;
+- // Thread 1 void task1() { std::scoped_lock lock(m1, m2, m3); // critical section }
 **Answer:**
-**No deadlock.** `std::scoped_lock` locks all mutexes in a deadlock-free order using a deadlock avoidance algorithm (similar to `std::lock`).
-
+- No deadlock. `std::scoped_lock` locks all mutexes in a deadlock-free order using a deadlock avoidance algorithm (similar to `std::lock`).
 **Explanation:**
-Despite the different mutex orders in each thread, `std::scoped_lock` internally uses a deadlock avoidance strategy (often based on mutex addresses) to acquire all locks in a consistent order. This prevents the circular wait condition required for deadlock.
+- This prevents the circular wait condition required for deadlock.
 
-**Under the hood (conceptual):**
-```cpp
-std::scoped_lock lock(m3, m1, m2);
-// Internally might lock in address order: m1 -> m2 -> m3
-// Regardless of argument order
-```
-
-**Contrast with manual locking (deadlock!):**
-```cpp
-// Thread 1
-std::lock_guard g1(m1);
-std::lock_guard g2(m2);
-
-// Thread 2
-std::lock_guard g2_first(m2);  // Deadlock risk!
-std::lock_guard g1_second(m1);
-```
-
-**Key Takeaway:** std::scoped_lock provides deadlock-free locking of multiple mutexes regardless of lock order, making it safer than multiple individual lock_guards.
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q12
 **Difficulty:** Medium
 **Category:** Fold Expressions
@@ -695,72 +663,44 @@ std::string result2(buffer, ptr);
 **Category:** CTAD with Inheritance
 **Concepts:** Deduction guides, base classes
 
-**Question:** Will this code compile? What happens?
-
+**Question:**
 ```cpp
 template<typename T>
 struct Base {
     T value;
     Base(T v) : value(v) {}
 };
-
 template<typename T>
-struct Derived : Base<T> {
-    Derived(T v) : Base<T>(v) {}
-};
-
-int main() {
-    Derived d(42);  // CTAD?
-}
+    // ... (abbreviated)
 ```
-
+- cpp template<typename T> struct Base { T value; Base(T v) : value(v) {} };
+- template<typename T> struct Derived : Base<T> { Derived(T v) : Base<T>(v) {} };
 **Answer:**
-**Compiles successfully.** CTAD deduces `Derived<int>`.
-
+- Compiles successfully. CTAD deduces `Derived<int>`.
 **Explanation:**
-CTAD works with inheritance. The compiler examines `Derived`'s constructor, which takes `T`, and deduces `T = int` from the argument `42`.
+- CTAD works with inheritance
+- The compiler examines `Derived`'s constructor, which takes `T`, and deduces `T = int` from the argument `42`.
 
-**More complex case (needs deduction guide):**
-```cpp
-template<typename T>
-struct Derived : Base<T> {
-    Derived(const Base<T>& b) : Base<T>(b) {}
-};
-
-// Without deduction guide, this fails
-Derived d2(Base(42));
-
-// Add deduction guide
-template<typename T>
-Derived(const Base<T>&) -> Derived<T>;
-
-Derived d2(Base(42));  // Now works
-```
-
-**Key Takeaway:** CTAD works with inheritance when template parameters can be deduced from constructors. Complex cases may require explicit deduction guides.
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q19
 **Difficulty:** Medium
 **Category:** inline Variables
 **Concepts:** ODR, header-only libraries
 
-**Question:** What problem does inline static solve in this code?
-
+**Question:**
 ```cpp
 // config.h
 struct Config {
     static inline const int MAX_SPEED = 120;
     static inline std::string DEFAULT_MODE = "autonomous";
 };
-
 // Included in multiple .cpp files
 ```
-
-**Answer:**
-**Problem solved:** Allows static member definition in header without violating ODR (One Definition Rule).
-
+- cpp // config.h struct Config { static inline const int MAX_SPEED = 120; static inline std::string DEFAULT_MODE = "autonomous"; };
+- // Included in multiple .cpp files ```
+**Problem solved:**
 **Before C++17:**
 ```cpp
 // config.h
@@ -768,28 +708,12 @@ struct Config {
     static const int MAX_SPEED;
     static std::string DEFAULT_MODE;
 };
-
 // config.cpp (required!)
-const int Config::MAX_SPEED = 120;
-std::string Config::DEFAULT_MODE = "autonomous";
-```
+    // ... (abbreviated)
 
-**With C++17 inline:**
-```cpp
-// config.h only (no .cpp needed!)
-struct Config {
-    static inline const int MAX_SPEED = 120;
-    static inline std::string DEFAULT_MODE = "autonomous";
-};
-```
-
-**Explanation:**
-`inline` on static members (C++17) allows definition in header files without multiple definition errors. The compiler ensures only one instance exists across all translation units, enabling true header-only libraries for static members.
-
-**Key Takeaway:** inline static variables (C++17) enable header-only static member definitions, eliminating the need for separate .cpp files.
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q20
 **Difficulty:** Hard
 **Category:** Fold Expressions + Perfect Forwarding

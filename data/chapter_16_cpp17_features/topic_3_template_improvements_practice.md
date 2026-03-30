@@ -25,6 +25,7 @@ Create a `Resource` class template that manages different types of autonomous ve
 Write a variadic template function `validate_all` that takes multiple predicate functions and returns true only if all predicates return true. Use fold expressions.
 
 **Answer:**
+
 ```cpp
 #include <iostream>
 #include <functional>
@@ -33,41 +34,19 @@ template<typename... Predicates>
 bool validate_all(Predicates... preds) {
     return (... && preds());  // Left fold with &&
 }
-
-bool check_speed() {
-    std::cout << "Checking speed... ";
-    bool ok = true;
-    std::cout << (ok ? "OK\n" : "FAIL\n");
-    return ok;
-}
-
-bool check_sensors() {
-    std::cout << "Checking sensors... ";
-    bool ok = true;
-    std::cout << (ok ? "OK\n" : "FAIL\n");
-    return ok;
-}
-
-bool check_battery() {
-    std::cout << "Checking battery... ";
-    bool ok = false;
-    std::cout << (ok ? "OK\n" : "FAIL\n");
-    return ok;
-}
-
-int main() {
-    bool all_ok = validate_all(check_speed, check_sensors, check_battery);
-
-    std::cout << "System ready: " << std::boolalpha << all_ok << "\n";
-
-    return 0;
-}
+    // ... (abbreviated)
 ```
 
-**Explanation:** Fold expression `(... && preds())` short-circuits on first false, efficient validation.
+- cpp #include <iostream> #include <functional>
+- template<typename..
+
+**Explanation:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q3
 
 **Difficulty:**

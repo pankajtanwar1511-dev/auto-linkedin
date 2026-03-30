@@ -175,20 +175,22 @@ public:
 ```
 
 **Answer:**
-```
+
+```cpp
 Inconsistent snapshot (size may be inaccurate or negative due to concurrent modifications)
 ```
 
+- Inconsistent snapshot (size may be inaccurate or negative due to concurrent modifications) ```
+
 **Explanation:**
+
 - `head_` and `tail_` read separately, not atomically
 - Between reads, other threads may modify them
 - E.g., read `h=5`, then thread modifies both, read `t=3` → negative size!
 - Size calculation sees inconsistent state
-- Lock-free queues can't provide exact size without synchronization
-- Approximate size acceptable, or use separate atomic counter
-- **Key Concept:** Reading multiple atomic variables doesn't create atomic snapshot; concurrent modifications between reads cause inconsistent view; lock-free size() inherently imprecise
 
 **Fixed Version:**
+
 ```cpp
 // Option 1: Accept imprecision (document behavior)
 size_t size_approx() const {  // Rename to indicate approximation
@@ -197,26 +199,15 @@ size_t size_approx() const {  // Rename to indicate approximation
     return (t >= h) ? (t - h) : (Size - h + t);
 }
 
-// Option 2: Separate atomic counter (more expensive)
-std::atomic<size_t> count_{0};
-
-bool push(const T& item) {
-    // ... after successful push:
-    count_.fetch_add(1, std::memory_order_relaxed);
-}
-
-bool pop(T& item) {
-    // ... after successful pop:
-    count_.fetch_sub(1, std::memory_order_relaxed);
-}
-
-size_t size() const {
-    return count_.load(std::memory_order_relaxed);
-}
+    // ... (abbreviated)
 ```
 
----
+- (t - h) : (Size - h + t); }
+- // Option 2: Separate atomic counter (more expensive) std::atomic<size_t> count_{0};
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q5
 ```cpp
 template<typename T, size_t Size>
@@ -408,20 +399,22 @@ public:
 ```
 
 **Answer:**
-```
+
+```cpp
 Race condition on full flag (producer and consumer may disagree on full state)
 ```
 
+- Race condition on full flag (producer and consumer may disagree on full state) ```
+
 **Explanation:**
+
 - Producer checks `full_`, consumer may be popping simultaneously
 - Consumer pops item → buffer not full anymore
 - But producer already saw `full_=true` → rejects push
 - Or: producer sets `full_=true` after consumer already checked and found space
-- `full_` flag adds synchronization point without benefit
-- Original design (comparing `head_` and `tail_`) sufficient and correct
-- **Key Concept:** Adding redundant state to lock-free structures introduces race conditions; derived state (like full flag) must be kept consistent with primary state (head/tail); prefer computing state from primary variables
 
 **Fixed Version:**
+
 ```cpp
 // Remove full_ flag entirely, use original design
 template<typename T, size_t Size>
@@ -430,24 +423,15 @@ class RingBuffer {
     std::atomic<size_t> head_{0};
     std::atomic<size_t> tail_{0};
 
-public:
-    bool push(const T& item) {
-        size_t current_tail = tail_.load(std::memory_order_relaxed);
-        size_t next_tail = (current_tail + 1) % Size;
-
-        if (next_tail == head_.load(std::memory_order_acquire)) {
-            return false;  // Full - derived from head and tail
-        }
-
-        buffer_[current_tail] = item;
-        tail_.store(next_tail, std::memory_order_release);
-        return true;
-    }
-};
+    // ... (abbreviated)
 ```
 
----
+- if (next_tail == head_.load(std::memory_order_acquire)) { return false; // Full - derived from head and tail }
+- buffer_[current_tail] = item; tail_.store(next_tail, std::memory_order_release); return true; } }; ```
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q9
 ```cpp
 template<typename T, size_t Size = 1024>

@@ -141,6 +141,7 @@ global = 100;               // ✅ OK: Can modify later
 
 #### Q5: How do designated initializers work? What are the restrictions?
 
+
 **Answer:**
 
 Designated initializers let you initialize aggregate members by name:
@@ -151,57 +152,39 @@ struct Point { int x, y, z; };
 Point p {.x = 1, .y = 2, .z = 3};
 ```
 
+- cpp struct Point { int x, y, z; };
+- Point p {.x = 1, .y = 2, .z = 3}; ```
+
 **Restrictions:**
 
 1. **Must follow declaration order:**
-   ```cpp
-   // ❌ Error: z before y
+
+```cpp
+// ❌ Error: z before y
    Point p {.z = 3, .y = 2, .x = 1};
 
    // ✅ OK
    Point p {.x = 1, .y = 2, .z = 3};
-   ```
+```
 
-2. **Can't mix with positional:**
-   ```cpp
-   // ❌ Error
-   Point p {1, .y = 2, .z = 3};
-   ```
-
-3. **Can skip members (default-initialized):**
-   ```cpp
-   // ✅ OK: y and z are zero-initialized
-   Point p {.x = 1};
-   ```
-
-4. **Works with nested structs:**
-   ```cpp
-   struct Line {
-       Point start;
-       Point end;
-   };
-
-   Line l {
-       .start = {.x = 0, .y = 0},
-       .end = {.x = 10, .y = 10}
-   };
-   ```
+- cpp // ❌ Error: z before y Point p {.z = 3, .y = 2, .x = 1};
+- // ✅ OK Point p {.x = 1, .y = 2, .z = 3}; ```
 
 **Benefits:**
+
 - Self-documenting
 - Less error-prone than positional
 - Clear intent
 
----
+**Note:** Full detailed explanation with additional examples available in source materials.
 
+---
 #### Q6: How do `[[likely]]` and `[[unlikely]]` attributes improve performance?
 
+
 **Answer:**
-
-These attributes help the compiler optimize branch prediction and instruction cache layout.
-
+- These attributes help the compiler optimize branch prediction and instruction cache layout.
 **How they work:**
-
 ```cpp
 void process_request(Request req) {
     if (req.is_valid()) [[likely]] {
@@ -210,91 +193,48 @@ void process_request(Request req) {
     } else [[unlikely]] {
         // Error path - less optimized, may be further away in code
         log_error(req);
-    }
-}
+    // ... (abbreviated)
 ```
-
 **Performance Benefits:**
-
-1. **Better Branch Prediction:** CPU can prefetch instructions for likely path
-2. **Code Layout:** Compiler places `[[likely]]` blocks in hot path, `[[unlikely]]` blocks further away
-3. **Instruction Cache:** Keeps common paths in cache, reduces cache misses
-
+- Better Branch Prediction: CPU can prefetch instructions for likely path 2
+- Code Layout: Compiler places `[[likely]]` blocks in hot path, `[[unlikely]]` blocks further away 3
+- Instruction Cache: Keeps common paths in cache, reduces cache misses
 **Benchmarks:**
 - Can reduce branch mispredictions by 10-30% in hot loops
 - Improves performance in error-handling heavy code
 - Most effective when the likelihood is asymmetric (90%+ one way)
 
-**Example Impact:**
-
-```cpp
-// Hot loop processing millions of items
-for (auto& item : items) {
-    if (item.is_error()) [[unlikely]] {
-        handle_error(item);  // Rare: <0.1% of items
-    } else [[likely]] {
-        process(item);  // Common: >99.9% of items
-    }
-}
-// Can improve throughput by 15-25% in such scenarios
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q7: What are template lambdas and when should you use them?
 
+
 **Answer:**
-
 Template lambdas (C++20) allow lambdas to have explicit template parameters:
-
 ```cpp
 // C++20: Template lambda
 auto print = []<typename T>(T value) {
     std::cout << "Value: " << value << ", Type: " << typeid(T).name() << '\n';
 };
-
 print(42);      // T = int
 print(3.14);    // T = double
 print("text");  // T = const char*
 ```
-
+- print(42); // T = int print(3.14); // T = double print("text"); // T = const char* ```
 **When to use:**
-
 1. **When you need the actual type:**
-   ```cpp
-   // Can't do this with auto:
+```cpp
+// Can't do this with auto:
    auto get_size = []<typename T>(const T& container) {
        using value_type = typename T::value_type;  // Need actual type
        return container.size();
    };
-   ```
-
-2. **Perfect forwarding:**
-   ```cpp
-   auto forward_call = []<typename... Args>(Args&&... args) {
-       return some_function(std::forward<Args>(args)...);
-   };
-   ```
-
-3. **SFINAE or concepts:**
-   ```cpp
-   auto process = []<std::integral T>(T value) {
-       return value * 2;  // Only works with integers
-   };
-   ```
-
-**Comparison:**
-
-```cpp
-// C++14: Generic lambda (auto)
-auto lambda1 = [](auto x) { return x * 2; };  // Can't access T
-
-// C++20: Template lambda
-auto lambda2 = []<typename T>(T x) { return x * 2; };  // Can use T
 ```
 
----
+**Note:** Full detailed explanation with additional examples available in source materials.
 
+---
 #### Q8: Explain `using enum` and its benefits.
 
 
@@ -327,14 +267,10 @@ auto lambda2 = []<typename T>(T x) { return x * 2; };  // Can use T
 ---
 #### Q9: What's the difference between `constexpr` and `consteval` in practice?
 
+
 **Answer:**
 
-| Aspect | `constexpr` | `consteval` |
-|--------|------------|-------------|
-| **Can run at runtime** | ✅ Yes | ❌ No (compile error) |
-| **Guaranteed compile-time** | ❌ No | ✅ Yes |
-| **Flexibility** | Higher | Lower |
-| **Use case** | General purpose | Force compile-time |
+
 
 **Example:**
 
@@ -346,62 +282,48 @@ int main() {
     // constexpr: Can be compile-time OR runtime
     constexpr int a = square(5);  // Compile-time ✅
     int n = 10;
-    int b = square(n);            // Runtime ✅ (allowed)
-
-    // consteval: MUST be compile-time
-    constexpr int c = cube(3);    // Compile-time ✅
-    int d = cube(n);              // ❌ Compile error: n is runtime
-}
+    // ... (abbreviated)
 ```
+
+- cpp constexpr int square(int x) { return x * x; } consteval int cube(int x) { return x * x * x; }
 
 **When to use `consteval`:**
 
 1. **Enforce compile-time computation:**
-   ```cpp
-   consteval size_t buffer_size(size_t n) {
+
+```cpp
+consteval size_t buffer_size(size_t n) {
        if (n > 1024) throw "Too large";
        return n * sizeof(int);
    }
 
    std::array<char, buffer_size(100)> buf;  // ✅ Validated at compile-time
-   ```
+```
 
-2. **Meta-programming that makes no sense at runtime:**
-   ```cpp
-   consteval const char* get_build_timestamp() {
-       return __TIMESTAMP__;  // Must be compile-time
-   }
-   ```
+- cpp consteval size_t buffer_size(size_t n) { if (n > 1024) throw "Too large"; return n * sizeof(int); }
+- std::array<char, buffer_size(100)> buf; // ✅ Validated at compile-time ```
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q10: How does return type deduction work for `operator<=>`?
 
+
 **Answer:**
-
 Compiler chooses the **weakest** comparison category among all members:
-
 ```cpp
 struct Example1 {
     int a;           // strong_ordering
     std::string b;   // strong_ordering
-
     auto operator<=>(const Example1&) const = default;
     // Deduced: strong_ordering (all members are strong)
 };
-
-struct Example2 {
-    int a;      // strong_ordering
-    double b;   // partial_ordering (due to NaN)
-
-    auto operator<=>(const Example2&) const = default;
-    // Deduced: partial_ordering (weakest wins)
-};
+    // ... (abbreviated)
 ```
-
+- cpp struct Example1 { int a; // strong_ordering std::string b; // strong_ordering
+- auto operator<=>(const Example1&) const = default; // Deduced: strong_ordering (all members are strong) };
 **Category Hierarchy (weakest to strongest):**
-
-```
+```cpp
 partial_ordering  (weakest)
     ↓
 weak_ordering
@@ -409,27 +331,9 @@ weak_ordering
 strong_ordering   (strongest)
 ```
 
-**Manual Specification:**
-
-```cpp
-struct Explicit {
-    int a;
-    double b;  // Would normally give partial_ordering
-
-    // Force strong_ordering (only safe if you handle NaN yourself)
-    std::strong_ordering operator<=>(const Explicit& other) const {
-        if (auto cmp = a <=> other.a; cmp != 0)
-            return cmp;
-        // Custom handling for double (ignore NaN)
-        if (b < other.b) return std::strong_ordering::less;
-        if (b > other.b) return std::strong_ordering::greater;
-        return std::strong_ordering::equal;
-    }
-};
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q11: Can you mix designated and positional initializers?
 
 **Answer:**
@@ -473,6 +377,7 @@ Line l1{
 
 #### Q12: What happens if you don't define `operator==` with `operator<=>`?
 
+
 **Answer:**
 
 **`operator==` is NOT automatically generated from `operator<=>`.**
@@ -485,13 +390,11 @@ struct Point {
 
 Point p1{1, 2}, p2{1, 2};
 
-// ✅ OK: Ordering operators work
-bool less = p1 < p2;      // OK
-bool greater = p1 > p2;   // OK
-
-// ❌ Error: No operator==
-bool equal = p1 == p2;    // Compile error!
+    // ... (abbreviated)
 ```
+
+- cpp struct Point { int x, y; auto operator<=>(const Point&) const = default; };
+- Point p1{1, 2}, p2{1, 2};
 
 **Solution: Define both:**
 
@@ -503,82 +406,37 @@ struct Point {
 };
 ```
 
-**Why separate?**
-
-Performance optimization:
-```cpp
-struct BigData {
-    std::vector<int> data;
-
-    // Efficient equality: O(n) with early exit
-    bool operator==(const BigData& other) const {
-        return data.size() == other.size() &&
-               std::equal(data.begin(), data.end(), other.begin());
-    }
-
-    // Ordering: O(n) lexicographic comparison
-    auto operator<=>(const BigData& other) const {
-        return data <=> other.data;
-    }
-};
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q13: How do comparison categories convert?
 
+
 **Answer:**
-
 **Implicit Conversions (Weaker to Stronger):**
-
 ```cpp
 std::strong_ordering s = std::strong_ordering::less;
-
 // ✅ OK: strong → weak
 std::weak_ordering w = s;
-
 // ✅ OK: strong → partial
 std::partial_ordering p1 = s;
-
-// ✅ OK: weak → partial
-std::partial_ordering p2 = w;
-
-// ❌ Error: Can't convert stronger to weaker
-// std::strong_ordering s2 = w;  // Compile error
+    // ... (abbreviated)
 ```
-
+- cpp std::strong_ordering s = std::strong_ordering::less;
+- // ✅ OK: strong → weak std::weak_ordering w = s;
 **Conversion Rules:**
-
-```
+```cpp
 strong_ordering
     ↓ (implicit)
 weak_ordering
     ↓ (implicit)
 partial_ordering
 ```
+- strong_ordering ↓ (implicit) weak_ordering ↓ (implicit) partial_ordering ```
 
-**Practical Example:**
-
-```cpp
-std::strong_ordering compare_ints(int a, int b) {
-    return a <=> b;
-}
-
-std::partial_ordering compare_mixed(int a, double b) {
-    // int <=> double returns partial_ordering
-    return a <=> b;
-}
-
-void use_comparison() {
-    auto result1 = compare_ints(5, 10);  // strong_ordering
-
-    // Can assign to partial_ordering
-    std::partial_ordering result2 = result1;  // ✅ OK
-}
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q14: What are the restrictions on designated initializers?
 
 
@@ -619,14 +477,10 @@ void use_comparison() {
 ---
 #### Q16: How does `constinit` differ from `constexpr` for global variables?
 
+
 **Answer:**
 
-| Feature | `constexpr` | `constinit` |
-|---------|------------|-------------|
-| **Mutability** | Immutable | Mutable |
-| **Initialization** | Compile-time | Compile-time |
-| **Value known at compile-time** | ✅ Yes (always) | ✅ Yes (initially) |
-| **Can modify later** | ❌ No | ✅ Yes |
+
 
 **Examples:**
 
@@ -638,36 +492,31 @@ MAX_SIZE = 200;  // ❌ Error: Can't modify
 // constinit: Initialized at compile-time, but mutable
 constinit int current_size = 100;
 current_size = 200;  // ✅ OK: Can modify
-
-// Guarantees no static initialization order fiasco
-constinit int global1 = 42;
-constinit int global2 = global1 * 2;  // Safe: global1 already exists
+    // ... (abbreviated)
 ```
+
+- cpp // constexpr: Constant value constexpr int MAX_SIZE = 100; MAX_SIZE = 200; // ❌ Error: Can't modify
+- // constinit: Initialized at compile-time, but mutable constinit int current_size = 100; current_size = 200; // ✅ OK: Can modify
 
 **When to use `constinit`:**
 
 1. **Thread-local storage:**
-   ```cpp
-   thread_local constinit int thread_counter = 0;  // Initialized at compile-time
-   ```
 
-2. **Avoid initialization order fiasco:**
-   ```cpp
-   // header.h
-   extern constinit int shared_config;
+```cpp
+thread_local constinit int thread_counter = 0;  // Initialized at compile-time
+```
 
-   // source1.cpp
-   constinit int shared_config = 42;
+- cpp thread_local constinit int thread_counter = 0; // Initialized at compile-time ```
 
-   // source2.cpp
-   constinit int derived_config = shared_config * 2;  // Safe
-   ```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q17: Can you have a base class comparison with `operator<=>`?
 
+
 **Answer:**
+
+
 
 **Yes, defaulted `operator<=>` automatically includes base class comparison:**
 
@@ -679,20 +528,11 @@ struct Base {
 
 struct Derived : Base {
     int y;
-    auto operator<=>(const Derived&) const = default;  // Compares Base::x first!
-};
-
-int main() {
-    Derived d1{.x = 1, .y = 2};
-    Derived d2{.x = 1, .y = 3};
-
-    auto cmp = d1 <=> d2;
-    // Order of comparison:
-    // 1. Base::x (1 <=> 1 = equal)
-    // 2. Derived::y (2 <=> 3 = less)
-    // Result: less
-}
+    // ... (abbreviated)
 ```
+
+- cpp struct Base { int x; auto operator<=>(const Base&) const = default; };
+- struct Derived : Base { int y; auto operator<=>(const Derived&) const = default; // Compares Base::x first
 
 **Custom Base Class Comparison:**
 
@@ -704,16 +544,20 @@ struct Derived : Base {
     auto operator<=>(const Derived& other) const {
         if (auto cmp = y <=> other.y; cmp != 0)
             return cmp;
-        return Base::operator<=>(other);  // Then compare base
-    }
-};
+    // ... (abbreviated)
 ```
 
----
+- cpp struct Derived : Base { int y;
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q18: What's the performance impact of branch prediction attributes?
 
+
 **Answer:**
+
+
 
 **Measurable Performance Gains in Specific Scenarios:**
 
@@ -727,37 +571,16 @@ Result process(Data data) {
     }
     return fast_process(data);
 }
-
-// With attribute
-Result process(Data data) {
-    if (data.is_corrupt()) [[unlikely]] {
-        return handle_error(data);
-    }
-    return fast_process(data);
-}
-
-// Benchmark: 8-15% faster with [[unlikely]] (millions of iterations)
+    // ... (abbreviated)
 ```
 
-**Scenario 2: Hot Loop**
-
-```cpp
-for (auto& item : million_items) {
-    if (item.needs_special_processing()) [[unlikely]] {  // 1% of items
-        special_process(item);
-    } else [[likely]] {  // 99% of items
-        normal_process(item);
-    }
-}
-
-// Benchmark: 12-18% improvement with proper attributes
-```
+- // Benchmark: 8-15% faster with [[unlikely]] (millions of iterations) ```
 
 **When It Doesn't Help:**
 
-1. **Balanced branches (50/50):** No benefit
-2. **Already-optimal CPU prediction:** Minimal gain
-3. **Cold code paths:** Branch prediction not critical
+- Balanced branches (50/50): No benefit 2
+- Already-optimal CPU prediction: Minimal gain 3
+- Cold code paths: Branch prediction not critical
 
 **Best Practices:**
 
@@ -765,8 +588,9 @@ for (auto& item : million_items) {
 - Profile first: Don't guess likelihood
 - Most effective in hot loops and error handling
 
----
+**Note:** Full detailed explanation with additional examples available in source materials.
 
+---
 #### Q19: How do template lambdas help with perfect forwarding?
 
 

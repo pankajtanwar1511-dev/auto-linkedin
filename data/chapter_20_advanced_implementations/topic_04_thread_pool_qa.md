@@ -167,7 +167,10 @@ Implement this exercise.
 
 **Answer:**
 
+
+
 **Strategy:**
+
 - Monitor queue size
 - If queue grows → spawn more threads (up to max)
 - If idle → kill threads (down to min)
@@ -182,30 +185,23 @@ private:
     std::atomic<size_t> active_threads_{0};
 
     void monitor_loop() {
-        while (!stop_) {
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-
-            size_t queued = tasks_.size();
-            size_t active = active_threads_.load();
-
-            if (queued > 10 && active < max_threads_) {
-                // Spawn new thread
-                workers_.emplace_back([this]() { worker_loop(); });
-                active_threads_.fetch_add(1);
-            } else if (queued == 0 && active > min_threads_) {
-                // Signal one thread to exit (complex - need ID tracking)
-            }
-        }
-    }
-};
+    // ... (abbreviated)
 ```
 
+- cpp class DynamicThreadPool { private: size_t min_threads_; size_t max_threads_; std::atomic<size_t> active_threads_{0};
+- void monitor_loop() { while (!stop_) { std::this_thread::sleep_for(std::chrono::seconds(1));
+
 **Challenges:**
+
 - Thread creation latency (50-100μs)
 - Oscillation (threads spawn/die repeatedly)
 - Complexity (tracking thread IDs for selective shutdown)
 
-**Better:** Use fixed pool, benchmark to find optimal size.
+**Better:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
 #### Q7: What is the difference between thread pool and `std::async`?

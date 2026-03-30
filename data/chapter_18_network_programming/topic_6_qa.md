@@ -1,22 +1,19 @@
 ### INTERVIEW_QA: Comprehensive Questions and Answers
 #### Q1: When should you use sendfile() vs traditional read()/write()? What are the performance implications?
 
-**Answer:**
 
+**Answer:**
 **When to use sendfile():**
 - Serving static files (HTTP/FTP file servers)
 - Proxying large binary data between sockets
 - Any file-to-socket transfer where data doesn't need modification
 - Requirements: Linux kernel 2.2+, file and socket must support sendfile
-
 **When NOT to use sendfile():**
 - Data transformation needed (compression, encryption)
 - Cross-platform requirement (sendfile is Linux-specific)
 - Small files (<4KB) where overhead dominates
 - Non-file sources (memory buffers, pipes)
-
 **Performance implications:**
-
 ```cpp
 // Traditional approach: 2 copies + 2 context switches
 char buffer[8192];
@@ -27,82 +24,42 @@ while ((n = read(file_fd, buffer, sizeof(buffer))) > 0) {
 // CPU copies: 2 (kernel→user, user→kernel)
 ```
 
-```cpp
-// sendfile(): 0 copies + 1 context switch
-off_t offset = 0;
-sendfile(socket_fd, file_fd, &offset, file_size);
-// Data path: Disk → Kernel → Network
-// CPU copies: 0 (DMA only)
-```
-
-**Benchmarks:**
-- Traditional: ~300 MB/s, 80% CPU usage
-- sendfile(): ~900 MB/s, 20% CPU usage
-- **3x throughput, 4x lower CPU usage**
-
-**Production considerations:**
-- Always handle partial sends (sendfile can return < requested bytes)
-- Monitor EAGAIN/EWOULDBLOCK with non-blocking sockets
-- Combine with epoll edge-triggered mode for maximum performance
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q2: Explain the difference between Reactor and Proactor patterns. Which would you use for a high-traffic web server?
+
 
 **Answer:**
 
+
+
 **Reactor Pattern (Synchronous I/O):**
 
-```
+```cpp
 Application registers interest → epoll_wait() returns → Application calls recv()
 ```
 
-- **Pros:**
-  - Simple mental model (you control when recv() is called)
-  - Works on all platforms (epoll/kqueue/IOCP)
-  - Easy to debug (synchronous call stack)
-  - Mature ecosystem (nginx, Redis use Reactor)
-
-- **Cons:**
-  - recv() can still block briefly (even with EPOLLIN)
-  - Application must handle partial reads/writes
+- Application registers interest → epoll_wait() returns → Application calls recv() ```
 
 **Proactor Pattern (Asynchronous I/O):**
 
-```
+```cpp
 Application submits read request → Kernel performs I/O → Kernel notifies completion
 ```
 
-- **Pros:**
-  - True zero-copy with io_uring (kernel writes directly to application buffer)
-  - Higher theoretical throughput
-  - Fewer system calls
-
-- **Cons:**
-  - Complex error handling (errors arrive asynchronously)
-  - Platform-specific (io_uring requires Linux 5.1+, Windows IOCP)
-  - Harder to debug (async call stacks)
-  - Immature ecosystem (fewer production examples)
+- Application submits read request → Kernel performs I/O → Kernel notifies completion ```
 
 **Recommendation for high-traffic web server:**
 
-**Use Reactor pattern** because:
-
-1. **Proven at scale**: nginx (50% of top 10k websites), Redis (millions of req/sec) use Reactor
-2. **Cross-platform**: Works on Linux (epoll), FreeBSD (kqueue), Windows (IOCP with emulation)
-3. **Simpler debugging**: Synchronous errors easier to trace
-4. **Good enough performance**: With epoll edge-triggered + non-blocking I/O, Reactor achieves 100k+ req/sec
-
-**Consider Proactor (io_uring)** only if:
 - Linux-only deployment
 - Network I/O is proven bottleneck (profiling shows recv/send dominating CPU)
 - Team has expertise in async I/O debugging
 - Willing to invest in cutting-edge tech (io_uring still evolving)
 
-**Hybrid approach**: Use Reactor for network I/O, Proactor (thread pool) for disk I/O.
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q3: How do you detect and handle stale connections in a connection pool? What's the cost of not handling them?
 
 

@@ -475,9 +475,11 @@ Symptoms: threads block forever despite notifications being sent. Causes: (1) No
 **Concepts:** #autonomous_driving #synchronization #frame_processing
 
 **Answer:**
-Producer thread captures frames, pushes to queue, notifies; processing thread waits for frames, ensuring no busy-waiting and minimal latency.
+
+- Producer thread captures frames, pushes to queue, notifies; processing thread waits for frames, ensuring no busy-waiting and minimal latency.
 
 **Code example:**
+
 ```cpp
 std::mutex mtx;
 std::condition_variable cv_frame_ready;
@@ -486,42 +488,25 @@ bool shutdown = false;
 
 void camera_capture_thread() {
     while (!shutdown) {
-        Frame frame = capture_from_sensor();
-
-        {
-            std::lock_guard<std::mutex> lock(mtx);
-            frame_queue.push(std::move(frame));
-        }
-        cv_frame_ready.notify_one();
-    }
-}
-
-void perception_thread() {
-    while (true) {
-        Frame frame;
-
-        {
-            std::unique_lock<std::mutex> lock(mtx);
-            cv_frame_ready.wait(lock, []{ return shutdown || !frame_queue.empty(); });
-
-            if (shutdown && frame_queue.empty()) break;
-
-            frame = std::move(frame_queue.front());
-            frame_queue.pop();
-        }
-
-        process_frame(frame);  // Object detection, segmentation, etc.
-    }
-}
+    // ... (abbreviated)
 ```
 
-**Explanation:**
-Camera thread produces frames at 30Hz, perception thread processes them. Condition variables enable instant wakeup when frames arrive (low latency) without burning CPU polling (efficiency). Critical for real-time systems where processing must start within microseconds of capture to meet safety deadlines.
+- cpp std::mutex mtx; std::condition_variable cv_frame_ready; std::queue<Frame> frame_queue; bool shutdown = false;
+- void camera_capture_thread() { while (!shutdown) { Frame frame = capture_from_sensor();
 
-**Key takeaway:** Condition variables enable efficient low-latency event-driven coordination between sensor capture and processing threads in real-time systems.
+**Explanation:**
+
+- Camera thread produces frames at 30Hz, perception thread processes them
+- Condition variables enable instant wakeup when frames arrive (low latency) without burning CPU polling (efficiency)
+- Critical for real-time systems where processing must start within microseconds of capture to meet safety deadlines.
+
+**Key takeaway:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q18: What are the performance characteristics of condition variable operations?
 **Difficulty:** #advanced
 **Category:** #threading #condition_variable #performance
@@ -543,9 +528,11 @@ Waiting involves a kernel syscall (futex on Linux) to put the thread to sleep, r
 **Concepts:** #barrier #synchronization #coordination
 
 **Answer:**
-Use a counter and condition variable; threads wait until all reach the barrier, then release.
+
+- Use a counter and condition variable; threads wait until all reach the barrier, then release.
 
 **Code example:**
+
 ```cpp
 class Barrier {
     std::mutex mtx;
@@ -554,38 +541,26 @@ class Barrier {
     const size_t threshold;
     size_t generation = 0;
 
-public:
-    explicit Barrier(size_t num_threads) : threshold(num_threads), count(num_threads) {}
-
-    void wait() {
-        std::unique_lock<std::mutex> lock(mtx);
-        size_t gen = generation;
-
-        if (--count == 0) {
-            ++generation;
-            count = threshold;
-            cv.notify_all();  // Release all waiters
-        } else {
-            cv.wait(lock, [this, gen]{ return gen != generation; });
-        }
-    }
-};
-
-// Usage: All threads wait until all arrive
-void worker(Barrier& barrier, int id) {
-    std::cout << "Thread " << id << " phase 1\n";
-    barrier.wait();  // Sync point
-    std::cout << "Thread " << id << " phase 2\n";
-}
+    // ... (abbreviated)
 ```
 
-**Explanation:**
-Barriers synchronize a fixed number of threads at a rendezvous point. All threads block until the last arrives, then all are released simultaneously. The generation counter prevents early threads from the next iteration from mixing with late threads from the previous iteration. C++20 provides `std::barrier` and `std::latch` as standard synchronization primitives.
+- cpp class Barrier { std::mutex mtx; std::condition_variable cv; size_t count; const size_t threshold; size_t generation = 0;
+- public: explicit Barrier(size_t num_threads) : threshold(num_threads), count(num_threads) {}
 
-**Key takeaway:** Implement barriers with a counter and condition variable; C++20 provides `std::barrier` for this pattern.
+**Explanation:**
+
+- Barriers synchronize a fixed number of threads at a rendezvous point
+- All threads block until the last arrives, then all are released simultaneously
+- The generation counter prevents early threads from the next iteration from mixing with late threads from the previous iteration
+- C++20 provides `std::barrier` and `std::latch` as standard synchronization primitives.
+
+**Key takeaway:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q20: What is the difference between condition_variable::wait() and condition_variable::wait_for() in terms of guarantees?
 **Difficulty:** #intermediate
 **Category:** #threading #condition_variable #timeout

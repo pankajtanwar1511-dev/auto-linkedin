@@ -130,13 +130,11 @@ std::cout << result.getCount();  // Prints 4
 **Category:** #performance
 **Concepts:** #hash_maps #optimization
 
-**Question:** What's wrong with using `map.count(key)` followed by `map[key]` in a memoizing functor? How can you optimize it?
-
-
+**Question:**
 
 **Answer**: Using `.count()` followed by `[]` performs **two hash lookups**, which is inefficient. Instead, use `.find()` to perform a single lookup and use the returned iterator for both checking existence and accessing the value.
-
 **Explanation**:
+
 ```cpp
 // ❌ Inefficient - two hash lookups
 std::unordered_map<int, int> cache;
@@ -145,48 +143,24 @@ int operator()(int x) const {
     if (cache.count(x)) {        // Lookup #1
         return cache[x];         // Lookup #2
     }
-    int result = compute(x);
-    cache[x] = result;
-    return result;
-}
-
-// ✅ Efficient - single hash lookup
-int operator()(int x) const {
-    auto it = cache.find(x);    // Single lookup
-    if (it != cache.end()) {
-        return it->second;      // Use iterator
-    }
-    int result = compute(x);
-    cache[x] = result;
-    return result;
-}
-
-// ✅ Alternative: try_emplace (C++17)
-int operator()(int x) const {
-    auto [it, inserted] = cache.try_emplace(x, 0);
-    if (inserted) {
-        it->second = compute(x);
-    }
-    return it->second;
-}
+    // ... (abbreviated)
 ```
 
-**Key Takeaway**: Use `.find()` or `.try_emplace()` instead of `.count()` + `[]` to minimize hash lookups in performance-critical code.
+- cpp // ❌ Inefficient - two hash lookups std::unordered_map<int, int> cache;
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q5: How do you make a functor thread-safe when multiple threads need to access...
 **Difficulty:** #mid
 **Category:** #multithreading
 **Concepts:** #thread_safety #atomics #mutexes
 
-**Question:** How do you make a functor thread-safe when multiple threads need to access shared state?
-
-
+**Question:**
 
 **Answer**: Protect mutable state with either `std::atomic` (for simple counters/flags) or `std::mutex` (for complex state like maps). Use minimal lock scopes to maximize concurrency.
-
 **Explanation**:
+
 ```cpp
 // ❌ Not thread-safe
 class UnsafeFunctor {
@@ -195,57 +169,25 @@ class UnsafeFunctor {
 public:
     int operator()(int x) {
         count++;  // ❌ Data race
-        auto it = cache.find(x);  // ❌ Data race
-        // ...
-    }
-};
-
-// ✅ Thread-safe with atomic + mutex
-class SafeFunctor {
-    std::atomic<int> count{0};
-    mutable std::unordered_map<int, int> cache;
-    mutable std::mutex cacheMutex;
-
-public:
-    int operator()(int x) {
-        count++;  // ✅ Lock-free atomic operation
-
-        {
-            std::lock_guard<std::mutex> lock(cacheMutex);
-            auto it = cache.find(x);  // ✅ Protected by mutex
-            if (it != cache.end()) {
-                return it->second;
-            }
-        }
-
-        int result = compute(x);
-
-        {
-            std::lock_guard<std::mutex> lock(cacheMutex);
-            cache[x] = result;  // ✅ Protected by mutex
-        }
-
-        return result;
-    }
-};
+    // ... (abbreviated)
 ```
 
-**Key Takeaway**: Use `std::atomic` for simple counters and `std::mutex` for complex data structures. Keep lock scopes minimal to avoid unnecessary contention.
+- public: int operator()(int x) { count++; // ✅ Lock-free atomic operation
+- int result = compute(x);
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q6: When implementing a memoizing functor with external dependencies, what issue...
 **Difficulty:** #advanced
 **Category:** #memory_management
 **Concepts:** #memoization #cache_invalidation
 
-**Question:** When implementing a memoizing functor with external dependencies, what issue can arise and how do you handle it?
-
-
+**Question:**
 
 **Answer**: **Cache invalidation problem**: if the functor's behavior depends on external state (e.g., configuration parameters), the cached results may become stale when that external state changes. You must provide a mechanism to invalidate/clear the cache when dependencies change.
-
 **Explanation**:
+
 ```cpp
 // ❌ Cache without invalidation
 class StaleCache {
@@ -254,45 +196,15 @@ class StaleCache {
 
 public:
     void setFactor(int f) { externalFactor = f; }  // ❌ Cache still has old results!
-
-    int operator()(int x) const {
-        auto it = cache.find(x);
-        if (it != cache.end()) return it->second;  // ❌ May return stale data
-
-        int result = x * externalFactor;
-        cache[x] = result;
-        return result;
-    }
-};
-
-// ✅ Cache with proper invalidation
-class ValidCache {
-    mutable std::unordered_map<int, int> cache;
-    int externalFactor;
-
-public:
-    void setFactor(int f) {
-        if (externalFactor != f) {
-            cache.clear();  // ✅ Invalidate cache on dependency change
-            externalFactor = f;
-        }
-    }
-
-    int operator()(int x) const {
-        auto it = cache.find(x);
-        if (it != cache.end()) return it->second;
-
-        int result = x * externalFactor;
-        cache[x] = result;
-        return result;
-    }
-};
+    // ... (abbreviated)
 ```
 
-**Key Takeaway**: Always provide cache invalidation when memoization depends on external state. Consider versioning schemes for more granular control.
+- public: void setFactor(int f) { externalFactor = f; } // ❌ Cache still has old results
+- int operator()(int x) const { auto it = cache.find(x); if (it != cache.end()) return it->second; // ❌ May return stale data
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q7: Why are functors often faster than function pointers when passed to STL...
 **Difficulty:** #advanced
 **Category:** #performance
@@ -351,13 +263,11 @@ std::transform(vec.begin(), vec.end(), out.begin(), [](int x) { return x * 2; })
 **Category:** #generic_programming
 **Concepts:** #templates #sfinae #type_traits
 
-**Question:** How do you create a generic functor that works with different types and conditionally enables certain methods based on type properties?
-
-
+**Question:**
 
 **Answer**: Use **template functors** with `std::enable_if` and type traits to conditionally enable methods. Use SFINAE (Substitution Failure Is Not An Error) to remove invalid template instantiations.
-
 **Explanation**:
+
 ```cpp
 #include <type_traits>
 
@@ -366,68 +276,25 @@ class Accumulator {
     T sum;
     int count;
 
-public:
-    Accumulator() : sum{}, count(0) {}  // Value initialization
-
-    void operator()(const T& value) {
-        sum += value;
-        count++;
-    }
-
-    T getSum() const { return sum; }
-    int getCount() const { return count; }
-
-    // ✅ Average - only enabled for arithmetic types
-    template <typename U = T>
-    typename std::enable_if<std::is_arithmetic<U>::value, double>::type
-    getAverage() const {
-        return count > 0 ? static_cast<double>(sum) / count : 0.0;
-    }
-
-    // ✅ Length - only enabled for types with .size()
-    template <typename U = T>
-    typename std::enable_if<std::is_same<U, std::string>::value, size_t>::type
-    getTotalLength() const {
-        return sum.size();
-    }
-};
-
-// Usage
-Accumulator<int> intAcc;
-intAcc.getAverage();     // ✅ Works - int is arithmetic
-
-Accumulator<std::string> strAcc;
-// strAcc.getAverage();  // ❌ Compile error - method doesn't exist
-strAcc.getTotalLength(); // ✅ Works - enabled for string
+    // ... (abbreviated)
 ```
 
-**Key Takeaway**: Use SFINAE and type traits to create generic functors with type-dependent interfaces, enabling code reuse while maintaining type safety.
+- cpp #include <type_traits>
+- template <typename T> class Accumulator { T sum; int count;
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q10: When should you use a functor class instead of a lambda expression?
 **Difficulty:** #mid
 **Category:** #comparison
 **Concepts:** #functors_vs_lambdas
 
-**Question:** When should you use a functor class instead of a lambda expression?
-
-
+**Question:**
 
 **Answer**: Use **functors** when you need:
 1. **Named, reusable** callable objects used in multiple places
-2. **Complex internal state** with multiple member variables and methods
-3. **Multiple operator()** overloads for different argument types
-4. **Inheritance** or polymorphic behavior
-5. **Explicit type names** for better error messages
 
-Use **lambdas** when you need:
-1. **One-off** callable for immediate use
-2. **Simple state** (captured variables)
-3. **Concise syntax** for inline algorithms
-4. **Local scope** callbacks
-
-**Explanation**:
 ```cpp
 // ✅ Functor - complex reusable logic
 class SensorFilter {
@@ -436,31 +303,15 @@ class SensorFilter {
     double estimate;
 public:
     SensorFilter(size_t windowSize);
-    double operator()(double measurement);
-    void reset();
-    double getConfidence() const;
-};
-
-// Use in multiple places
-SensorFilter lidar(10);
-SensorFilter radar(20);
-
-// ✅ Lambda - one-off simple operation
-std::vector<int> vec = {1, 2, 3, 4, 5};
-auto sum = std::accumulate(vec.begin(), vec.end(), 0,
-    [](int a, int b) { return a + b; });  // Simple, inline
-
-// ❌ Lambda - too complex for lambda
-auto complexLambda = [history = std::deque<double>(), kalmanGain = 0.5, /*...*/]
-    (double measurement) mutable {
-        // 50 lines of complex logic...
-    };  // ❌ Hard to read, maintain, and reuse
+    // ... (abbreviated)
 ```
 
-**Key Takeaway**: Choose functors for complex, reusable logic with rich state; choose lambdas for simple, localized operations.
+- // Use in multiple places SensorFilter lidar(10); SensorFilter radar(20);
+- }; // ❌ Hard to read, maintain, and reuse ```
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q11: What are the essential components of a basic functor class?
 **Difficulty:** #beginner
 **Category:** #syntax
@@ -505,16 +356,11 @@ int result = add5(10);  // Calls operator(), returns 15
 **Category:** #best_practices
 **Concepts:** #mutable_keyword
 
-**Question:** What is the purpose of the `mutable` keyword in functors, and when should you use it?
-
-
+**Question:**
 
 **Answer**: `mutable` allows a member variable to be modified even in `const` member functions. Use it for:
 1. **Caching** - storing computed results without changing logical state
-2. **Counters/Statistics** - tracking calls or performance metrics
-3. **Lazy initialization** - deferring initialization until first use
 
-**Explanation**:
 ```cpp
 class CachedFunctor {
     // Expensive to compute, cached for performance
@@ -523,35 +369,15 @@ class CachedFunctor {
     mutable int cacheMisses;
 
 public:
-    CachedFunctor() : cacheHits(0), cacheMisses(0) {}
-
-    // ✅ Can be const because cache doesn't affect logical state
-    int operator()(int x) const {
-        auto it = cache.find(x);
-        if (it != cache.end()) {
-            cacheHits++;  // ✅ mutable allows modification in const method
-            return it->second;
-        }
-
-        cacheMisses++;  // ✅ mutable
-        int result = expensiveComputation(x);
-        cache[x] = result;  // ✅ mutable
-        return result;
-    }
-
-    // ✅ Can be const
-    int getCacheHits() const { return cacheHits; }
-};
-
-// Usage with const
-const CachedFunctor functor;
-int result = functor(42);  // ✅ Works because operator() is const
+    // ... (abbreviated)
 ```
 
-**Key Takeaway**: Use `mutable` for implementation details (caching, statistics) that don't affect the logical state of the object, allowing const-correctness while maintaining practical functionality.
+- public: CachedFunctor() : cacheHits(0), cacheMisses(0) {}
+- cacheMisses++; // ✅ mutable int result = expensiveComputation(x); cache[x] = result; // ✅ mutable return result; }
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q13: How are functors used as predicates in STL algorithms? Give examples with...
 **Difficulty:** #mid
 **Category:** #stl_integration
@@ -607,13 +433,11 @@ class MultiSensorFusion {
 **Category:** #debugging
 **Concepts:** #common_mistakes
 
-**Question:** What common mistake occurs when using functors with STL algorithms, and how can you debug it?
-
-
+**Question:**
 
 **Answer**: **Copy semantics surprise**: STL algorithms copy functors by value, so modifications to the functor's state inside the algorithm don't affect the original. Debug by: (1) checking if the original functor's state changes, (2) using `std::ref()`, or (3) capturing the returned functor.
-
 **Explanation**:
+
 ```cpp
 class DebugCounter {
     int count;
@@ -622,47 +446,15 @@ public:
 
     void operator()(int x) {
         count++;
-        std::cout << "Processing " << x << " (count: " << count << ")\n";
-    }
-
-    int getCount() const { return count; }
-};
-
-std::vector<int> vec = {1, 2, 3};
-DebugCounter counter;
-
-// ❌ Bug: counter is copied
-std::for_each(vec.begin(), vec.end(), counter);
-std::cout << "Counter after for_each: " << counter.getCount() << "\n";
-// Output: Counter after for_each: 0 (original unchanged!)
-
-// 🔍 Debug technique 1: Print addresses
-std::for_each(vec.begin(), vec.end(), [&counter](int x) {
-    std::cout << "Functor address inside for_each: " << &counter << "\n";
-});
-std::cout << "Original functor address: " << &counter << "\n";
-// Different addresses reveal the copy!
-
-// ✅ Fix 1: Use std::ref
-std::for_each(vec.begin(), vec.end(), std::ref(counter));
-std::cout << "Counter: " << counter.getCount() << "\n";  // ✅ 3
-
-// ✅ Fix 2: Capture returned functor
-counter = DebugCounter();  // Reset
-auto result = std::for_each(vec.begin(), vec.end(), counter);
-std::cout << "Returned counter: " << result.getCount() << "\n";  // ✅ 3
+    // ... (abbreviated)
 ```
 
-**Debugging Checklist**:
-1. ✅ Check if functor state updates as expected
-2. ✅ Print functor addresses to detect copies
-3. ✅ Use `std::ref()` for pass-by-reference
-4. ✅ Capture algorithm return value (many return the functor)
+- cpp class DebugCounter { int count; public: DebugCounter() : count(0) {}
+- void operator()(int x) { count++; std::cout << "Processing " << x << " (count: " << count << ")\n"; }
 
-**Key Takeaway**: Always assume STL algorithms copy functors unless you explicitly use `std::ref()`. Test functor state after algorithm calls to catch copy-related bugs.
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q16: How can you implement a lock-free counter functor for high-throughput scenarios?
 
 **Concepts:**

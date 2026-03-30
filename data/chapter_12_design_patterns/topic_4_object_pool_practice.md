@@ -295,6 +295,7 @@ public:
 ```
 
 **Answer:**
+
 ```cpp
 // Bug: storage[i] is a T&, but push_back expects T*
 // Should be: freeList.push_back(&storage[i]);
@@ -303,43 +304,22 @@ template <typename T, size_t N>
 class ObjectPool {
     T* storage;
     std::vector<T*> freeList;
-
-public:
-    ObjectPool() : storage(new T[N]) {
-        for (size_t i = 0; i < N; ++i) {
-            freeList.push_back(&storage[i]);  // Fixed: address-of operator
-        }
-    }
-
-    ~ObjectPool() {
-        delete[] storage;  // Use delete[] for array
-    }
-
-    T* allocate() {
-        if (freeList.empty()) return nullptr;
-        T* obj = freeList.back();
-        freeList.pop_back();
-        return obj;
-    }
-
-    void deallocate(T* ptr) {
-        freeList.push_back(ptr);
-    }
-};
+    // ... (abbreviated)
 ```
 
+- cpp // Bug: storage[i] is a T&, but push_back expects T* // Should be: freeList.push_back(&storage[i]);
+- template <typename T, size_t N> class ObjectPool { T* storage; std::vector<T*> freeList;
+
 **Explanation:**
+
 - **The bug - missing address-of operator:** `storage[i]` returns `T&` (reference to T), but `freeList` holds `T*` (pointers); type mismatch causes compilation error; need `&storage[i]` to get pointer
 - **Why this compiles in some cases:** If T is small (like int), compiler might try implicit conversion; creates dangling references; would compile but have undefined behavior
 - **Correct pattern:** `storage` is `T*` (pointer to array), `storage[i]` is `T&` (reference to i-th element), `&storage[i]` is `T*` (pointer to i-th element)
 - **Pointer arithmetic alternative:** `freeList.push_back(storage + i);` also works; `storage + i` = pointer to i-th element; equivalent to `&storage[i]`
-- **Array allocation:** Used `new T[N]` to allocate array; must use `delete[]` in destructor, not `delete`; common mistake to forget brackets
-- **Pool initialization pattern:** Pre-populate free list with all slots; all objects ready to allocate; constant-time allocation (just pop from vector)
-- **What would happen at runtime:** If code compiled, push_back would try to interpret `T&` as `T*`; stores garbage pointers in freeList; allocate() returns garbage; crash when dereferencing
-- **Key Concept:** Array indexing returns reference, need address-of for pointer; storage[i] = T&, &storage[i] = T*; common object pool initialization error; always use delete[] for arrays allocated with new[]
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q2
 What's wrong with this thread-safe pool?
 ```cpp

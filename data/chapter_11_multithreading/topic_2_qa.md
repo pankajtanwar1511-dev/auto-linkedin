@@ -361,9 +361,11 @@ Mutex-based programming can suffer from priority inversion, deadlock, and convoy
 **Concepts:** #singleton #double_checked_locking #meyers_singleton
 
 **Answer:**
-Use Meyers' Singleton (C++11 guarantees thread-safe static initialization) or double-checked locking pattern.
+
+- Use Meyers' Singleton (C++11 guarantees thread-safe static initialization) or double-checked locking pattern.
 
 **Code example:**
+
 ```cpp
 // ✅ Meyers' Singleton - simplest and safest (C++11+)
 class Singleton {
@@ -372,38 +374,23 @@ public:
         static Singleton instance;  // Thread-safe initialization
         return instance;
     }
-private:
-    Singleton() = default;
-    Singleton(const Singleton&) = delete;
-};
-
-// ✅ Double-checked locking (explicit control)
-class Singleton2 {
-    static std::atomic<Singleton2*> instance;
-    static std::mutex mtx;
-public:
-    static Singleton2* getInstance() {
-        Singleton2* tmp = instance.load(std::memory_order_acquire);
-        if (tmp == nullptr) {
-            std::lock_guard<std::mutex> lock(mtx);
-            tmp = instance.load(std::memory_order_relaxed);
-            if (tmp == nullptr) {
-                tmp = new Singleton2();
-                instance.store(tmp, std::memory_order_release);
-            }
-        }
-        return tmp;
-    }
-};
+    // ... (abbreviated)
 ```
 
 **Explanation:**
-Pre-C++11, singleton initialization required manual locking. C++11 guarantees thread-safe static local variable initialization—the simplest solution. For explicit control or C++03, use double-checked locking: check instance without lock (fast path), lock only if null, check again inside lock (thread may have initialized while waiting), then create. Requires atomic operations for correctness. Prefer Meyers' Singleton for simplicity.
 
-**Key takeaway:** Use Meyers' Singleton (static local variable) for thread-safe singleton in C++11+; it's simpler and guaranteed safe by the standard.
+- Pre-C++11, singleton initialization required manual locking
+- C++11 guarantees thread-safe static local variable initialization—the simplest solution
+- Requires atomic operations for correctness
+- Prefer Meyers' Singleton for simplicity.
+
+**Key takeaway:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q17: What is priority inversion and how do mutexes contribute to it?
 **Difficulty:** #advanced
 **Category:** #threading #real_time #scheduling

@@ -150,44 +150,15 @@ void wait_until_empty() {
     // (Or reuse not_full_ if you modify pop() to notify it when empty)
 
     std::condition_variable empty_cv;
-    empty_cv.wait(lock, [this]() {
-        return queue_.empty();
-    });
-}
+    // ... (abbreviated)
 ```
 
-**Better approach** - notify when empty in `pop()`:
+- cpp void wait_until_empty() { std::unique_lock<std::mutex> lock(mutex_);
+- // Add a new condition variable for "empty" event // (Or reuse not_full_ if you modify pop() to notify it when empty)
 
-```cpp
-private:
-    std::condition_variable not_full_, not_empty_, empty_cv_;
-
-public:
-    T pop() {
-        std::unique_lock<std::mutex> lock(mutex_);
-        not_empty_.wait(lock, [this]() { return !queue_.empty(); });
-
-        T value = std::move(queue_.front());
-        queue_.pop();
-
-        not_full_.notify_one();
-
-        if (queue_.empty()) {
-            empty_cv_.notify_all();  // Notify waiters
-        }
-
-        return value;
-    }
-
-    void wait_until_empty() {
-        std::unique_lock<std::mutex> lock(mutex_);
-        empty_cv_.wait(lock, [this]() { return queue_.empty(); });
-    }
-};
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q7
 Add a `peek()` method that returns a copy of the front element without removing it. Is it thread-safe?
 
@@ -239,46 +210,24 @@ void push_batch(const std::vector<T>& items) {
     not_full_.wait(lock, [this, &items]() {
         return queue_.size() + items.size() <= capacity_;
     });
-
-    for (const auto& item : items) {
-        queue_.push(item);
-    }
-
-    // Notify multiple consumers
-    not_empty_.notify_all();
-}
-
-std::vector<T> pop_batch(size_t n) {
-    std::unique_lock<std::mutex> lock(mutex_);
-
-    // Wait until at least n items available
-    not_empty_.wait(lock, [this, n]() {
-        return queue_.size() >= n;
-    });
-
-    std::vector<T> result;
-    result.reserve(n);
-
-    for (size_t i = 0; i < n; ++i) {
-        result.push_back(std::move(queue_.front()));
-        queue_.pop();
-    }
-
-    // Notify producers (space freed)
-    not_full_.notify_all();
-
-    return result;
-}
+    // ... (abbreviated)
 ```
 
+- cpp void push_batch(const std::vector<T>& items) { std::unique_lock<std::mutex> lock(mutex_);
+- // Wait until enough space available not_full_.wait(lock, [this, &items]() { return queue_.size() + items.size() <= capacity_; });
+
 **Usage:**
+
 ```cpp
 queue.push_batch({1, 2, 3, 4, 5});
 auto batch = queue.pop_batch(3);  // Gets [1, 2, 3]
 ```
 
----
+- cpp queue.push_batch({1, 2, 3, 4, 5}); auto batch = queue.pop_batch(3); // Gets [1, 2, 3] ```
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q9
 Add support for callbacks: `on_push_callback` and `on_pop_callback` that execute after each operation.
 

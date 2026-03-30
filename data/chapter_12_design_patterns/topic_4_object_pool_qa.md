@@ -134,13 +134,11 @@ T* allocate() {
 **Category:** #debugging
 **Concepts:** #doublefree #memory_safety
 
-**Question:** How do you detect double-free errors in an object pool?
-
-
+**Question:**
 
 **Answer**: Maintain a boolean array or bitset tracking whether each slot is currently allocated. Check this array in `deallocate()` and throw an exception if the slot is already free.
-
 **Explanation**:
+
 ```cpp
 template <typename T, size_t N>
 class SafePool {
@@ -149,44 +147,15 @@ class SafePool {
     bool used[N] = {};  // Track allocation state
 
 public:
-    T* allocate() {
-        if (freeList.empty()) throw std::bad_alloc();
-
-        T* obj = freeList.back();
-        freeList.pop_back();
-
-        size_t index = obj - storage;
-        used[index] = true;  // Mark as allocated
-        return obj;
-    }
-
-    void deallocate(T* ptr) {
-        size_t index = ptr - storage;
-
-        if (index >= N) {
-            throw std::invalid_argument("Pointer not from pool");
-        }
-
-        if (!used[index]) {
-            throw std::logic_error("Double-free detected!");  // Catch error
-        }
-
-        used[index] = false;  // Mark as free
-        freeList.push_back(ptr);
-    }
-};
-
-// Usage
-SafePool<int, 100> pool;
-int* p = pool.allocate();
-pool.deallocate(p);
-pool.deallocate(p);  // ❌ Throws: Double-free detected!
+    // ... (abbreviated)
 ```
 
-**Key Takeaway**: Always use a usage tracking array in development builds to catch double-free bugs early, which would otherwise cause silent memory corruption.
+- cpp template <typename T, size_t N> class SafePool { T* storage; std::vector<T*> freeList; bool used[N] = {}; // Track allocation state
+- public: T* allocate() { if (freeList.empty()) throw std::bad_alloc();
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q5: What are the different approaches to making an object pool thread-safe?
 **Difficulty:** #advanced
 **Category:** #thread_safety
@@ -314,13 +283,11 @@ for (int i = 0; i < 1000; i++) {
 **Category:** #terminology
 **Concepts:** #raii #resource_management
 
-**Question:** How does RAII apply to object pool design?
-
-
+**Question:**
 
 **Answer**: RAII (Resource Acquisition Is Initialization) ensures the pool's pre-allocated memory is acquired in the constructor and released in the destructor. This guarantees proper cleanup even if exceptions occur, preventing memory leaks.
-
 **Explanation**:
+
 ```cpp
 // ✅ RAII-compliant object pool
 template <typename T, size_t N>
@@ -329,47 +296,15 @@ class ObjectPool {
 
 public:
     // Constructor acquires resource
-    ObjectPool() : storage(new T[N]()) {
-        // Initialize free list...
-    }
-
-    // Destructor releases resource
-    ~ObjectPool() {
-        delete[] storage;  // ✅ Always called, even with exceptions
-    }
-
-    // Prevent copying (unique ownership)
-    ObjectPool(const ObjectPool&) = delete;
-    ObjectPool& operator=(const ObjectPool&) = delete;
-
-    // Allow move (transfer ownership)
-    ObjectPool(ObjectPool&& other) noexcept
-        : storage(other.storage) {
-        other.storage = nullptr;
-    }
-
-    T* allocate() { /* ... */ }
-    void deallocate(T* ptr) { /* ... */ }
-};
-
-// Usage - automatic cleanup
-void function() {
-    ObjectPool<MyType, 100> pool;  // Resource acquired
-
-    if (error) {
-        throw std::runtime_error("error");  // Exception thrown
-    }
-
-    // Use pool...
-
-}  // ✅ Destructor called automatically (even if exception thrown)
-   // storage deleted, no leak
+    // ... (abbreviated)
 ```
 
-**Key Takeaway**: RAII ensures object pools automatically manage their allocated memory through constructor/destructor pairs, providing exception safety and leak prevention.
+- cpp // ✅ RAII-compliant object pool template <typename T, size_t N> class ObjectPool { T* storage; // Resource
+- public: // Constructor acquires resource ObjectPool() : storage(new T[N]()) { // Initialize free list..
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q12: Why are object pools essential in real-time systems like game engines or...
 **Difficulty:** #mid
 **Category:** #practical_application

@@ -148,19 +148,22 @@ int select_backend_least_connections() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Time-of-check to time-of-use race - multiple threads select same backend simultaneously
 ```
 
+- Time-of-check to time-of-use race - multiple threads select same backend simultaneously ```
+
 **Explanation:**
+
 - Thread 1 checks backend[0] has 5 connections (least)
 - Thread 2 also checks backend[0] has 5 connections (least)
 - Both threads select backend[0] and increment to 6 and 7
 - But both thought they were picking least-loaded (5) - race condition
-- Should use atomic compare-and-swap or lock during selection
-- **Key Concept:** Least-connections selection has TOCTOU race; threads pick same backend thinking it's least loaded - use atomic operations or locking
 
 **Fixed Version:**
+
 ```cpp
 std::mutex selection_mutex;
 
@@ -169,29 +172,15 @@ int select_backend_least_connections() {
 
     int min_conn = INT_MAX;
     int selected = -1;
-
-    for (int i = 0; i < backends.size(); i++) {
-        if (backends[i].healthy && backends[i].active_connections < min_conn) {
-            min_conn = backends[i].active_connections;
-            selected = i;
-        }
-    }
-
-    if (selected >= 0) {
-        backends[selected].active_connections++;  // Safe - lock held
-    }
-
-    return selected;
-}
-
-// Don't forget to decrement!
-void release_backend(int backend_id) {
-    backends[backend_id].active_connections--;
-}
+    // ... (abbreviated)
 ```
 
----
+- cpp std::mutex selection_mutex;
+- int select_backend_least_connections() { std::lock_guard<std::mutex> lock(selection_mutex); // Serialize selection
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q4
 ```cpp
 #include <sys/epoll.h>
@@ -232,18 +221,22 @@ public:
 ```
 
 **Answer:**
-```
+
+```cpp
 Handler can call unregister_fd() which modifies handlers map during iteration - undefined behavior
 ```
 
+- Handler can call unregister_fd() which modifies handlers map during iteration - undefined behavior ```
+
 **Explanation:**
+
 - `handlers[fd](...)` calls handler function
 - Handler closes connection and calls `unregister_fd(fd)`
 - `handlers.erase(fd)` modifies map while iterating - undefined behavior
 - May crash, skip handlers, or corrupt map
-- **Key Concept:** Never modify container during iteration from callback; defer modifications or use snapshot
 
 **Fixed Version:**
+
 ```cpp
 void run() {
     while (true) {
@@ -252,26 +245,15 @@ void run() {
 
         // Copy handlers to avoid modification during iteration
         std::vector<std::pair<int, std::function<void(int, uint32_t)>>> to_call;
-
-        for (int i = 0; i < n; i++) {
-            int fd = events[i].data.fd;
-            if (handlers.count(fd)) {
-                to_call.emplace_back(fd, handlers[fd]);
-            }
-        }
-
-        // Call handlers from snapshot
-        for (auto& [fd, handler] : to_call) {
-            if (handlers.count(fd)) {  // Still registered?
-                handler(fd, events[i].events);
-            }
-        }
-    }
-}
+    // ... (abbreviated)
 ```
 
----
+- cpp void run() { while (true) { struct epoll_event events[100]; int n = epoll_wait(epoll_fd, events, 100, -1);
+- // Copy handlers to avoid modification during iteration std::vector<std::pair<int, std::function<void(int, uint32_t)>>> to_call;
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q5
 ```cpp
 #include <sys/socket.h>
@@ -315,18 +297,22 @@ int main() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Listening socket not removed from epoll - continues accepting connections during drain
 ```
 
+- Listening socket not removed from epoll - continues accepting connections during drain ```
+
 **Explanation:**
+
 - `draining = true` set by signal handler
 - But `listen_fd` still in epoll - epoll_wait() returns new connections
 - `accept()` continues even after draining flag set
 - Should remove `listen_fd` from epoll in signal handler
-- **Key Concept:** Graceful drain requires removing listen socket from epoll; flag alone doesn't stop accept() from epoll events
 
 **Fixed Version:**
+
 ```cpp
 int epoll_fd;  // Global for signal handler
 
@@ -335,29 +321,15 @@ void sigterm_handler(int sig) {
     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, listen_fd, NULL);  // Stop accepting!
 }
 
-int main() {
-    signal(SIGTERM, sigterm_handler);
-
-    while (true) {
-        struct epoll_event events[10];
-        int n = epoll_wait(epoll_fd, events, 10, 1000);
-
-        if (draining && in_flight.load() == 0) {
-            break;  // All requests drained
-        }
-
-        for (int i = 0; i < n; i++) {
-            if (events[i].data.fd == listen_fd) {
-                int client_fd = accept(listen_fd, NULL, NULL);
-                handle_request(client_fd);
-            }
-        }
-    }
-}
+    // ... (abbreviated)
 ```
 
----
+- cpp int epoll_fd; // Global for signal handler
+- void sigterm_handler(int sig) { draining = true; epoll_ctl(epoll_fd, EPOLL_CTL_DEL, listen_fd, NULL); // Stop accepting
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q6
 ```cpp
 #include <chrono>
@@ -452,18 +424,22 @@ void process_write_events(int epoll_fd) {
 ```
 
 **Answer:**
-```
+
+```cpp
 Removing EPOLLOUT when quota exceeded loses write queue - data never sent
 ```
 
+- Removing EPOLLOUT when quota exceeded loses write queue - data never sent ```
+
 **Explanation:**
+
 - Connection has data to send but quota exceeded for this round
 - `epoll_ctl(EPOLL_CTL_MOD, fd, EPOLLIN)` removes EPOLLOUT monitoring
 - Next round, EPOLLOUT not monitored - socket never writable again
 - Data stuck in write queue forever - never sent
-- **Key Concept:** Don't remove EPOLLOUT when data queued; track quota externally and skip sending this round but keep monitoring
 
 **Fixed Version:**
+
 ```cpp
 std::map<int, bool> quota_exceeded;  // Track per-FD quota state
 
@@ -472,31 +448,12 @@ void process_write_events(int epoll_fd) {
     int n = epoll_wait(epoll_fd, events, 100, 0);
 
     for (int i = 0; i < n; i++) {
-        int fd = events[i].data.fd;
-
-        if (quota_exceeded[fd]) {
-            continue;  // Skip this round, but EPOLLOUT still monitored!
-        }
-
-        size_t quota = QUOTA * priority[fd];
-        size_t& sent = bytes_sent_this_round[fd];
-
-        if (sent >= quota) {
-            quota_exceeded[fd] = true;
-            continue;  // Don't disable EPOLLOUT!
-        }
-
-        // Send data
-        char buffer[8192];
-        ssize_t n = send(fd, buffer, std::min(sizeof(buffer), quota - sent), 0);
-        sent += n;
-    }
-}
-
-void reset_round() {
-    bytes_sent_this_round.clear();
-    quota_exceeded.clear();  // Reset quotas for next round
-}
+    // ... (abbreviated)
 ```
+
+- cpp std::map<int, bool> quota_exceeded; // Track per-FD quota state
+- void process_write_events(int epoll_fd) { struct epoll_event events[100]; int n = epoll_wait(epoll_fd, events, 100, 0);
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---

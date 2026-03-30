@@ -133,15 +133,9 @@ compressor.compress("data.txt");  // ❌ What's wrong?
 ```
 
 **Answer:**
-
 - First compression overwrites input file, making second compression attempt on corrupted/compressed data instead of original.
-
 **Explanation:**
-
-
-
 **Execution Flow:**
-
 ```cpp
 // State: data.txt (original uncompressed)
 compressor.setStrategy(make_unique<ZipStrategy>());
@@ -150,42 +144,13 @@ compressor.compress("data.txt");
 // → Compresses with ZIP
 // → Writes data.txt.compressed
 // State: data.txt (still original), data.txt.compressed (ZIP)
-
-compressor.setStrategy(make_unique<GzipStrategy>());
-compressor.compress("data.txt");
-// → Reads data.txt (ORIGINAL uncompressed)
-// → Compresses with GZIP
-// → Writes data.txt.compressed (OVERWRITES ZIP version!)
-// State: data.txt (original), data.txt.compressed (GZIP, ZIP lost)
+    // ... (abbreviated)
 ```
-
 **Problem:**
-
 **Fix #1: Strategy-Specific Extensions**
-
 ```cpp
 class CompressionStrategy {
 public:
-    virtual string getExtension() const = 0;
-    virtual vector<byte> compress(const vector<byte>&) = 0;
-};
-
-class ZipStrategy : public CompressionStrategy {
-    string getExtension() const override { return ".zip"; }
-};
-
-class GzipStrategy : public CompressionStrategy {
-    string getExtension() const override { return ".gz"; }
-    // ... (additional code omitted for brevity)
-```
-
-- cpp class CompressionStrategy { public: virtual string getExtension() const = 0; virtual vector<byte> compress(const vector<byte>&) = 0; };
-- class ZipStrategy : public CompressionStrategy { string getExtension() const override { return ".zip"; } };
-- class GzipStrategy : public CompressionStrategy { string getExtension() const override { return ".gz"; } };
-
-**Key Takeaway:**
-
-
 
 **Note:** Full detailed explanation with additional examples available in source materials.
 

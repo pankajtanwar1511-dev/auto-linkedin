@@ -50,23 +50,15 @@
 **Category:** #fork #process_management
 **Concepts:** #zombie #sigchld #waitpid
 
-**Answer:** Zombie is a terminated child process whose exit status hasn't been reaped; prevent with SIGCHLD handler calling waitpid().
+**Answer:**
+
+
 
 **Explanation:**
 
 **What is a zombie**:
 - Child process that finished execution (called exit())
-- Still has entry in process table
-- Parent hasn't called wait()/waitpid() to read exit status
-- Shows as `<defunct>` in ps output
 
-**Why zombies are bad**:
-- Consume process table entries (finite resource)
-- Eventually can't create new processes (fork() fails EAGAIN)
-- Can't be killed (already dead, waiting for parent to reap)
-- Only fix is reboot or parent process termination
-
-**Solution 1: SIGCHLD handler**:
 ```cpp
 void sigchld_handler(int sig) {
     int saved_errno = errno;
@@ -77,42 +69,26 @@ void sigchld_handler(int sig) {
 signal(SIGCHLD, sigchld_handler);
 ```
 
-**Solution 2: Double fork trick**:
-```cpp
-if (fork() == 0) {
-    if (fork() == 0) {
-        // Grandchild handles client
-        handle_client();
-        exit(0);
-    }
-    exit(0);  // Middle child exits immediately
-}
-wait(NULL);  // Parent reaps middle child
-// Grandchild is orphaned, adopted by init (PID 1), which reaps it
-```
+- signal(SIGCHLD, sigchld_handler); ```
 
-**Key points**:
-- waitpid() with WNOHANG flag (non-blocking)
-- Loop to reap multiple zombies
-- Save/restore errno (signal handler can interrupt syscalls)
-- SA_RESTART flag to restart interrupted system calls
+**Note:** Full detailed explanation with additional examples available in source materials.
 
+---
 #### Q3: Why must you close file descriptors after fork() in both parent and child?
 
 **Difficulty:** #intermediate
 **Category:** #fork #file_descriptors
 **Concepts:** #fd_leak #reference_counting
 
-**Answer:** fork() duplicates file descriptors; both parent and child have references, causing FD leaks if not closed properly.
+**Answer:**
+
+
 
 **Explanation:**
 
 **How fork() handles FDs**:
 - fork() duplicates all open file descriptors to child
-- Both parent and child have separate FD numbers pointing to same underlying file
-- Kernel maintains reference count for each file
 
-**Example**:
 ```cpp
 int client_fd = accept(server_fd, ...);  // ref count = 1
 pid_t pid = fork();                      // ref count = 2 (parent + child)
@@ -121,32 +97,15 @@ if (pid == 0) {
     // Child
     close(server_fd);   // Child doesn't need listening socket
     handle_client(client_fd);
-    close(client_fd);   // ref count = 1 (parent still has it)
-    exit(0);
-}
-
-// Parent
-close(client_fd);      // ✅ MUST close! ref count = 0, connection actually closes
+    // ... (abbreviated)
 ```
 
-**What happens if parent forgets to close client_fd**:
-- Child closes its copy (ref count = 1)
-- Connection stays open because parent still has reference
-- Client doesn't receive FIN, connection hangs
-- Parent accumulates FDs, eventually hits EMFILE
+- cpp int client_fd = accept(server_fd, ...); // ref count = 1 pid_t pid = fork(); // ref count = 2 (parent + child)
+- // Parent close(client_fd); // ✅ MUST close
 
-**General rule**:
-- **Child closes**: FDs it doesn't need (typically server_fd)
-- **Parent closes**: FDs it doesn't need (typically client_fd)
+**Note:** Full detailed explanation with additional examples available in source materials.
 
-**Verification**:
-```bash
-# Check open FDs for process
-ls /proc/<PID>/fd | wc -l
-```
-
-If count keeps growing, you have an FD leak.
-
+---
 #### Q4: What is a race condition? Give an example in multi-threaded server.
 
 

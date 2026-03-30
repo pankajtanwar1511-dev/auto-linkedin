@@ -143,49 +143,26 @@ server_addr.sin_port = htons(5000);  // ✅ CORRECT
 **Category:** #edge_cases #io
 **Concepts:** #partial_send #send_all
 
-**Answer:** Partial send occurred; must loop to send remaining data.
+**Answer:**
+
+
 
 **Explanation:**
 
 send() does **not** guarantee to send all requested bytes in one call. It returns the number of bytes actually sent, which may be less due to:
 - Network buffer space limitations
-- TCP send buffer full
-- Network congestion
-- Slow receiver
 
-**Example bug**:
 ```cpp
 char data[10000];
 send(fd, data, 10000, 0);  // ❌ Assumes all 10000 bytes sent
 ```
 
-Actual behavior:
-```cpp
-ssize_t sent = send(fd, data, 10000, 0);
-// sent might be 6144, not 10000!
-// Remaining 3856 bytes were NOT sent
-```
+- cpp char data[10000]; send(fd, data, 10000, 0); // ❌ Assumes all 10000 bytes sent ```
+- Actual behavior: ```cpp ssize_t sent = send(fd, data, 10000, 0); // sent might be 6144, not 10000
 
-**Correct pattern**:
-```cpp
-size_t total_sent = 0;
-while (total_sent < length) {
-    ssize_t bytes = send(fd, data + total_sent, length - total_sent, MSG_NOSIGNAL);
-    if (bytes < 0) {
-        if (errno == EINTR) continue;  // Interrupted, retry
-        return -1;  // Real error
-    }
-    if (bytes == 0) break;  // Connection closed
-    total_sent += bytes;
-}
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
-**Same applies to recv()**: May return less than requested, must loop to receive exact amount.
-
-**Why this happens**: TCP uses sliding window flow control. If the receiver's buffer is full, send() can only send what fits in available buffer space.
-
-**Production tip**: Always wrap send()/recv() in send_all()/recv_all() helpers that loop until complete.
-
+---
 #### Q6: What is SO_REUSEADDR and why is it important for servers?
 
 **Difficulty:** #intermediate

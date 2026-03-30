@@ -13,44 +13,28 @@ std::cout << "After get: " << val << "\n";
 ```
 
 **Answer:**
-```
+
+```cpp
 Lambda executes during fut.get()
 ```
 
+- Lambda executes during fut.get() ```
+
 **Explanation:**
+
 - **std::launch::deferred:** Lazy execution policy
 - **Execution timeline:**
-  1. async() called with deferred policy
-  2. Lambda NOT executed yet
-  3. Future object returned immediately
-  4. "Before get" printed
-  5. **fut.get() called → Lambda executes NOW (synchronously)**
-  6. Lambda returns 42
-  7. "After get: 42" printed
-- **Deferred execution:**
-  - Task runs in calling thread (not separate thread)
-  - Executes when get() or wait() called
-  - **Lazy evaluation pattern**
-  - No thread created
-- **Contrast with async launch:**
 
 ```cpp
 auto fut = std::async(std::launch::async, []{ return 42; });
 // Lambda starts immediately in new thread
 ```
-- **Use case for deferred:**
-  - Expensive computation that might not be needed
-  - Want to delay execution decision
-  - Avoid thread creation overhead
-  - Conditional execution
-- **Performance:**
-  - No thread overhead
-  - Synchronous execution
-  - Useful for testing without concurrency
-- **Key Concept:** launch::deferred delays execution until get()/wait(); runs synchronously in calling thread
+
+- cpp auto fut = std::async(std::launch::async, []{ return 42; }); // Lambda starts immediately in new thread ``` -
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q2
 ```cpp
 std::promise<int> prom;
@@ -212,24 +196,18 @@ std::cout << fut.valid() << "\n";
 ```
 
 **Answer:**
-
 ```cpp
 0, 1, 0
 ```
-
 **Explanation:**
-
 - **Future validity states** - tracks whether future has shared state
 - **Execution breakdown:**
-**Line 1: Default-constructed future**
-
 ```cpp
 std::future<int> fut;  // No shared state
   std::cout << fut.valid();  // 0 (false)
 ```
-
+- cpp std::future<int> fut; // No shared state std::cout << fut.valid(); // 0 (false) ```
 **Valid future can:**
-
 ```cpp
 if (fut.valid()) {
       fut.get();        // OK
@@ -238,21 +216,6 @@ if (fut.valid()) {
       fut.share();      // OK
   }
 ```
-
-- cpp if (fut.valid()) { fut.get(); // OK fut.wait(); // OK fut.wait_for(...); // OK fut.share(); // OK } ```
-
-**Invalid future:**
-
-```cpp
-if (!fut.valid()) {
-      // All operations throw no_state exception:
-      fut.get();        // Throws
-      fut.wait();       // Throws
-      fut.wait_for(...); // Throws
-  }
-```
-
-- cpp if (!fut.valid()) { // All operations throw no_state exception: fut.get(); // Throws fut.wait(); // Throws fut.wait_for(...); // Throws } ```
 
 **Note:** Full detailed explanation with additional examples available in source materials.
 

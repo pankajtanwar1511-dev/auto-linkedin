@@ -192,18 +192,22 @@ int main() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Undefined behavior - data race on active_clients vector (crashes, corruption, lost clients)
 ```
 
+- Undefined behavior - data race on active_clients vector (crashes, corruption, lost clients) ```
+
 **Explanation:**
+
 - Multiple threads modifying `active_clients` without synchronization
 - `push_back()` can reallocate vector while another thread iterates - crash
 - Concurrent `erase()` operations invalidate iterators - undefined behavior
 - `std::vector` is not thread-safe - requires mutex protection
-- **Key Concept:** std::vector is not thread-safe; concurrent modifications require std::mutex protection to prevent data races
 
 **Fixed Version:**
+
 ```cpp
 std::vector<int> active_clients;
 std::mutex clients_mutex;  // Protect access
@@ -212,26 +216,15 @@ void handle_client(int client_fd) {
     {
         std::lock_guard<std::mutex> lock(clients_mutex);
         active_clients.push_back(client_fd);
-    }
-
-    char buffer[1024];
-    while (recv(client_fd, buffer, sizeof(buffer), 0) > 0) {
-        send(client_fd, buffer, strlen(buffer), 0);
-    }
-
-    {
-        std::lock_guard<std::mutex> lock(clients_mutex);
-        auto it = std::find(active_clients.begin(), active_clients.end(), client_fd);
-        if (it != active_clients.end()) {
-            active_clients.erase(it);
-        }
-    }
-    close(client_fd);
-}
+    // ... (abbreviated)
 ```
 
----
+- cpp std::vector<int> active_clients; std::mutex clients_mutex; // Protect access
+- void handle_client(int client_fd) { { std::lock_guard<std::mutex> lock(clients_mutex); active_clients.push_back(client_fd); }
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q5
 ```cpp
 #include <queue>
@@ -264,18 +257,22 @@ class ThreadPool {
 ```
 
 **Answer:**
-```
+
+```cpp
 Bug: wait() has no predicate - spurious wake-ups cause empty queue access; stop flag ignored
 ```
 
+- Bug: wait() has no predicate - spurious wake-ups cause empty queue access; stop flag ignored ```
+
 **Explanation:**
+
 - `condition.wait(lock)` without predicate can wake spuriously
 - Thread checks `if (empty()) continue` but doesn't re-wait - busy loop
 - When `stop` becomes true, threads don't wake up (no notify)
 - Threads stuck in `wait()` forever - destructor hangs
-- **Key Concept:** Always use predicate with condition_variable::wait(); prevents spurious wake-ups and ensures condition is actually true
 
 **Fixed Version:**
+
 ```cpp
 void worker_thread() {
     while (!stop) {
@@ -284,26 +281,15 @@ void worker_thread() {
             std::unique_lock<std::mutex> lock(queue_mutex);
             condition.wait(lock, [this] {
                 return stop || !client_queue.empty();  // Predicate!
-            });
-
-            if (stop && client_queue.empty()) break;
-
-            client_fd = client_queue.front();
-            client_queue.pop();
-        }
-        handle_client(client_fd);
-    }
-}
-
-~ThreadPool() {
-    stop = true;
-    condition.notify_all();  // Wake all workers!
-    for (auto& t : workers) t.join();
-}
+    // ... (abbreviated)
 ```
 
----
+- if (stop && client_queue.empty()) break;
+- client_fd = client_queue.front(); client_queue.pop(); } handle_client(client_fd); } }
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q6
 ```cpp
 #include <iostream>
@@ -816,19 +802,22 @@ int main() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Main thread's accept() fails with EBADF after server_fd closed; other client threads unaffected
 ```
 
+- Main thread's accept() fails with EBADF after server_fd closed; other client threads unaffected ```
+
 **Explanation:**
+
 - One client sends "SHUTDOWN", thread closes `server_fd`
 - Main thread's next `accept(server_fd, ...)` returns -1 with errno = EBADF
 - Existing client handler threads unaffected (have their own client_fd)
 - But main loop should handle EBADF and exit gracefully
-- Closing shared FD from worker thread is poor design - use signal/flag
-- **Key Concept:** Closing shared FD from one thread causes syscall failures in other threads; use coordination mechanism instead of closing shared resources
 
 **Fixed Version:**
+
 ```cpp
 std::atomic<bool> shutdown_requested{false};
 
@@ -837,30 +826,15 @@ void handle_client(int client_fd) {
     int n = recv(client_fd, buffer, sizeof(buffer), 0);
 
     if (n > 0) {
-        send(client_fd, buffer, n, 0);
-
-        if (strncmp(buffer, "SHUTDOWN", 8) == 0) {
-            shutdown_requested = true;  // Signal main thread
-        }
-    }
-    close(client_fd);
-}
-
-int main() {
-    int server_fd = create_server_socket(8080);
-
-    while (!shutdown_requested) {
-        int client_fd = accept(server_fd, NULL, NULL);
-        std::thread t(handle_client, client_fd);
-        t.detach();
-    }
-
-    close(server_fd);
-}
+    // ... (abbreviated)
 ```
 
----
+- cpp std::atomic<bool> shutdown_requested{false};
+- void handle_client(int client_fd) { char buffer[1024]; int n = recv(client_fd, buffer, sizeof(buffer), 0);
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q14
 ```cpp
 #include <iostream>

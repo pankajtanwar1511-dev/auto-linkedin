@@ -296,48 +296,31 @@ if (p.is_lock_free()) {
 
 ---
 #### Q10: What is a "happens-before" relationship?
+
 **Answer:**
 
-**Happens-before:** Operation A's effects are visible to operation B.
+
+
+**Happens-before:**
+
+
 
 **Established by:**
 
 **1) Same thread (sequenced-before):**
+
 ```cpp
 x = 1;  // Happens-before
 y = 2;  // This sees x = 1
 ```
 
-**2) Synchronization (release-acquire):**
-```cpp
-// Thread 1:
-data = 42;
-flag.store(true, std::memory_order_release);  // Release
-
-// Thread 2:
-if (flag.load(std::memory_order_acquire)) {  // Acquire
-    assert(data == 42);  // Happens-after release
-}
-```
-
-**3) Thread creation:**
-```cpp
-x = 1;
-std::thread t([&]() {
-    assert(x == 1);  // Sees parent's writes
-});
-```
-
-**4) Thread join:**
-```cpp
-std::thread t([&]() { x = 1; });
-t.join();
-assert(x == 1);  // Sees thread's writes
-```
+- cpp x = 1; // Happens-before y = 2; // This sees x = 1 ```
 
 **Transitivity:**
-If A happens-before B, and B happens-before C, then A happens-before C.
 
-**Used to reason about memory visibility in concurrent programs.**
+- If A happens-before B, and B happens-before C, then A happens-before C
+- Used to reason about memory visibility in concurrent programs.
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---

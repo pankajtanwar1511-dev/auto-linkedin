@@ -206,59 +206,24 @@ public:
 When observer is destroyed without detaching, subject's vector still holds pointer to freed memory. Next notify() causes undefined behavior.
 
 **Execution Flow:**
-
 ```cpp
 Subject subject;
 {
     Observer obs(&subject);
     subject.attach(&obs);
-
     // observers = [&obs (valid pointer)]
 }  // obs destroyed here
-
-// observers = [0x1234 (DANGLING - points to freed memory)]
-
-subject.notify();
-// for (auto* obs : observers) {
-//     obs->update();  // ❌ Dereferences freed memory
-// }
+    // ... (abbreviated)
 ```
-
 - cpp Subject subject; { Observer obs(&subject); subject.attach(&obs);
 - // observers = [&obs (valid pointer)] } // obs destroyed here
-- // observers = [0x1234 (DANGLING - points to freed memory)]
-
 **Why This Causes Crashes:**
-
 1. **Use-After-Free:** Pointer valid but memory freed → segfault or corruption
 2. **Memory Reuse:** OS might reallocate freed memory, causing bizarre behavior
-3. **Latent Bugs:** Might "work" temporarily if memory not reused yet (worst case)
-**Fix #1: Manual Detach in Destructor**
-
 ```cpp
 class Observer {
     Subject* subject;
 public:
-    Observer(Subject* s) : subject(s) {
-        subject->attach(this);
-    }
-
-    ~Observer() {
-        subject->detach(this);  // ✅ Clean detachment
-    }
-};
-```
-
-- cpp class Observer { Subject* subject; public: Observer(Subject* s) : subject(s) { subject->attach(this); }
-- ~Observer() { subject->detach(this); // ✅ Clean detachment } }; ```
-
-**Best Practice:**
-
-
-
-**Key Takeaway:**
-
-
 
 **Note:** Full detailed explanation with additional examples available in source materials.
 
@@ -689,32 +654,13 @@ Asynchronous notification separates event production (publish) from consumption 
 **Key Benefits:**
 
 1. **Non-Blocking Publish:** Caller returns immediately without waiting for observers
-   ```cpp
-   subject.publish(event);  // Returns instantly
+
+```cpp
+subject.publish(event);  // Returns instantly
    // Event processed later by background thread
-   ```
+```
 
-2. **Decoupled Timing:** Observer processing doesn't block event producer
-   ```cpp
-   // Slow observer (1 second to process):
-   class SlowObserver {
-       void update() { sleep(1s); }
-   };
-
-   // Without async: publish() blocks for 1 second
-   // With async: publish() returns immediately, processing happens in background
-   ```
-
-3. **Load Smoothing:** Bursts of events queued and processed at steady rate
-   ```cpp
-   // 1000 events in 1 second:
-   for (int i = 0; i < 1000; ++i) {
-       subject.publish(event);  // Fast: just queue
-   }
-   // Worker processes at manageable rate (e.g., 100/sec)
-   ```
-
-4. **Thread Safety:** Single worker thread eliminates race conditions from concurrent processing
+- cpp subject.publish(event); // Returns instantly // Event processed later by background thread ```
 
 **Trade-offs:**
 
@@ -728,22 +674,13 @@ Asynchronous notification separates event production (publish) from consumption 
 - Logging systems (async writes)
 - Network event dispatching
 
-**Key Takeaway:** Async notification improves responsiveness by decoupling event generation from processing, at cost of added complexity and latency.
+**Key Takeaway:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
----
-
----
-
----
-
----
-
----
-
----
-
 #### Q13
 ```cpp
 class Observer {

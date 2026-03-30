@@ -238,9 +238,12 @@ std::vector<std::atomic<bool>> flags(1000);
 **Concepts:** #iteration #concurrent_modification #synchronization_strategies
 
 **Answer:**
-You can't safely iterate without synchronization. Solutions: (1) Lock entire iteration, (2) Copy container for iteration, (3) Use concurrent data structure.
+
+- You can't safely iterate without synchronization
+- Solutions: (1) Lock entire iteration, (2) Copy container for iteration, (3) Use concurrent data structure.
 
 **Code example:**
+
 ```cpp
 std::map<int, std::string> config;
 std::shared_mutex mtx;
@@ -249,43 +252,22 @@ std::shared_mutex mtx;
 void reader() {
     for (const auto& pair : config) { /* use pair */ }
 }
-void writer() {
-    config[10] = "new";  // DATA RACE
-}
-
-// ✅ Solution 1: Lock entire iteration
-void safe_reader_v1() {
-    std::shared_lock lock(mtx);  // Shared lock
-    for (const auto& pair : config) { /* use pair */ }
-}
-void safe_writer_v1() {
-    std::unique_lock lock(mtx);  // Exclusive lock
-    config[10] = "new";
-}
-
-// ✅ Solution 2: Copy for iteration (if practical)
-void safe_reader_v2() {
-    std::map<int, std::string> local_copy;
-    {
-        std::shared_lock lock(mtx);
-        local_copy = config;  // Copy under lock
-    }
-    // Iterate without lock
-    for (const auto& pair : local_copy) { /* use pair */ }
-}
-
-// ✅ Solution 3: Use TBB concurrent_hash_map (external library)
-// tbb::concurrent_hash_map<int, std::string> config;
-// Supports concurrent iteration and modification
+    // ... (abbreviated)
 ```
 
-**Explanation:**
-Concurrent modification during iteration causes undefined behavior for all standard containers. Even `std::map`, which doesn't invalidate iterators to existing elements during single-threaded insertion, becomes unsafe under concurrent access due to data races in tree structure updates. The best solution depends on use case: lock entire iteration if quick (few elements), copy container if iteration is long and copying is cheap, or use specialized concurrent containers like Intel TBB's `concurrent_hash_map`.
+- cpp std::map<int, std::string> config; std::shared_mutex mtx;
 
-**Key takeaway:** Never iterate over STL containers concurrently with modifications without synchronization; lock iteration or copy container.
+**Explanation:**
+
+- Concurrent modification during iteration causes undefined behavior for all standard containers
+
+**Key takeaway:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q9: What is the difference between reserve() and resize() on std::vector regarding thread safety?
 **Difficulty:** #intermediate
 **Category:** #stl #capacity_management
@@ -338,9 +320,12 @@ std::thread t2(worker, 500, 1000);
 **Concepts:** #copy_on_write #reference_counting #C++11 #thread_safety
 
 **Answer:**
-Copy-on-write (COW) strings used reference counting where even read operations modified counts, causing data races in multithreaded code. C++11 required const string access to be thread-safe, banning COW.
+
+- Copy-on-write (COW) strings used reference counting where even read operations modified counts, causing data races in multithreaded code
+- C++11 required const string access to be thread-safe, banning COW.
 
 **Code example (pre-C++11 conceptual):**
+
 ```cpp
 // Pre-C++11 COW string (conceptual)
 class COWString {
@@ -349,25 +334,18 @@ class COWString {
 
     char operator[](int i) const {
         // ❌ Even const access modifies ref_count!
-        ++(*ref_count);  // Increment for shared access
-        char c = data[i];
-        --(*ref_count);  // Decrement after access
-        return c;
-    }
-};
-
-// Thread 1
-const COWString str = "hello";
-char c1 = str[0];  // Increments ref_count
-
-// Thread 2
-char c2 = str[1];  // ❌ DATA RACE on ref_count increment/decrement
+    // ... (abbreviated)
 ```
 
+- cpp // Pre-C++11 COW string (conceptual) class COWString { char* data; int* ref_count; // Shared between copies
+- char operator[](int i) const { // ❌ Even const access modifies ref_count
+
 **Explanation:**
-Pre-C++11 `std::string` implementations (e.g., GCC 4.x libstdc++) used copy-on-write for efficiency: copies shared the same buffer with a reference count, only duplicating on modification. However, even read operations (`operator[]`, `c_str()`) needed to increment/decrement reference counts to track usage, making even const operations non-thread-safe. C++11 standardized that const-qualified container access must be thread-safe, forcing implementations to abandon COW in favor of eager copying or Small String Optimization (SSO).
+
+
 
 **Modern C++11+ guarantees:**
+
 ```cpp
 const std::string str = "hello";
 
@@ -378,10 +356,16 @@ char c1 = str[0];  // ✅ Safe - no shared mutable state
 char c2 = str[1];  // ✅ Safe - const access is thread-safe
 ```
 
-**Key takeaway:** C++11 banned COW strings to guarantee thread-safe const access; modern implementations use eager copying or SSO without shared mutable state.
+- cpp const std::string str = "hello";
+- // Thread 1 char c1 = str[0]; // ✅ Safe - no shared mutable state
+
+**Key takeaway:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q11: What is the best practice for accumulating results from multiple threads into a single vector?
 **Difficulty:** #intermediate
 **Category:** #design_pattern #performance
@@ -495,9 +479,11 @@ Before C++11, the standard made no guarantees about thread safety, even for read
 **Concepts:** #shared_mutex #reader_writer_lock #read_heavy_workload #lock_contention
 
 **Answer:**
-Use `std::shared_mutex` for read-heavy workloads (10:1 or higher read:write ratio) where multiple concurrent readers benefit from shared access, while writers still get exclusive access.
+
+
 
 **Code example:**
+
 ```cpp
 class SensorConfig {
     std::map<int, std::string> config;
@@ -506,96 +492,64 @@ class SensorConfig {
 public:
     // Writer: Exclusive lock (blocks all readers and writers)
     void update(int id, const std::string& value) {
-        std::unique_lock lock(mtx);
-        config[id] = value;
-    }
-
-    // Reader: Shared lock (multiple readers allowed, blocks writers)
-    std::string get(int id) const {
-        std::shared_lock lock(mtx);
-        auto it = config.find(id);
-        return (it != config.end()) ? it->second : "";
-    }
-};
-
-// Workload: 95% reads, 5% writes
-// Without shared_mutex: All operations serialize
-// With shared_mutex: 19 readers can execute concurrently while 1 writer waits
+    // ... (abbreviated)
 ```
 
+- cpp class SensorConfig { std::map<int, std::string> config; mutable std::shared_mutex mtx; // Reader-writer lock
+- it->second : ""; } };
+
 **Explanation:**
-`std::mutex` provides exclusive access: only one thread can hold the lock. `std::shared_mutex` (C++17) provides two lock modes: **shared** (multiple threads can hold simultaneously for reading) and **unique** (exclusive access for writing). This improves throughput for read-heavy workloads by allowing concurrent reads. However, shared_mutex has higher overhead than mutex (~20-30% slower for exclusive access), so only use it when reads significantly outnumber writes.
+
+- `std::mutex` provides exclusive access: only one thread can hold the lock
+- This improves throughput for read-heavy workloads by allowing concurrent reads
+- However, shared_mutex has higher overhead than mutex (~20-30% slower for exclusive access), so only use it when reads significantly outnumber writes.
 
 **When NOT to use shared_mutex:**
+
 - Write-heavy workloads (50%+ writes): overhead not justified
 - Very short critical sections (microseconds): mutex overhead dominates anyway
 - Single-threaded or low-contention scenarios: no benefit
 
 **Autonomous vehicle example:**
+
 - ✅ Good: Sensor configuration (read every frame, updated rarely)
 - ✅ Good: Map data (read by all sensors, updated occasionally)
 - ❌ Bad: Real-time sensor readings (high write rate)
 
-**Key takeaway:** Use `std::shared_mutex` for read-heavy workloads (10:1 or better) to allow concurrent reads; stick with `std::mutex` for write-heavy or balanced workloads.
+**Key takeaway:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q15: What happens if you call reserve() on std::unordered_map with an insufficient size?
 **Difficulty:** #intermediate
 **Category:** #stl #capacity_management
 **Concepts:** #reserve #rehashing #capacity_planning #load_factor
 
 **Answer:**
-If you insert more elements than reserved capacity, the map will rehash automatically, invalidating all iterators and potentially causing data races if concurrent access occurs.
-
 **Code example:**
 ```cpp
 std::unordered_map<int, int> map;
 map.reserve(50);  // Reserves capacity for ~50 elements
-
 std::cout << "Bucket count: " << map.bucket_count() << "\n";  // ~50
 std::cout << "Max load factor: " << map.max_load_factor() << "\n";  // 1.0
-
 // Insert 50 elements - no rehashing
-for (int i = 0; i < 50; ++i) {
-    map[i] = i * 2;
-}
-
-std::cout << "After 50 inserts - Bucket count: " << map.bucket_count() << "\n";  // Still ~50
-
-// Insert 51st element - may trigger rehashing!
-map[50] = 100;
-std::cout << "After 51st insert - Bucket count: " << map.bucket_count() << "\n";  // ~100 (rehashed!)
-
-// ❌ In concurrent context: any iterator obtained before rehashing is now invalid
+    // ... (abbreviated)
 ```
-
+- cpp std::unordered_map<int, int> map; map.reserve(50); // Reserves capacity for ~50 elements
+- std::cout << "Bucket count: " << map.bucket_count() << "\n"; // ~50 std::cout << "Max load factor: " << map.max_load_factor() << "\n"; // 1.0
 **Explanation:**
-`reserve(n)` calculates bucket count as `n / max_load_factor` (typically `n / 1.0 = n`) and allocates that many buckets. However, `reserve()` is a hint, not a guarantee. Some implementations round up to the next prime number or power of 2. Once the actual element count exceeds `bucket_count * max_load_factor`, rehashing occurs. To be safe, over-allocate: `reserve(expected_size * 1.5)`.
-
+- `reserve(n)` calculates bucket count as `n / max_load_factor` (typically `n / 1.0 = n`) and allocates that many buckets
+- However, `reserve()` is a hint, not a guarantee
+- Some implementations round up to the next prime number or power of 2
+- Once the actual element count exceeds `bucket_count * max_load_factor`, rehashing occurs
 **Thread safety implications:**
 ```cpp
 // Thread 1: Holds iterator
 auto it = map.find(25);
 
-// Thread 2: Inserts 51st element, triggers rehashing
-map[50] = 100;  // Invalidates it in Thread 1
-
-// Thread 1: Uses iterator
-std::cout << it->second;  // ❌ DANGLING ITERATOR - crash!
-```
-
-**Best practices:**
-```cpp
-// Over-allocate to be safe
-map.reserve(expected_size * 2);
-
-// Or check and prevent rehashing
-if (map.size() >= map.bucket_count() * map.max_load_factor() - 5) {
-    map.reserve(map.bucket_count() * 2);  // Pre-emptive rehash
-}
-```
-
-**Key takeaway:** `reserve()` is a hint, not a guarantee; over-allocate (1.5-2x expected size) to prevent rehashing; insufficient reservation causes rehashing and iterator invalidation.
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---

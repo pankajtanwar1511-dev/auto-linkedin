@@ -1694,11 +1694,9 @@
           "category": [],
           "concepts": [],
           "answer": "",
-          "explanation": "**Answer**:\n\n**Fat Controller** = Controller with thousands of lines, handling everything.\n\n**Solutions**:\n\n**1. Delegate to Services**:\n```cpp\nclass UserController {\n    UserService userService;  // Business logic here\n\n    void handleLogin(const Credentials& creds) {\n        bool success = userService.authenticate(creds);  // ✅ Thin controller\n        if (success) view->navigateTo(\"home\");\n    }\n};\n```\n\n**2. Split by Feature**:\n```cpp\n// Instead of one UserController:\nclass LoginController { /* ... */ };\nclass RegistrationController { /* ... */ };\nclass ProfileController { /* ... */ };\n```\n\n**3. Use Command Pattern**:\n```cpp\nclass LoginCommand : public ICommand {\n    void execute() override {\n        // Login logic\n    }\n};\n\nclass Controller {\n    void handleAction(ICommand* command) {\n        command->execute();  // ✅ Controller delegates\n    }\n};\n```\n\n---",
+          "explanation": "**:**\n\n**Answer**:\n**Fat Controller** = Controller with thousands of lines, handling everything.\n\n```cpp\nclass UserController {\n    UserService userService;  // Business logic here\n\n    void handleLogin(const Credentials& creds) {\n        bool success = userService.authenticate(creds);  // ✅ Thin controller\n        if (success) view->navigateTo(\"home\");\n    }\n};\n```\n\n- cpp class UserController { UserService userService; // Business logic here\n\n**Note:** Full detailed explanation with additional examples available in source materials.\n\n---",
           "code_examples": [
-            "class UserController {\n    UserService userService;  // Business logic here\n\n    void handleLogin(const Credentials& creds) {\n        bool success = userService.authenticate(creds);  // ✅ Thin controller\n        if (success) view->navigateTo(\"home\");\n    }\n};",
-            "// Instead of one UserController:\nclass LoginController { /* ... */ };\nclass RegistrationController { /* ... */ };\nclass ProfileController { /* ... */ };",
-            "class LoginCommand : public ICommand {\n    void execute() override {\n        // Login logic\n    }\n};\n\nclass Controller {\n    void handleAction(ICommand* command) {\n        command->execute();  // ✅ Controller delegates\n    }\n};"
+            "class UserController {\n    UserService userService;  // Business logic here\n\n    void handleLogin(const Credentials& creds) {\n        bool success = userService.authenticate(creds);  // ✅ Thin controller\n        if (success) view->navigateTo(\"home\");\n    }\n};"
           ],
           "key_takeaway": ""
         },

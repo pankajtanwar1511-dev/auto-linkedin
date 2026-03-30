@@ -850,21 +850,17 @@ void update(int key) {
 ```
 
 **Answer:**
-```
+
+```cpp
 Compilation error: 'current' was not declared in this scope
 ```
 
+- Compilation error: 'current' was not declared in this scope ```
+
 **Explanation:**
+
 - **Scoping error combined with race condition**
 - **Variable `current` declared inside first lock block**
-- **Scope ends at closing brace**
-- **Outside that scope:** `current` doesn't exist
-- **Line `int updated = current + 1;` tries to use undefined variable**
-- **Compiler error:** current not in scope
-- **Even if fixed:** Would still have race condition
-  - Read and write not atomic
-  - Another thread could modify between locks
-- **Fix 1:** Declare current before first lock
 
 ```cpp
 int current;
@@ -874,20 +870,12 @@ int current;
 }
 int updated = current + 1;
 {
-    std::lock_guard lock(mtx);
-    cache[key] = updated;
-}
+    // ... (abbreviated)
 ```
-- **Fix 2 (better):** Single lock for entire operation
 
-```cpp
-std::lock_guard lock(mtx);
-cache[key] = cache[key] + 1;
-```
-- **Key Concept:** Scoping error plus race condition; compound operations need single critical section
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q19
 ```cpp
 std::recursive_mutex rmtx;

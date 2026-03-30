@@ -401,61 +401,23 @@ if (events[i].events & EPOLLRDHUP) {
 #### Q12: Explain how to safely transfer an epoll FD between threads or processes.
 
 
+
 **Answer:**
-
-
-
 **Short Answer:**
-
-
-
 **epoll FD Characteristics:**
-
 ```cpp
 int epfd = epoll_create1(0);
 // epfd is a normal file descriptor
 // Can be: dup()'d, sent via Unix socket, inherited by fork()
 ```
-
 - cpp int epfd = epoll_create1(0); // epfd is a normal file descriptor // Can be: dup()'d, sent via Unix socket, inherited by fork() ```
-
+- - cpp int epfd = epoll_create1(0); // epfd is a normal file descriptor // Can be: dup()'d, sent via Unix socket, inherited by fork() ```
 **Important:**
-
 ```cpp
 ev.events = EPOLLIN | EPOLLEXCLUSIVE;  // ✅ Only wake one process
 ```
-
 - cpp ev.events = EPOLLIN | EPOLLEXCLUSIVE; // ✅ Only wake one process ```
-
-**Thread Safety of epoll Operations:**
-
-- | Operation | Thread-Safe
-
-**Common Pitfalls:**
-
-**1. Thundering Herd (Multi-process without EPOLLEXCLUSIVE):**
-
-```cpp
-// ❌ BAD: All processes wake up
-for (int i = 0; i < 4; i++) {
-    if (fork() == 0) {
-        epoll_wait(epfd, ...);  // All 4 children wake for one event
-    }
-}
-
-// ✅ GOOD: Use EPOLLEXCLUSIVE
-ev.events = EPOLLIN | EPOLLEXCLUSIVE;
-```
-
-- cpp // ❌ BAD: All processes wake up for (int i = 0; i < 4; i++) { if (fork() == 0) { epoll_wait(epfd, ...); // All 4 children wake for one event } }
-- // ✅ GOOD: Use EPOLLEXCLUSIVE ev.events = EPOLLIN | EPOLLEXCLUSIVE; ```
-
-**Best Practices:**
-
-- Multi-process: Use EPOLLEXCLUSIVE or SO_REUSEPORT 2
-- Multi-threaded: Use EPOLLONESHOT to prevent races 3
-- Ownership: Designate one thread/process as owner for cleanup 4
-- Synchronization: Only needed for application-level data, not epoll calls
+- - cpp ev.events = EPOLLIN | EPOLLEXCLUSIVE; // ✅ Only wake one process ```
 
 **Note:** Full detailed explanation with additional examples available in source materials.
 

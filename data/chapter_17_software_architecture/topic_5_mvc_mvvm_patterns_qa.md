@@ -69,13 +69,12 @@ class MockLoginView : ILoginView {
 
 #### Q3: How do you prevent "Fat Controllers"?
 
-**Answer**:
 
+**:**
+
+**Answer**:
 **Fat Controller** = Controller with thousands of lines, handling everything.
 
-**Solutions**:
-
-**1. Delegate to Services**:
 ```cpp
 class UserController {
     UserService userService;  // Business logic here
@@ -87,31 +86,11 @@ class UserController {
 };
 ```
 
-**2. Split by Feature**:
-```cpp
-// Instead of one UserController:
-class LoginController { /* ... */ };
-class RegistrationController { /* ... */ };
-class ProfileController { /* ... */ };
-```
+- cpp class UserController { UserService userService; // Business logic here
 
-**3. Use Command Pattern**:
-```cpp
-class LoginCommand : public ICommand {
-    void execute() override {
-        // Login logic
-    }
-};
-
-class Controller {
-    void handleAction(ICommand* command) {
-        command->execute();  // ✅ Controller delegates
-    }
-};
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q4: How do you implement two-way data binding in C++?
 
 

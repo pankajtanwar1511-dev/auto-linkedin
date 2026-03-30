@@ -218,20 +218,22 @@ int main() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Dangling iterator (cache2's map_ contains iterators into cache1's list, which gets modified)
 ```
 
+- Dangling iterator (cache2's map_ contains iterators into cache1's list, which gets modified) ```
+
 **Explanation:**
+
 - Default copy constructor shallow-copies `map_`
 - `cache2.map_` contains iterators pointing into `cache1.items_`
 - `cache1.put(2, 200)` modifies `cache1.items_` → may invalidate iterators
 - `cache2.get(1)` dereferences iterator that may be invalidated
-- Must implement deep copy or delete copy operations
-- LRU cache typically move-only or requires custom copy
-- **Key Concept:** Classes with iterators/pointers need custom copy operations; shallow copy causes aliasing where copies share internal state; must deep-copy or delete copy constructor
 
 **Fixed Version:**
+
 ```cpp
 class LRUCache {
     std::list<std::pair<int, int>> items_;
@@ -240,27 +242,15 @@ class LRUCache {
 
 public:
     LRUCache(size_t cap) : capacity_(cap) {}
-
-    // Delete copy operations (prefer move-only)
-    LRUCache(const LRUCache&) = delete;
-    LRUCache& operator=(const LRUCache&) = delete;
-
-    // Allow move operations
-    LRUCache(LRUCache&&) noexcept = default;
-    LRUCache& operator=(LRUCache&&) noexcept = default;
-};
-
-// Or implement deep copy if needed
-LRUCache(const LRUCache& other)
-    : capacity_(other.capacity_) {
-    for (auto it = other.items_.rbegin(); it != other.items_.rend(); ++it) {
-        put(it->first, it->second);  // Rebuild from back to front
-    }
-}
+    // ... (abbreviated)
 ```
 
----
+- public: LRUCache(size_t cap) : capacity_(cap) {}
+- // Delete copy operations (prefer move-only) LRUCache(const LRUCache&) = delete; LRUCache& operator=(const LRUCache&) = delete;
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q5
 ```cpp
 #include <mutex>
@@ -302,20 +292,22 @@ int main() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Performance issue (every get() locks AND modifies list even for repeated accesses)
 ```
 
+- Performance issue (every get() locks AND modifies list even for repeated accesses) ```
+
 **Explanation:**
+
 - `get()` always moves accessed item to front via splice()
 - Requires exclusive lock even for read-only lookups
 - High contention on mutex
 - Repeated access to same key keeps splicing same element
-- Alternative: use reader-writer lock with read-only get() that doesn't update recency
-- Or: update recency lazily/periodically
-- **Key Concept:** LRU cache get() traditionally updates recency requiring write access; causes contention in multithreaded scenarios; consider read-only get() with approximate LRU or reader-writer locks
 
 **Fixed Version:**
+
 ```cpp
 // Option 1: Use shared_mutex for better concurrency
 class ThreadSafeLRUCache {
@@ -324,30 +316,15 @@ class ThreadSafeLRUCache {
     size_t capacity_;
     mutable std::shared_mutex mutex_;
 
-public:
-    int get(int key) const {
-        std::shared_lock<std::shared_mutex> lock(mutex_);
-
-        auto it = map_.find(key);
-        if (it == map_.end()) {
-            return -1;
-        }
-
-        // Don't update recency on read (approximate LRU)
-        return it->second->second;
-    }
-
-    void put(int key, int value) {
-        std::unique_lock<std::shared_mutex> lock(mutex_);
-        // ... put logic ...
-    }
-};
-
-// Option 2: Separate recency updates (more complex)
+    // ... (abbreviated)
 ```
 
----
+- public: int get(int key) const { std::shared_lock<std::shared_mutex> lock(mutex_);
+- auto it = map_.find(key); if (it == map_.end()) { return -1; }
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q6
 ```cpp
 class LRUCache {
@@ -598,20 +575,22 @@ int main() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Dangling pointer (cache holds raw pointer to deleted memory)
 ```
 
+- Dangling pointer (cache holds raw pointer to deleted memory) ```
+
 **Explanation:**
+
 - Cache stores raw pointer, doesn't manage lifetime
 - User deletes object while cache still holds pointer
 - Cache returns dangling pointer
 - Dereferencing causes undefined behavior
-- Cache should own objects (store by value or use shared_ptr)
-- Or document that cache doesn't own values
-- **Key Concept:** Caches storing pointers create ownership ambiguity; who deletes objects? Prefer storing values or shared_ptr for clear ownership; raw pointers risk dangling
 
 **Fixed Version:**
+
 ```cpp
 // Option 1: Store values (cache owns)
 class LRUCache {
@@ -620,20 +599,12 @@ class LRUCache {
 
     int get(int key) {
         // Returns value by copy
-        return it->second->second;
-    }
-};
-
-// Option 2: Use shared_ptr (shared ownership)
-class LRUCache {
-    std::list<std::pair<int, std::shared_ptr<int>>> items_;
-    std::unordered_map<int, std::list<std::pair<int, std::shared_ptr<int>>>::iterator> map_;
-
-    std::shared_ptr<int> get(int key) {
-        // Returns shared_ptr - safe even if original deleted
-        return it->second->second;
-    }
-};
+    // ... (abbreviated)
 ```
+
+- int get(int key) { // Returns value by copy return it->second->second; } };
+- std::shared_ptr<int> get(int key) { // Returns shared_ptr - safe even if original deleted return it->second->second; } }; ```
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---

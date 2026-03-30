@@ -128,20 +128,22 @@ int main() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Cache thrashing (exchange() on every iteration causes cache line ping-pong)
 ```
 
+- Cache thrashing (exchange() on every iteration causes cache line ping-pong) ```
+
 **Explanation:**
+
 - `exchange()` is atomic RMW → writes to cache line
 - Every iteration writes, even when lock unavailable
 - Causes cache line to bounce between CPUs (MESI protocol)
 - Massive coherency traffic
-- Better: read-only spin before exchange
-- Only write when likely to succeed
-- **Key Concept:** Atomic writes expensive due to cache coherency; spinlock should test-and-test-and-set pattern; read (cheap) before write (expensive)
 
 **Fixed Version:**
+
 ```cpp
 void lock() {
     while (true) {
@@ -150,23 +152,12 @@ void lock() {
             // Then try to acquire (expensive write)
             !locked_.exchange(true, std::memory_order_acquire)) {
             break;  // Got lock
-        }
-    }
-}
-
-// Or with explicit loop
-void lock() {
-    while (locked_.exchange(true, std::memory_order_acquire)) {
-        // Spin with read-only (no writes)
-        while (locked_.load(std::memory_order_relaxed)) {
-            // Pure spin, no cache coherency traffic
-        }
-    }
-}
+    // ... (abbreviated)
 ```
 
----
+**Note:** Full detailed explanation with additional examples available in source materials.
 
+---
 #### Q4
 ```cpp
 class Spinlock {

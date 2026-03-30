@@ -94,18 +94,22 @@ int main() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Iterator invalidation - erase() shifts elements, loop skips next client
 ```
 
+- Iterator invalidation - erase() shifts elements, loop skips next client ```
+
 **Explanation:**
+
 - `fds.erase(fds.begin() + i)` removes element at index i
 - Elements after i shift left: fds[i+1] becomes fds[i]
 - Loop increments i, skipping the element that shifted into position i
 - Next client never processed if previous client disconnects
-- **Key Concept:** Decrement loop counter after erase() or iterate backwards to avoid skipping shifted elements
 
 **Fixed Version:**
+
 ```cpp
 for (size_t i = 0; i < fds.size(); ) {  // No i++ here!
     if (fds[i].revents & POLLIN) {
@@ -114,23 +118,15 @@ for (size_t i = 0; i < fds.size(); ) {  // No i++ here!
             fds.push_back({client_fd, POLLIN, 0});
             i++;
         } else {
-            char buffer[1024];
-            int n = recv(fds[i].fd, buffer, sizeof(buffer), 0);
-            if (n == 0) {
-                close(fds[i].fd);
-                fds.erase(fds.begin() + i);  // Don't increment i!
-            } else {
-                i++;
-            }
-        }
-    } else {
-        i++;
-    }
-}
+    // ... (abbreviated)
 ```
 
----
+- cpp for (size_t i = 0; i < fds.size(); ) { // No i++ here
+- } else { i++; } } } else { i++; } } ```
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q3
 ```cpp
 #include <poll.h>
@@ -231,18 +227,22 @@ void kick_idle_clients(std::vector<struct pollfd>& fds) {
 ```
 
 **Answer:**
-```
+
+```cpp
 Iterator invalidation - erase() during iteration causes undefined behavior
 ```
 
+- Iterator invalidation - erase() during iteration causes undefined behavior ```
+
 **Explanation:**
+
 - Range-based for loop uses iterators over `last_activity` map
 - `last_activity.erase(fd)` invalidates the current iterator
 - Continuing loop after invalidation is undefined behavior
 - May crash, skip entries, or corrupt map
-- **Key Concept:** Never modify container while iterating with range-based for; collect keys to erase then erase after iteration completes
 
 **Fixed Version:**
+
 ```cpp
 void kick_idle_clients(std::vector<struct pollfd>& fds) {
     time_t now = time(NULL);
@@ -251,29 +251,15 @@ void kick_idle_clients(std::vector<struct pollfd>& fds) {
     // Collect FDs to kick
     for (auto& [fd, last_seen] : last_activity) {
         if (now - last_seen > 30) {
-            to_kick.push_back(fd);
-        }
-    }
-
-    // Kick after iteration
-    for (int fd : to_kick) {
-        send(fd, "Timeout\n", 8, 0);
-        close(fd);
-
-        for (size_t i = 0; i < fds.size(); i++) {
-            if (fds[i].fd == fd) {
-                fds.erase(fds.begin() + i);
-                break;
-            }
-        }
-
-        last_activity.erase(fd);  // Safe now
-    }
-}
+    // ... (abbreviated)
 ```
 
----
+- cpp void kick_idle_clients(std::vector<struct pollfd>& fds) { time_t now = time(NULL); std::vector<int> to_kick;
+- // Kick after iteration for (int fd : to_kick) { send(fd, "Timeout\n", 8, 0); close(fd);
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q5
 ```cpp
 #include <poll.h>
@@ -383,18 +369,22 @@ void handle_send(int fd, const std::string& data) {
 ```
 
 **Answer:**
-```
+
+```cpp
 Data lost when rate limited - should queue data, not drop it
 ```
 
+- Data lost when rate limited - should queue data, not drop it ```
+
 **Explanation:**
+
 - When rate limit exceeded, function returns without queuing data
 - Data permanently lost - client never receives it
 - Should queue data and enable POLLOUT for next second
 - Alternative: sleep/delay (blocks) or return partial success
-- **Key Concept:** Rate limiting should defer data (queue it), not drop it; dropping causes data loss and protocol violations
 
 **Fixed Version:**
+
 ```cpp
 std::map<int, std::queue<std::string>> write_queues;
 
@@ -403,29 +393,15 @@ void handle_send(int fd, const std::string& data, std::vector<struct pollfd>& fd
     time_t now = time(NULL);
 
     if (now > client.second_start) {
-        client.second_start = now;
-        client.bytes_sent_this_second = 0;
-    }
-
-    if (client.bytes_sent_this_second >= MAX_RATE) {
-        // Queue for later
-        write_queues[fd].push(data);
-        enable_pollout(fd, fds);
-        return;
-    }
-
-    int sent = send(fd, data.c_str(), data.size(), 0);
-    if (sent < data.size()) {
-        // Partial send - queue remainder
-        write_queues[fd].push(data.substr(sent));
-        enable_pollout(fd, fds);
-    }
-    client.bytes_sent_this_second += sent;
-}
+    // ... (abbreviated)
 ```
 
----
+- cpp std::map<int, std::queue<std::string>> write_queues;
+- if (now > client.second_start) { client.second_start = now; client.bytes_sent_this_second = 0; }
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q7
 ```cpp
 #include <poll.h>
@@ -451,18 +427,22 @@ void handle_client_data(int fd) {
 ```
 
 **Answer:**
-```
+
+```cpp
 Buffer corruption when recv() returns 0 or -1 - undefined behavior (negative size or wrong data)
 ```
 
+- Buffer corruption when recv() returns 0 or -1 - undefined behavior (negative size or wrong data) ```
+
 **Explanation:**
+
 - `recv()` returns 0 on EOF, -1 on error
 - `append(buffer, -1)` or `append(buffer, 0)` is undefined behavior
 - Negative size treated as very large unsigned value - memory corruption
 - Must check `n > 0` before appending
-- **Key Concept:** Always validate recv() return value before using it; negative/zero values cause undefined behavior when used as size
 
 **Fixed Version:**
+
 ```cpp
 void handle_client_data(int fd, std::vector<struct pollfd>& fds) {
     char buffer[1024];
@@ -471,26 +451,15 @@ void handle_client_data(int fd, std::vector<struct pollfd>& fds) {
     if (n > 0) {
         request_buffers[fd].append(buffer, n);
 
-        size_t pos = request_buffers[fd].find("\r\n\r\n");
-        if (pos != std::string::npos) {
-            std::string request = request_buffers[fd].substr(0, pos);
-            process_request(fd, request);
-            request_buffers[fd].clear();
-        }
-    } else if (n == 0) {
-        // EOF - client disconnected
-        request_buffers.erase(fd);
-        remove_from_fds(fd, fds);
-        close(fd);
-    } else {
-        // Error
-        perror("recv");
-    }
-}
+    // ... (abbreviated)
 ```
 
----
+- cpp void handle_client_data(int fd, std::vector<struct pollfd>& fds) { char buffer[1024]; int n = recv(fd, buffer, sizeof(buffer), 0);
+- if (n > 0) { request_buffers[fd].append(buffer, n);
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q8
 ```cpp
 #include <poll.h>

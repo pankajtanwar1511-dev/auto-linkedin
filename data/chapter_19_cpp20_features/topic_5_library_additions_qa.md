@@ -419,109 +419,54 @@ auto str = std::format("Value: {}, Count: {}", val, count);  // 1 allocation
 
 #### Q11: How does endianness detection work with `std::endian`?
 
+
 **Answer:**
-
 `std::endian` provides compile-time endianness detection:
-
 ```cpp
 #include <bit>
-
 if constexpr (std::endian::native == std::endian::little) {
     // x86, ARM (most common)
     std::cout << "Little endian system\n";
 } else if constexpr (std::endian::native == std::endian::big) {
     // Some mainframes, network byte order
-    std::cout << "Big endian system\n";
-} else {
-    // Mixed endianness (rare)
-    std::cout << "Mixed endianness\n";
-}
+    // ... (abbreviated)
 ```
-
+- cpp #include <bit>
 **Use Case: Binary Serialization:**
-
 ```cpp
 uint32_t to_network_order(uint32_t value) {
     if constexpr (std::endian::native == std::endian::little) {
         // Need to swap bytes for network (big endian)
-        return ((value & 0xFF000000) >> 24) |
-               ((value & 0x00FF0000) >> 8)  |
-               ((value & 0x0000FF00) << 8)  |
-               ((value & 0x000000FF) << 24);
-    } else {
-        return value;  // Already big endian
-    }
-}
-```
 
-**Compile-Time vs Runtime:**
-
-```cpp
-// std::endian: Compile-time constant
-constexpr bool is_little = (std::endian::native == std::endian::little);
-
-// Can be used in if constexpr (no runtime overhead)
-if constexpr (is_little) {
-    // Code only compiled on little-endian systems
-}
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q12: What's the advantage of `std::to_array` over brace initialization?
 
+
 **Answer:**
-
-`std::to_array` provides **type deduction** and **perfect forwarding** for creating `std::array` from C arrays:
-
+- `std::to_array` provides type deduction and perfect forwarding for creating `std::array` from C arrays:
 **Benefits:**
-
 ```cpp
 // ❌ C++17: Manual type specification
 std::array<int, 5> arr1 = {1, 2, 3, 4, 5};
-
 // ✅ C++20: Type deduced
 auto arr2 = std::to_array({1, 2, 3, 4, 5});  // std::array<int, 5>
 ```
-
+- cpp // ❌ C++17: Manual type specification std::array<int, 5> arr1 = {1, 2, 3, 4, 5};
+- // ✅ C++20: Type deduced auto arr2 = std::to_array({1, 2, 3, 4, 5}); // std::array<int, 5> ```
 **From C Array:**
-
 ```cpp
 int c_array[] = {1, 2, 3};
-
 // ❌ C++17: Can't convert without explicit copy
 // std::array arr = c_array;  // Error
-
 // ✅ C++20: Converts C array to std::array
 auto arr = std::to_array(c_array);  // std::array<int, 3>
 ```
 
-**Move Semantics:**
-
-```cpp
-std::string c_arr[] = {"hello", "world"};
-
-// Moves strings (not copies)
-auto arr = std::to_array(std::move(c_arr));  // std::array<std::string, 2>
-```
-
-**Template Deduction:**
-
-```cpp
-template<typename T>
-void process(std::array<T, 3> arr) {
-    // ...
-}
-
-// ✅ Works with to_array
-process(std::to_array({1, 2, 3}));  // T deduced as int
-
-// ❌ Doesn't work with brace-init
-// process({1, 2, 3});  // Error: can't deduce array size
-```
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q13: How do you customize `std::format` for custom types?
 
 

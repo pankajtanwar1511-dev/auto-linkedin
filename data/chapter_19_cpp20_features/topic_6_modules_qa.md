@@ -111,7 +111,10 @@ export constexpr int MAX = 100;  // ✅ Visible to importers
 
 #### Q4: How do you migrate existing code from headers to modules?
 
+
 **Answer:**
+
+
 
 **Step-by-Step Migration:**
 
@@ -125,37 +128,11 @@ int add(int a, int b);
 #endif
 
 // New: math.ixx
-export module math;
-export int add(int a, int b);
+    // ... (abbreviated)
 ```
 
-**Phase 2: Provide Compatibility Layer**
-
-```cpp
-// math_compat.h
-#ifdef __cpp_modules
-import math;
-#else
-#include "math_traditional.h"
-#endif
-```
-
-**Phase 3: Update Build System**
-
-```cmake
-# CMake example
-add_library(math)
-target_sources(math
-    PUBLIC FILE_SET CXX_MODULES FILES
-        math.ixx
-)
-```
-
-**Phase 4: Gradual Transition**
-
-- New code: `import math;`
-- Legacy code: `#include "math_compat.h"`
-- Eventually remove compatibility headers
+- cpp // Old: math.h #ifndef MATH_H #define MATH_H int add(int a, int b); #endif
+- // New: math.ixx export module math; export int add(int a, int b); ```
 
 **Challenges:**
 
@@ -163,8 +140,9 @@ target_sources(math
 - Compiler differences (MSVC, GCC, Clang vary)
 - Third-party libraries still use headers
 
----
+**Note:** Full detailed explanation with additional examples available in source materials.
 
+---
 #### Q5: What is the global module fragment and when is it needed?
 
 **Answer:**

@@ -1828,12 +1828,10 @@
           "difficulty": [],
           "category": [],
           "concepts": [],
-          "answer": "**No deadlock.** `std::scoped_lock` locks all mutexes in a deadlock-free order using a deadlock avoidance algorithm (similar to `std::lock`).",
-          "explanation": "Despite the different mutex orders in each thread, `std::scoped_lock` internally uses a deadlock avoidance strategy (often based on mutex addresses) to acquire all locks in a consistent order. This prevents the circular wait condition required for deadlock.",
+          "answer": "- No deadlock. `std::scoped_lock` locks all mutexes in a deadlock-free order using a deadlock avoidance algorithm (similar to `std::lock`).",
+          "explanation": "- This prevents the circular wait condition required for deadlock.",
           "code_examples": [
-            "std::mutex m1, m2, m3;\n\n// Thread 1\nvoid task1() {\n    std::scoped_lock lock(m1, m2, m3);\n    // critical section\n}\n\n// Thread 2\nvoid task2() {\n    std::scoped_lock lock(m3, m1, m2);\n    // critical section\n}\n\n// Thread 3\nvoid task3() {\n    std::scoped_lock lock(m2, m3, m1);\n    // critical section\n}",
-            "std::scoped_lock lock(m3, m1, m2);\n// Internally might lock in address order: m1 -> m2 -> m3\n// Regardless of argument order",
-            "// Thread 1\nstd::lock_guard g1(m1);\nstd::lock_guard g2(m2);\n\n// Thread 2\nstd::lock_guard g2_first(m2);  // Deadlock risk!\nstd::lock_guard g1_second(m1);"
+            "std::mutex m1, m2, m3;\n// Thread 1\nvoid task1() {\n    std::scoped_lock lock(m1, m2, m3);\n    // critical section\n}\n    // ... (abbreviated)"
           ],
           "key_takeaway": ""
         },
@@ -1925,11 +1923,10 @@
           "difficulty": [],
           "category": [],
           "concepts": [],
-          "answer": "**Compiles successfully.** CTAD deduces `Derived<int>`.",
-          "explanation": "CTAD works with inheritance. The compiler examines `Derived`'s constructor, which takes `T`, and deduces `T = int` from the argument `42`.",
+          "answer": "- Compiles successfully. CTAD deduces `Derived<int>`.",
+          "explanation": "- CTAD works with inheritance\n- The compiler examines `Derived`'s constructor, which takes `T`, and deduces `T = int` from the argument `42`.",
           "code_examples": [
-            "template<typename T>\nstruct Base {\n    T value;\n    Base(T v) : value(v) {}\n};\n\ntemplate<typename T>\nstruct Derived : Base<T> {\n    Derived(T v) : Base<T>(v) {}\n};\n\nint main() {\n    Derived d(42);  // CTAD?\n}",
-            "template<typename T>\nstruct Derived : Base<T> {\n    Derived(const Base<T>& b) : Base<T>(b) {}\n};\n\n// Without deduction guide, this fails\nDerived d2(Base(42));\n\n// Add deduction guide\ntemplate<typename T>\nDerived(const Base<T>&) -> Derived<T>;\n\nDerived d2(Base(42));  // Now works"
+            "template<typename T>\nstruct Base {\n    T value;\n    Base(T v) : value(v) {}\n};\ntemplate<typename T>\n    // ... (abbreviated)"
           ],
           "key_takeaway": ""
         },
@@ -1939,12 +1936,11 @@
           "difficulty": [],
           "category": [],
           "concepts": [],
-          "answer": "**Problem solved:** Allows static member definition in header without violating ODR (One Definition Rule).",
-          "explanation": "`inline` on static members (C++17) allows definition in header files without multiple definition errors. The compiler ensures only one instance exists across all translation units, enabling true header-only libraries for static members.",
+          "answer": "",
+          "explanation": "**Difficulty:** Medium\n**Category:** inline Variables\n**Concepts:** ODR, header-only libraries\n\n**Question:**\n```cpp\n// config.h\nstruct Config {\n    static inline const int MAX_SPEED = 120;\n    static inline std::string DEFAULT_MODE = \"autonomous\";\n};\n// Included in multiple .cpp files\n```\n- cpp // config.h struct Config { static inline const int MAX_SPEED = 120; static inline std::string DEFAULT_MODE = \"autonomous\"; };\n- // Included in multiple .cpp files ```\n**Problem solved:**\n**Before C++17:**\n```cpp\n// config.h\nstruct Config {\n    static const int MAX_SPEED;\n    static std::string DEFAULT_MODE;\n};\n// config.cpp (required!)\n    // ... (abbreviated)\n\n**Note:** Full detailed explanation with additional examples available in source materials.\n\n---",
           "code_examples": [
-            "// config.h\nstruct Config {\n    static inline const int MAX_SPEED = 120;\n    static inline std::string DEFAULT_MODE = \"autonomous\";\n};\n\n// Included in multiple .cpp files",
-            "// config.h\nstruct Config {\n    static const int MAX_SPEED;\n    static std::string DEFAULT_MODE;\n};\n\n// config.cpp (required!)\nconst int Config::MAX_SPEED = 120;\nstd::string Config::DEFAULT_MODE = \"autonomous\";",
-            "// config.h only (no .cpp needed!)\nstruct Config {\n    static inline const int MAX_SPEED = 120;\n    static inline std::string DEFAULT_MODE = \"autonomous\";\n};"
+            "// config.h\nstruct Config {\n    static inline const int MAX_SPEED = 120;\n    static inline std::string DEFAULT_MODE = \"autonomous\";\n};\n// Included in multiple .cpp files",
+            "**Problem solved:**\n**Before C++17:**"
           ],
           "key_takeaway": ""
         },
@@ -1982,10 +1978,10 @@
           "question_number": 2,
           "title": "Question 2",
           "description": "**Difficulty:** Medium\n\nWrite a variadic template function `validate_all` that takes multiple predicate functions and returns true only if all predicates return true. Use fold expressions.",
-          "full_content": "**Difficulty:** Medium\n\nWrite a variadic template function `validate_all` that takes multiple predicate functions and returns true only if all predicates return true. Use fold expressions.\n\n**Answer:**\n\n\n**Explanation:** Fold expression `(... && preds())` short-circuits on first false, efficient validation.",
-          "code": "#include <iostream>\n#include <functional>\n\ntemplate<typename... Predicates>\nbool validate_all(Predicates... preds) {\n    return (... && preds());  // Left fold with &&\n}\n\nbool check_speed() {\n    std::cout << \"Checking speed... \";\n    bool ok = true;\n    std::cout << (ok ? \"OK\\n\" : \"FAIL\\n\");\n    return ok;\n}\n\nbool check_sensors() {\n    std::cout << \"Checking sensors... \";\n    bool ok = true;\n    std::cout << (ok ? \"OK\\n\" : \"FAIL\\n\");\n    return ok;\n}\n\nbool check_battery() {\n    std::cout << \"Checking battery... \";\n    bool ok = false;\n    std::cout << (ok ? \"OK\\n\" : \"FAIL\\n\");\n    return ok;\n}\n\nint main() {\n    bool all_ok = validate_all(check_speed, check_sensors, check_battery);\n\n    std::cout << \"System ready: \" << std::boolalpha << all_ok << \"\\n\";\n\n    return 0;\n}",
-          "answer": "cpp\n#include <iostream>\n#include <functional>\n\ntemplate<typename... Predicates>\nbool validate_all(Predicates... preds) {\n    return (... && preds());  // Left fold with &&\n}\n\nbool check_speed() {\n    std::cout << \"Checking speed... \";\n    bool ok = true;\n    std::cout << (ok ? \"OK\\n\" : \"FAIL\\n\");\n    return ok;\n}\n\nbool check_sensors() {\n    std::cout << \"Checking sensors... \";\n    bool ok = true;\n    std::cout << (ok ? \"OK\\n\" : \"FAIL\\n\");\n    return ok;\n}\n\nbool check_battery() {\n    std::cout << \"Checking battery... \";\n    bool ok = false;\n    std::cout << (ok ? \"OK\\n\" : \"FAIL\\n\");\n    return ok;\n}\n\nint main() {\n    bool all_ok = validate_all(check_speed, check_sensors, check_battery);\n\n    std::cout << \"System ready: \" << std::boolalpha << all_ok << \"\\n\";\n\n    return 0;\n}",
-          "explanation": "",
+          "full_content": "**Difficulty:** Medium\n\nWrite a variadic template function `validate_all` that takes multiple predicate functions and returns true only if all predicates return true. Use fold expressions.\n\n**Answer:**\n\n\n\n- cpp #include <iostream> #include <functional>\n- template<typename..\n\n**Explanation:**\n\n\n\n**Note:** Full detailed explanation with additional examples available in source materials.",
+          "code": "#include <iostream>\n#include <functional>\n\ntemplate<typename... Predicates>\nbool validate_all(Predicates... preds) {\n    return (... && preds());  // Left fold with &&\n}\n    // ... (abbreviated)",
+          "answer": "cpp\n#include <iostream>\n#include <functional>\n\ntemplate<typename... Predicates>\nbool validate_all(Predicates... preds) {\n    return (... && preds());  // Left fold with &&\n}\n    // ... (abbreviated)\n- cpp #include <iostream> #include <functional>\n- template<typename..",
+          "explanation": "**Note:** Full detailed explanation with additional examples available in source materials.",
           "key_concept": "",
           "fixed_version": "",
           "expected_output": "",

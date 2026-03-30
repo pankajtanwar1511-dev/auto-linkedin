@@ -276,7 +276,10 @@ Implement this exercise.
 
 **Answer:**
 
+
+
 **Small Buffer Optimization (SBO):**
+
 - Store small vectors inline (avoid heap allocation)
 
 ```cpp
@@ -287,35 +290,19 @@ private:
     T* data_;
     size_t size_;
     size_t capacity_;
-
-public:
-    SmallVector() : data_(reinterpret_cast<T*>(buffer_)),
-                    size_(0), capacity_(N) {}
-
-    void push_back(const T& value) {
-        if (size_ == capacity_) {
-            if (data_ == reinterpret_cast<T*>(buffer_)) {
-                // Transition to heap
-                T* new_data = new T[capacity_ * 2];
-                std::uninitialized_move_n(data_, size_, new_data);
-                data_ = new_data;
-                capacity_ *= 2;
-            } else {
-                // Already on heap, grow normally
-                reallocate(capacity_ * 2);
-            }
-        }
-
-        new (data_ + size_) T(value);
-        ++size_;
-    }
-};
+    // ... (abbreviated)
 ```
 
+- public: SmallVector() : data_(reinterpret_cast<T*>(buffer_)), size_(0), capacity_(N) {}
+- new (data_ + size_) T(value); ++size_; } }; ```
+
 **Benefits:**
+
 - No heap allocation for ≤ N elements
 - Better cache locality
 - Used by: LLVM's `SmallVector`, Boost.Container
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
 #### Q10: Compare vector to deque. When would you use each?

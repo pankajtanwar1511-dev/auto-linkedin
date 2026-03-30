@@ -183,24 +183,16 @@ class Accumulator {
 public:
     Accumulator() : sum(T{}) {}  // Value-initialize to zero
 
-    void operator()(const T& value) {
-        sum += value;
-    }
-
-    T getSum() const {
-    // ... (additional code omitted for brevity)
+    // ... (abbreviated)
 ```
 
 - cpp template <typename T> class Accumulator { T sum;
 - public: Accumulator() : sum(T{}) {} // Value-initialize to zero
-- void operator()(const T& value) { sum += value; }
 
 **Explanation:**
 
 - **Key design decisions:**
 1. **Value-initialization: `T{}`**
-- Zero-initializes for built-in types: `int{}` → 0, `double{}` → 0.0
-- Default-constructs for class types
 
 ```cpp
 // Accumulate integers
@@ -210,15 +202,14 @@ public:
   std::cout << intAcc.getSum();  // 15
 
   // Accumulate strings
-  Accumulator<std::string> strAcc;
-  std::vector<std::string> words = {"Hello", " ", "World"};
-  std::for_each(words.begin(), words.end(), std::ref(strAcc));
-  std::cout << strAcc.getSum();  // "Hello World"
-
-    // ... (additional code omitted for brevity)
+    // ... (abbreviated)
 ```
 
-- cpp // Accumulate integers Accumulator<int> intAcc; std::vector<int> nums = {1, 2, 3, 4, 5}; std::for_each(nums.begin(), nums.end(), std::ref(intAcc)); std::cout << intAcc.getSum(); // 15
+- (additional code omitted for brevity) ```
+
+**Note:**
+
+
 
 **Note:** Full detailed explanation with additional examples available in source materials.
 

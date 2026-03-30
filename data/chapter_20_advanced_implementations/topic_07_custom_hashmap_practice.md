@@ -228,20 +228,22 @@ int main() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Memory waste (bucket vector remains oversized after many erasures)
 ```
 
+- Memory waste (bucket vector remains oversized after many erasures) ```
+
 **Explanation:**
+
 - Insertions grow bucket vector (e.g., 10000 elements → 16384 buckets)
 - Erasures decrement `size_` but don't shrink `buckets_` vector
 - After 9999 erasures, only 1 element but 16384 buckets still allocated
 - Wastes memory proportional to peak size, not current size
-- Similar to `std::vector` capacity not shrinking on erase
-- Need explicit shrink operation or automatic shrinking policy
-- **Key Concept:** Hash maps don't automatically shrink bucket array on erasures; memory usage proportional to peak size unless explicitly shrunk; implement shrink_to_fit() or auto-shrink at low load factors
 
 **Fixed Version:**
+
 ```cpp
 void shrink_to_fit() {
     size_t new_capacity = std::max(size_t(16), size_ * 2);
@@ -250,29 +252,15 @@ void shrink_to_fit() {
     }
 }
 
-bool erase(const K& key) {
-    size_t index = std::hash<K>{}(key) % buckets_.size();
-
-    auto& bucket = buckets_[index];
-    for (auto it = bucket.begin(); it != bucket.end(); ++it) {
-        if (it->first == key) {
-            bucket.erase(it);
-            size_--;
-
-            // Auto-shrink if load factor too low
-            if (size_ > 0 && load_factor() < 0.25) {
-                shrink_to_fit();
-            }
-
-            return true;
-        }
-    }
-    return false;
-}
+    // ... (abbreviated)
 ```
 
----
+- bool erase(const K& key) { size_t index = std::hash<K>{}(key) % buckets_.size();
+- // Auto-shrink if load factor too low if (size_ > 0 && load_factor() < 0.25) { shrink_to_fit(); }
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q5
 ```cpp
 template<typename K, typename V>
@@ -486,20 +474,22 @@ int main() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Compilation error (no return statement in non-void function)
 ```
 
+- Compilation error (no return statement in non-void function) ```
+
 **Explanation:**
+
 - `at()` promises to return `V&` but has no return for key-not-found case
 - Compiler error: control reaches end of non-void function
 - Unlike `operator[]`, `at()` should throw exception when key missing
 - Can't return default value (no default-constructed reference)
-- Can't return `nullptr` (reference can't be null)
-- Must throw `std::out_of_range` exception
-- **Key Concept:** Hash map at() must throw std::out_of_range when key not found; can't return default since returning reference; throwing exception is only valid option
 
 **Fixed Version:**
+
 ```cpp
 V& at(const K& key) {
     size_t index = std::hash<K>{}(key) % buckets_.size();
@@ -508,26 +498,15 @@ V& at(const K& key) {
         if (k == key) {
             return v;
         }
-    }
-
-    throw std::out_of_range("Key not found");
-}
-
-const V& at(const K& key) const {
-    size_t index = std::hash<K>{}(key) % buckets_.size();
-
-    for (const auto& [k, v] : buckets_[index]) {
-        if (k == key) {
-            return v;
-        }
-    }
-
-    throw std::out_of_range("Key not found");
-}
+    // ... (abbreviated)
 ```
 
----
+- cpp V& at(const K& key) { size_t index = std::hash<K>{}(key) % buckets_.size();
+- for (auto& [k, v] : buckets_[index]) { if (k == key) { return v; } }
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q9
 ```cpp
 #include <functional>
@@ -550,20 +529,22 @@ int main() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Compilation error (no specialization of std::hash<Point>)
 ```
 
+- Compilation error (no specialization of std::hash<Point>) ```
+
 **Explanation:**
+
 - HashMap uses `std::hash<K>{}(key)` to hash keys
 - `std::hash` not specialized for custom type `Point`
 - Compiler error: no matching function for `std::hash<Point>`
 - Need to specialize `std::hash` for custom types
-- Or provide custom hash function to HashMap
-- Only standard types (int, string, etc.) have default hash specializations
-- **Key Concept:** Custom types must specialize std::hash or provide custom hash functor to be usable as hash map keys; equality operator alone insufficient
 
 **Fixed Version:**
+
 ```cpp
 // Option 1: Specialize std::hash
 namespace std {
@@ -572,28 +553,15 @@ namespace std {
         size_t operator()(const Point& p) const {
             size_t h1 = std::hash<int>{}(p.x);
             size_t h2 = std::hash<int>{}(p.y);
-            return h1 ^ (h2 << 1);  // Combine hashes
-        }
-    };
-}
-
-// Option 2: Provide hash functor
-struct PointHash {
-    size_t operator()(const Point& p) const {
-        return std::hash<int>{}(p.x) ^ (std::hash<int>{}(p.y) << 1);
-    }
-};
-
-template<typename K, typename V, typename Hash = std::hash<K>>
-class HashMap {
-    // Use custom hash function
-};
-
-HashMap<Point, std::string, PointHash> map;
+    // ... (abbreviated)
 ```
 
----
+- template<typename K, typename V, typename Hash = std::hash<K>> class HashMap { // Use custom hash function };
+- HashMap<Point, std::string, PointHash> map; ```
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q10
 ```cpp
 template<typename K, typename V>

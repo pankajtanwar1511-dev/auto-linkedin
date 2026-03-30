@@ -14,36 +14,14 @@ private:
     std::condition_variable all_done_cv_;
     std::mutex all_done_mutex_;
 
-public:
-    void submit(...) {
-        // ...
-        queued_tasks_.fetch_add(1);
-    }
-
-    void worker_loop() {
-        // ...
-        active_tasks_.fetch_add(1);
-        queued_tasks_.fetch_sub(1);
-
-        task();
-
-        active_tasks_.fetch_sub(1);
-
-        if (active_tasks_.load() == 0 && queued_tasks_.load() == 0) {
-            all_done_cv_.notify_all();
-        }
-    }
-
-    void wait_for_all() {
-        std::unique_lock<std::mutex> lock(all_done_mutex_);
-        all_done_cv_.wait(lock, [this]() {
-            return active_tasks_.load() == 0 && queued_tasks_.load() == 0;
-        });
-    }
-};
+    // ... (abbreviated)
 ```
 
+- public: void submit(...) { // ..
+- queued_tasks_.fetch_add(1); }
+
 **Usage:**
+
 ```cpp
 pool.submit(task1);
 pool.submit(task2);
@@ -51,8 +29,11 @@ pool.wait_for_all();  // Blocks until both complete
 std::cout << "All done\n";
 ```
 
----
+- cpp pool.submit(task1); pool.submit(task2); pool.wait_for_all(); // Blocks until both complete std::cout << "All done\n"; ```
 
+**Note:** Full detailed explanation with additional examples available in source materials.
+
+---
 #### Q2
 Modify the pool to support task cancellation. How would you implement a `cancel(task_id)` method?
 
@@ -80,9 +61,11 @@ Implement this exercise.
 
 **Answer:**
 
-**Not directly possible in C++** (no `pthread_cancel` equivalent).
+- Not directly possible in C++ (no `pthread_cancel` equivalent).
 
 **Workarounds:**
+
+
 
 **Option 1: Cooperative cancellation (token-based):**
 
@@ -94,37 +77,25 @@ public:
     void cancel() { cancelled_.store(true); }
     bool is_cancelled() const { return cancelled_.load(); }
 };
-
-void long_task(CancellationToken& token) {
-    for (int i = 0; i < 1000000; ++i) {
-        if (token.is_cancelled()) {
-            std::cout << "Task cancelled\n";
-            return;
-        }
-        // Work...
-    }
-}
-
-// In pool:
-auto token = std::make_shared<CancellationToken>();
-
-auto timeout_future = std::async(std::launch::async, [token]() {
-    std::this_thread::sleep_for(std::chrono::seconds(5));
-    token->cancel();
-});
-
-pool.submit(long_task, std::ref(*token));
+    // ... (abbreviated)
 ```
 
+- cpp class CancellationToken { std::atomic<bool> cancelled_{false};
+- public: void cancel() { cancelled_.store(true); } bool is_cancelled() const { return cancelled_.load(); } };
+
 **Option 2: Separate process (kill via signal):**
+
 - Fork process for each task
 - Kill process if timeout
 - Heavy overhead
 
-**Best practice:** Design tasks to be interruptible (check flag periodically).
+**Best practice:**
+
+
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q4
 Add support for task dependencies: task B cannot run until task A completes.
 

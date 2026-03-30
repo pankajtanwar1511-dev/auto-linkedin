@@ -65,48 +65,35 @@ void reader() {
 ```
 
 **Answer:**
-```
+
+```cpp
 No, assertion may fail
 ```
 
+- No, assertion may fail ```
+
 **Explanation:**
+
 - **Classic data race pattern** with relaxed atomics
 - **Problem: No synchronization between threads**
-- **What can go wrong:**
-  1. Writer sets data=42
-  2. Writer sets ready=true (relaxed)
-  3. Reader sees ready=true
-  4. **But reader might still see data=0!**
-- **Reordering issues:**
-  - **Compiler reordering:** Compiler may reorder `data=42` after `ready.store(true)`
-  - **CPU reordering:** CPU may execute/commit in different order
-  - **Cache coherency delays:** data=42 write may not reach reader's cache
-- **Relaxed stores don't synchronize non-atomic data**
-- **Reader spin-waits on ready** but:
-  - No guarantee data write visible when ready becomes true
-  - ready=true only means ready itself changed
-  - Doesn't establish happens-before relationship
-- **Correct version: Use release-acquire**
-  ```cpp
-  void writer() {
+
+```cpp
+void writer() {
       data = 42;
       ready.store(true, std::memory_order_release);  // Release
   }
 
   void reader() {
       while (!ready.load(std::memory_order_acquire)) {}  // Acquire
-      assert(data == 42);  // Now guaranteed!
-  }
-  ```
-- **Release-acquire creates synchronization:**
-  - Release: All prior writes visible to acquirer
-  - Acquire: All writes before release are visible
-  - **Happens-before relationship established**
-- **Rule:** Relaxed atomics don't synchronize non-atomic data
-- **Key Concept:** memory_order_relaxed insufficient for synchronizing non-atomic data; need release-acquire
+    // ... (abbreviated)
+```
+
+- cpp void writer() { data = 42; ready.store(true, std::memory_order_release); // Release }
+- void reader() { while (!ready.load(std::memory_order_acquire)) {} // Acquire assert(data == 42); // Now guaranteed
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q3
 ```cpp
 std::atomic<int> counter(10);
@@ -214,32 +201,15 @@ void thread2() {
 ```
 
 **Answer:**
-```
+
+```cpp
 Never fails
 ```
 
 **Explanation:**
+
 - **Sequential consistency (seq_cst):** Strongest memory ordering
 - **Guarantees:**
-  1. **Total global order:** All threads see all seq_cst operations in same order
-  2. **Program order:** Operations within thread execute in code order
-  3. **No reordering:** Compiler/CPU cannot reorder seq_cst operations
-- **Thread1 execution order (guaranteed):**
-  1. x.store(1) completes
-  2. Then y.store(1) completes
-  3. **Order preserved by seq_cst**
-- **Thread2 observation:**
-  1. Spins until y==1 (y.load returns 1)
-  2. When y==1 is observed:
-     - **By seq_cst guarantee:** x.store(1) already completed
-     - **By program order:** x stored before y in thread1
-     - **By total order:** All threads see same order
-  3. assert(x==1) **MUST pass**
-- **Why assertion can't fail:**
-  - **Causality:** y=1 happens-after x=1 in thread1
-  - **Seq_cst synchronization:** Thread2 sees consistent global view
-  - **No way for y==1 to be visible before x==1**
-- **With relaxed, assertion COULD fail:**
 
 ```cpp
 // Relaxed version (WRONG)
@@ -247,17 +217,10 @@ x.store(1, std::memory_order_relaxed);
 y.store(1, std::memory_order_relaxed);
 // Thread2 might see y==1 but x==0 due to reordering
 ```
-- **Seq_cst performance cost:**
-  - Expensive: Full memory barriers
-  - Prevents CPU/compiler optimizations
-  - But provides strongest guarantees
-- **Use when:**
-  - Need total global order
-  - Correctness more important than performance
-- **Key Concept:** Sequential consistency provides total global order; if thread sees later operation, it must see all prior operations in program order
+
+**Note:** Full detailed explanation with additional examples available in source materials.
 
 ---
-
 #### Q7
 ```cpp
 std::atomic<int*> ptr(nullptr);
@@ -612,56 +575,26 @@ void thread2() {
 ```
 
 **Answer:**
-
 ```cpp
 memory_order_seq_cst
 ```
-
-- memory_order_seq_cst ```
-
+- cpp memory_order_seq_cst ```
+- - memory_order_seq_cst ```
 **Explanation:**
-
 - **Default memory ordering: Sequential consistency**
 - **When not specified:**
-
 ```cpp
 val.store(1);                          // Uses seq_cst
   val.store(1, std::memory_order_seq_cst);  // Explicit (same)
 ```
-
 - cpp val.store(1); // Uses seq_cst val.store(1, std::memory_order_seq_cst); // Explicit (same) ```
-
+- - cpp val.store(1); // Uses seq_cst val.store(1, std::memory_order_seq_cst); // Explicit (same) ```
 **Relaxed (fastest, weakest):**
-
 ```cpp
 counter.fetch_add(1, std::memory_order_relaxed);
   // For counters where order doesn't matter
 ```
-
 - cpp counter.fetch_add(1, std::memory_order_relaxed); // For counters where order doesn't matter ```
-
-**Release-acquire (common pattern):**
-
-```cpp
-data = 42;
-  ready.store(true, std::memory_order_release);  // Publish
-
-  while (!ready.load(std::memory_order_acquire)) {}  // Subscribe
-  assert(data == 42);  // Guaranteed
-```
-
-- cpp data = 42; ready.store(true, std::memory_order_release); // Publish
-- while (!ready.load(std::memory_order_acquire)) {} // Subscribe assert(data == 42); // Guaranteed ```
-
-**Seq_cst (when total order needed):**
-
-```cpp
-x.store(1, std::memory_order_seq_cst);
-  y.store(1, std::memory_order_seq_cst);
-  // All threads see same order of x and y updates
-```
-
-- cpp x.store(1, std::memory_order_seq_cst); y.store(1, std::memory_order_seq_cst); // All threads see same order of x and y updates ```
 
 **Note:** Full detailed explanation with additional examples available in source materials.
 
@@ -882,53 +815,25 @@ PaddedAtomic counters[4];
 ```
 
 **Answer:**
-
 ```cpp
 Prevents false sharing
 ```
-
-- Prevents false sharing ```
-
+- cpp Prevents false sharing ```
+- - Prevents false sharing ```
 **Explanation:**
-
 - **False sharing:** Performance killer in concurrent code
 - **Problem without alignment:**
-
 **Cache line basics:**
-
 - CPU caches data in **cache lines** (typically 64 bytes)
 - When CPU accesses memory, entire cache line loaded
 - Multiple variables can share same cache line
-
 **False sharing scenario:**
-
 ```cpp
 std::atomic<int> counters[4];  // No padding
   // Memory layout (assuming 4-byte ints):
   // [counter[0]][counter[1]][counter[2]][counter[3]][...] (16 bytes total)
   // All fit in single 64-byte cache line!
 ```
-
-**What goes wrong:**
-
-```cpp
-Core 0: Increments counter[0]
-    → Invalidates entire cache line in other cores
-  Core 1: Wants to increment counter[1]
-    → Must reload cache line (expensive!)
-    → Even though counter[0] and counter[1] are independent!
-  Core 2: Increments counter[2]
-    → Invalidates cache line again
-  Core 3: Increments counter[3]
-    → Invalidates cache line again
-
-  Result: Cache line bouncing between cores
-          ("Ping-pong effect")
-          Massive performance degradation
-```
-
-- Core 2: Increments counter[2] → Invalidates cache line again Core 3: Increments counter[3] → Invalidates cache line again
-- Result: Cache line bouncing between cores ("Ping-pong effect") Massive performance degradation ```
 
 **Note:** Full detailed explanation with additional examples available in source materials.
 

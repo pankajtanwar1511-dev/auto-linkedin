@@ -4153,12 +4153,12 @@
             "limitations",
             "recursion"
           ],
-          "answer": "C++11 `constexpr` functions can only contain a single return statement with a conditional expression, no local variables, and no loops.",
-          "explanation": "C++11's `constexpr` is very restricted to ensure compile-time evaluation is tractable for the compiler. Only single-expression functions work, forcing a functional programming style with recursion instead of loops. The ternary operator `?:` is allowed because it's an expression, not a statement. C++14 relaxed these restrictions significantly, allowing normal function bodies with loops, variables, and multiple returns.",
+          "answer": "- C++11 `constexpr` functions can only contain a single return statement with a conditional expression, no local variables, and no loops.",
+          "explanation": "- C++11's `constexpr` is very restricted to ensure compile-time evaluation is tractable for the compiler\n- Only single-expression functions work, forcing a functional programming style with recursion instead of loops\n- The ternary operator `?:` is allowed because it's an expression, not a statement\n- C++14 relaxed these restrictions significantly, allowing normal function bodies with loops, variables, and multiple returns.",
           "code_examples": [
-            "// ✅ Valid: single return, ternary operator, recursion\nconstexpr int factorial(int n) {\n    return (n <= 1) ? 1 : n * factorial(n - 1);\n}\n\n// ❌ Invalid: local variable\nconstexpr int bad1(int x) {\n    int result = x * x;  // ❌ Error\n    return result;\n}\n\n// ❌ Invalid: loop\nconstexpr int bad2(int n) {\n    int sum = 0;\n    for (int i = 0; i < n; ++i) {  // ❌ Error\n        sum += i;\n    }\n    return sum;\n}\n\n// ❌ Invalid: multiple statements\nconstexpr int bad3(int x) {\n    if (x < 0) return -x;  // ❌ Error\n    return x;\n}\n\n// ✅ Workaround: use recursion\nconstexpr int abs(int x) {\n    return (x < 0) ? -x : x;  // Single return with ternary\n}"
+            "// ✅ Valid: single return, ternary operator, recursion\nconstexpr int factorial(int n) {\n    return (n <= 1) ? 1 : n * factorial(n - 1);\n}\n\n// ❌ Invalid: local variable\nconstexpr int bad1(int x) {\n    // ... (abbreviated)"
           ],
-          "key_takeaway": "C++11 `constexpr` functions must be single-expression (though recursion is allowed); use ternary operator instead of if-statements."
+          "key_takeaway": "**Note:** Full detailed explanation with additional examples available in source materials."
         },
         {
           "question_number": 8,
@@ -4390,12 +4390,12 @@
             "limitations",
             "recursion"
           ],
-          "answer": "C++11 `constexpr` functions must be evaluable in constant expressions, and loops with mutable state aren't compatible with the constant expression evaluation model.",
-          "explanation": "The C++11 restriction was a simplification for the initial `constexpr` implementation. Constant expression evaluation must be deterministic and side-effect-free, which is naturally modeled by pure functions. Loops with mutable state require the compiler to simulate state changes across iterations, complicating compile-time evaluation. Recursion fits the functional model better. C++14 relaxed this restriction because compilers became sophisticated enough to handle stateful computation at compile-time.",
+          "answer": "**Code example:**\n\n```cpp\n// ❌ C++11: loop not allowed\n// constexpr int sumLoop(int n) {\n//     int sum = 0;\n//     for (int i = 0; i <= n; ++i) {\n//         sum += i;\n//     }\n//     return sum;\n    // ... (abbreviated)\n```\n\n- // ✅ C++11: use recursion instead constexpr int sumRecursive(int n) { return (n <= 0)\n- 0 : n + sumRecursive(n - 1); }",
+          "explanation": "- The C++11 restriction was a simplification for the initial `constexpr` implementation\n- Constant expression evaluation must be deterministic and side-effect-free, which is naturally modeled by pure functions\n- Loops with mutable state require the compiler to simulate state changes across iterations, complicating compile-time evaluation\n- Recursion fits the functional model better",
           "code_examples": [
-            "// ❌ C++11: loop not allowed\n// constexpr int sumLoop(int n) {\n//     int sum = 0;\n//     for (int i = 0; i <= n; ++i) {\n//         sum += i;\n//     }\n//     return sum;\n// }\n\n// ✅ C++11: use recursion instead\nconstexpr int sumRecursive(int n) {\n    return (n <= 0) ? 0 : n + sumRecursive(n - 1);\n}\n\nconstexpr int result = sumRecursive(10);  // 55 at compile-time\n\n// Factorial with recursion\nconstexpr int factorial(int n) {\n    return (n <= 1) ? 1 : n * factorial(n - 1);\n}\n\n// Fibonacci with recursion\nconstexpr int fibonacci(int n) {\n    return (n <= 1) ? n : fibonacci(n - 1) + fibonacci(n - 2);\n}\n\n// ✅ C++14 relaxed this: loops allowed\n// constexpr int sumLoop14(int n) {  // Valid in C++14+\n//     int sum = 0;\n//     for (int i = 0; i <= n; ++i) {\n//         sum += i;\n//     }\n//     return sum;\n// }"
+            "// ❌ C++11: loop not allowed\n// constexpr int sumLoop(int n) {\n//     int sum = 0;\n//     for (int i = 0; i <= n; ++i) {\n//         sum += i;\n//     }\n//     return sum;\n    // ... (abbreviated)"
           ],
-          "key_takeaway": "C++11 `constexpr` disallows loops to simplify compile-time evaluation; use recursion instead; C++14 lifted this restriction."
+          "key_takeaway": "**Note:** Full detailed explanation with additional examples available in source materials."
         },
         {
           "question_number": 19,
@@ -4474,12 +4474,12 @@
             "recursion",
             "type_safety"
           ],
-          "answer": "Use variadic templates with recursive expansion and a base case for type-safe argument handling.",
-          "explanation": "Variadic templates provide compile-time type safety - each argument's type is known and preserved. The recursive pattern processes arguments one at a time, with the base case terminating recursion. The `sizeof...(rest) > 0` check enables conditional formatting (like separators). Unlike printf's format strings, this approach is type-safe - you can't accidentally mismatch types and format specifiers, and custom types work automatically if they have `operator<<`.",
+          "answer": "- Use variadic templates with recursive expansion and a base case for type-safe argument handling.",
+          "explanation": "- Variadic templates provide compile-time type safety - each argument's type is known and preserved\n- The recursive pattern processes arguments one at a time, with the base case terminating recursion\n- The `sizeof...(rest) > 0` check enables conditional formatting (like separators)",
           "code_examples": [
-            "// Base case: no arguments\nvoid print() {\n    std::cout << \"\\n\";\n}\n\n// Recursive case\ntemplate<typename T, typename... Args>\nvoid print(const T& first, const Args&... rest) {\n    std::cout << first;\n    if (sizeof...(rest) > 0) {\n        std::cout << \", \";\n    }\n    print(rest...);\n}\n\n// Usage\nprint(1, 2.5, \"hello\", 'x');  // 1, 2.5, hello, x\n\n// With custom separator\ntemplate<typename T>\nvoid printWithSep(const std::string& sep, const T& last) {\n    std::cout << last << \"\\n\";\n}\n\ntemplate<typename T, typename... Args>\nvoid printWithSep(const std::string& sep, const T& first, const Args&... rest) {\n    std::cout << first << sep;\n    printWithSep(sep, rest...);\n}\n\nprintWithSep(\" | \", 1, 2, 3, 4);  // 1 | 2 | 3 | 4\n\n// Type checking\ntemplate<typename... Args>\ntypename std::enable_if<std::conjunction<std::is_arithmetic<Args>...>::value, void>::type\nprintNumbers(const Args&... args) {\n    print(args...);\n}"
+            "// Base case: no arguments\nvoid print() {\n    std::cout << \"\\n\";\n}\n\n// Recursive case\ntemplate<typename T, typename... Args>\n    // ... (abbreviated)"
           ],
-          "key_takeaway": "Variadic templates enable type-safe print functions through recursive expansion; no format string mismatches possible."
+          "key_takeaway": "**Note:** Full detailed explanation with additional examples available in source materials."
         },
         {
           "question_number": 23,
@@ -4496,12 +4496,12 @@
             "brace_initialization",
             "pod"
           ],
-          "answer": "Aggregate initialization directly initializes members of structs/arrays without calling constructors; braces enable clean nested initialization syntax.",
-          "explanation": "Aggregates are simple structures (all public data, no user-provided constructors, no virtual functions, no base classes). Brace initialization provides clean syntax for memberwise initialization, automatically zero-initializing any members not explicitly listed. This is particularly elegant for nested structures and arrays. The key advantage over constructor-based initialization is simplicity - no need to write constructors for simple data structures.",
+          "answer": "**Code example:**\n\n```cpp\n// Simple aggregate (no user-provided constructors)\nstruct Point {\n    int x;\n    int y;\n};\n\nPoint p1 = {10, 20};      // C-style aggregate init\n    // ... (abbreviated)\n```\n\n- cpp // Simple aggregate (no user-provided constructors) struct Point { int x; int y; };\n- // Nested aggregates struct Rectangle { Point topLeft; Point bottomRight; };",
+          "explanation": "- Aggregates are simple structures (all public data, no user-provided constructors, no virtual functions, no base classes)\n- Brace initialization provides clean syntax for memberwise initialization, automatically zero-initializing any members not explicitly listed\n- This is particularly elegant for nested structures and arrays\n- The key advantage over constructor-based initialization is simplicity - no need to write constructors for simple data structures.",
           "code_examples": [
-            "// Simple aggregate (no user-provided constructors)\nstruct Point {\n    int x;\n    int y;\n};\n\nPoint p1 = {10, 20};      // C-style aggregate init\nPoint p2{10, 20};         // Brace-init (same result)\nPoint p3{10};             // Partial: x=10, y=0 (zero-init remaining)\nPoint p4{};               // All zero-initialized: x=0, y=0\n\n// Nested aggregates\nstruct Rectangle {\n    Point topLeft;\n    Point bottomRight;\n};\n\nRectangle rect{\n    {0, 10},    // topLeft\n    {10, 0}     // bottomRight\n};\n\n// Arrays (aggregates)\nint arr1[]{1, 2, 3, 4, 5};\nint arr2[10]{1, 2};  // First two = 1, 2; rest = 0\n\n// Not an aggregate (has constructor)\nstruct NotAggregate {\n    int x;\n    NotAggregate(int val) : x(val) {}\n};\n// NotAggregate na{10, 20};  // ❌ Error: calls constructor"
+            "// Simple aggregate (no user-provided constructors)\nstruct Point {\n    int x;\n    int y;\n};\n\nPoint p1 = {10, 20};      // C-style aggregate init\n    // ... (abbreviated)"
           ],
-          "key_takeaway": "Aggregate initialization with braces directly initializes public members; unspecified members are zero-initialized automatically."
+          "key_takeaway": "**Note:** Full detailed explanation with additional examples available in source materials."
         },
         {
           "question_number": 24,
@@ -4562,12 +4562,12 @@
             "recursion",
             "algorithm"
           ],
-          "answer": "Use variadic templates with recursion to compare values and return the maximum.",
-          "explanation": "The recursive approach processes arguments pairwise - compare the first with the maximum of the rest. The base case returns the single remaining value. This pattern works for any comparable type. The beauty of variadic templates is type preservation - you don't lose type information. For mixed types, the result type is determined by standard type promotion rules during comparison.",
+          "answer": "- Use variadic templates with recursion to compare values and return the maximum.",
+          "explanation": "- The recursive approach processes arguments pairwise - compare the first with the maximum of the rest\n- The base case returns the single remaining value\n- This pattern works for any comparable type\n- The beauty of variadic templates is type preservation - you don't lose type information",
           "code_examples": [
-            "// Base case: single element\ntemplate<typename T>\nT max_value(T value) {\n    return value;\n}\n\n// Recursive case: compare first with max of rest\ntemplate<typename T, typename... Args>\nT max_value(T first, Args... rest) {\n    T rest_max = max_value(rest...);\n    return (first > rest_max) ? first : rest_max;\n}\n\n// Usage\nint maximum = max_value(3, 7, 2, 9, 5);  // 9\ndouble dmax = max_value(1.5, 2.7, 0.3);  // 2.7\n\n// Alternative: using std::max with fold expression (C++17)\n// template<typename... Args>\n// auto max_value(Args... args) {\n//     return std::max({args...});  // initializer_list approach\n// }\n\n// Type-safe version requiring same types\ntemplate<typename T>\nT max_same_type(T value) {\n    return value;\n}\n\ntemplate<typename T, typename... Args>\nT max_same_type(T first, Args... rest) {\n    static_assert((std::is_same<T, Args>::value && ...),\n                  \"All arguments must be same type\");\n    return max_value(first, rest...);\n}"
+            "// Base case: single element\ntemplate<typename T>\nT max_value(T value) {\n    return value;\n}\n\n// Recursive case: compare first with max of rest\n    // ... (abbreviated)"
           ],
-          "key_takeaway": "Implement variadic functions like max using recursion: base case for single element, recursive case comparing first with max of rest."
+          "key_takeaway": "**Note:** Full detailed explanation with additional examples available in source materials."
         },
         {
           "question_number": 27,
@@ -4649,12 +4649,12 @@
             "cpp14",
             "evolution"
           ],
-          "answer": "C++14 relaxed `constexpr` restrictions significantly: allowing multiple statements, local variables, loops, and void return types.",
-          "explanation": "C++11's `constexpr` was intentionally limited to ensure straightforward compile-time evaluation. The single-return-statement rule forced functional programming style with recursion. C++14 removed most restrictions, allowing imperative programming style with loops, local variables, multiple returns, and even void functions. This makes `constexpr` much more practical - you can write normal code that happens to be evaluable at compile-time, rather than contorting logic into single expressions.",
+          "answer": "- C++14 relaxed `constexpr` restrictions significantly: allowing multiple statements, local variables, loops, and void return types.",
+          "explanation": "- C++11's `constexpr` was intentionally limited to ensure straightforward compile-time evaluation\n- The single-return-statement rule forced functional programming style with recursion\n- C++14 removed most restrictions, allowing imperative programming style with loops, local variables, multiple returns, and even void functions",
           "code_examples": [
-            "// ❌ C++11: restricted - only single return\nconstexpr int factorial11(int n) {\n    return (n <= 1) ? 1 : n * factorial11(n - 1);  // Recursion required\n}\n\n// ✅ C++14: relaxed - loops and variables allowed\nconstexpr int factorial14(int n) {\n    int result = 1;\n    for (int i = 2; i <= n; ++i) {\n        result *= i;\n    }\n    return result;\n}\n\n// ❌ C++11: no void constexpr\n// constexpr void log() { }  // Error in C++11\n\n// ✅ C++14: void constexpr allowed\nconstexpr void log14() { }\n\n// ❌ C++11: no multiple returns\n// constexpr int abs11(int x) {\n//     if (x < 0) return -x;\n//     return x;\n// }\n\n// ✅ C++11: must use ternary\nconstexpr int abs11(int x) {\n    return (x < 0) ? -x : x;\n}\n\n// ✅ C++14: normal control flow\nconstexpr int abs14(int x) {\n    if (x < 0) return -x;\n    return x;\n}"
+            "// ❌ C++11: restricted - only single return\nconstexpr int factorial11(int n) {\n    return (n <= 1) ? 1 : n * factorial11(n - 1);  // Recursion required\n}\n\n// ✅ C++14: relaxed - loops and variables allowed\nconstexpr int factorial14(int n) {\n    // ... (abbreviated)"
           ],
-          "key_takeaway": "C++14 dramatically relaxed `constexpr`: allowing loops, variables, multiple statements - making it practical for complex compile-time code."
+          "key_takeaway": "**Note:** Full detailed explanation with additional examples available in source materials."
         }
       ],
       "practice_tasks": [
