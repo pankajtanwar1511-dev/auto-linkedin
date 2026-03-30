@@ -1,5 +1,11 @@
 Hello, C++ developers. [Post 1]
 
+Starting today, I'm sharing a deep dive into C++ — from core fundamentals to advanced patterns.
+
+Every post is designed to strengthen your understanding and elevate your code quality.
+
+Follow along as we build mastery, one topic at a time.
+
 Topic: Classes, Structs, and Access Specifiers.
 
 This topic represents essential knowledge for C++ developers at all levels.
