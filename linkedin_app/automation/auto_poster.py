@@ -116,10 +116,10 @@ class AutoPoster:
             # Random delay within 40-minute window (0-40 minutes)
             delay_minutes = random.randint(0, 40)
 
-            if current_hour_utc < 6:  # Morning run (triggered at 2:30 AM UTC = 8:00 AM IST)
+            if current_hour_utc >= 20 or current_hour_utc < 12:  # Morning run (triggered at 11:00 PM UTC = 8:00 AM JST next day)
                 time_label = "morning"
-                window = "8:00-8:40 AM IST"
-            else:  # Evening run (triggered at 12:30 PM UTC = 6:00 PM IST)
+                window = "8:00-8:40 AM JST"
+            else:  # Evening run (triggered at 9:00 AM UTC = 6:00 PM JST)
                 # Check if today is an "evening post day" (Tue, Thu, Sat = days 1, 3, 5)
                 # Pattern: Mon(1 post), Tue(2 posts), Wed(1), Thu(2), Fri(1), Sat(2), Sun(1)
                 evening_post_days = [1, 3, 5]  # Tuesday, Thursday, Saturday
@@ -129,7 +129,7 @@ class AutoPoster:
                     return True  # Skip evening post on non-posting days
 
                 time_label = "evening"
-                window = "6:00-6:40 PM IST"
+                window = "6:00-6:40 PM JST"
 
             delay_seconds = delay_minutes * 60
 

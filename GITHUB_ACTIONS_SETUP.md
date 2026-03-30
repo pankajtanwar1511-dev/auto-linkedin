@@ -78,14 +78,14 @@ Before waiting for the scheduled run, test it manually:
 Once set up, the workflow will run automatically on an **alternating pattern**:
 
 ### Morning Post (Every Day)
-- **Workflow starts:** Every day at 8:00 AM IST (2:30 AM UTC)
-- **Time window:** 8:00-8:40 AM IST (40-minute window)
+- **Workflow starts:** Every day at 8:00 AM JST (11:00 PM UTC)
+- **Time window:** 8:00-8:40 AM JST (40-minute window)
 - **Posts at:** Random time within window
 - **Frequency:** 7 days/week
 
 ### Evening Post (Alternate Days Only)
-- **Workflow starts:** Tuesday, Thursday, Saturday at 6:00 PM IST (12:30 PM UTC)
-- **Time window:** 6:00-6:40 PM IST (40-minute window)
+- **Workflow starts:** Tuesday, Thursday, Saturday at 6:00 PM JST (9:00 AM UTC)
+- **Time window:** 6:00-6:40 PM JST (40-minute window)
 - **Posts at:** Random time within window
 - **Frequency:** 3 days/week (Tue/Thu/Sat only)
 
@@ -179,13 +179,13 @@ Edit `.github/workflows/linkedin_daily_post.yml`:
 on:
   schedule:
     # Change this cron expression
-    - cron: '30 2 * * *'  # 8:00 AM IST
+    - cron: '0 23 * * *'  # 8:00 AM JST (11 PM UTC previous day)
 ```
 
 **Common times:**
-- 7:00 AM IST: `cron: '30 1 * * *'`
-- 9:00 AM IST: `cron: '30 3 * * *'`
-- 6:00 PM IST: `cron: '30 12 * * *'`
+- 7:00 AM JST: `cron: '0 22 * * *'`  # 10 PM UTC previous day
+- 9:00 AM JST: `cron: '0 0 * * *'`   # Midnight UTC
+- 6:00 PM JST: `cron: '0 9 * * *'`   # 9 AM UTC
 
 Use [crontab.guru](https://crontab.guru/) to generate cron expressions.
 
@@ -196,8 +196,8 @@ Add multiple schedule entries:
 ```yaml
 on:
   schedule:
-    - cron: '30 2 * * *'  # 8:00 AM IST
-    - cron: '30 12 * * *' # 6:00 PM IST
+    - cron: '0 23 * * *'  # 8:00 AM JST
+    - cron: '0 9 * * *'   # 6:00 PM JST
 ```
 
 ### Skip Weekends
@@ -242,7 +242,7 @@ Per week breakdown:
 
 Once set up:
 
-1. **Tomorrow 8 AM IST:** Day 1 posts automatically (morning)
+1. **Tomorrow 8 AM JST:** Day 1 posts automatically (morning)
 2. **If tomorrow is Tue/Thu/Sat:** Day 2 posts at 6 PM (evening)
 3. **If tomorrow is Mon/Wed/Fri/Sun:** No evening post (waits for next day)
 4. **Continues alternating** until Day 59
@@ -288,7 +288,7 @@ https://github.com/pankajtanwar1511-dev/auto-linkedin/actions
 
 Your LinkedIn automation is now:
 - ✅ Running on GitHub's infrastructure
-- ✅ Posting daily at 8 AM IST
+- ✅ Posting daily at 8 AM JST
 - ✅ Completely free (no server costs)
 - ✅ Tracked and logged automatically
 - ✅ Will run for all 88 days
