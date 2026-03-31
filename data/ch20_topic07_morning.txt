@@ -1,22 +1,30 @@
-Hello, C++ developers. [Post 81]
+Hello, C++ developers. [Post 77]
 
-Topic: Custom HashMap Implementation - Hash Table Internals.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-This topic represents essential knowledge for C++ developers at all levels.
+TOPIC: Custom Hash Map - Separate Chaining Implementation
 
-This carousel covers:
-- Fundamental concepts and practical applications
-- Common mistakes and how to avoid them
-- Best practices for production code
-- Performance implications and optimization opportunities
-- Real-world implementation patterns
+Building production-grade hash tables from scratch
 
-Understanding these principles enables writing more maintainable, efficient, and correct C++ code.
+What this carousel covers:
+→ Separate chaining collision resolution with linked list buckets
+→ Dynamic rehashing when load factor α exceeds 0.75 threshold
+→ Custom hash function design using std::hash composition
+→ O(1) average-case insert/find/erase operations with amortized complexity
+→ Complete HashMap implementation with 16 initial buckets and 2× growth strategy
+→ Real-world word frequency counter demonstrating operator[] auto-insertion
 
-The material combines theoretical foundations with practical examples you can apply immediately.
+Key insights:
+◆ Load factor α = n/m (elements/buckets) should stay around 0.75 - below this gives low collision probability (~37% per Poisson distribution), above this causes chains to grow longer and performance degrades
+◆ Rehashing at 2× bucket size has O(n) cost but amortizes to O(1) per insertion over many operations
+◆ Bad hash functions cause O(n) worst-case performance - all keys colliding into one bucket transforms into linear search
+◆ References to values become dangling after rehash since the entire bucket vector gets reallocated
+◆ operator[] provides std::unordered_map semantics with automatic Value{} (0 for int) initialization on missing keys
+◆ Separate chaining avoids clustering issues of open addressing but requires extra memory for list pointers
+◆ Custom hash composition: std::hash<std::string>{}(name) ^ (std::hash<int>{}(age) << 1) combines multiple fields
 
-Mastery of fundamentals separates competent developers from exceptional ones.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
----
+Note: LinkedIn compresses carousel images. For best experience, download the PDF or pinch-zoom on mobile.
 
-#CPlusPlus #CPP #Programming #SoftwareEngineering #TechEducation #DeveloperLife #CodeQuality #BestPractices #SoftwareDevelopment #CleanCode #ModernCPP #TechnicalExcellence #ProfessionalDevelopment #CodeCraftsmanship #TechSkills #ComputerScience #SoftwareCraftsmanship #TechCommunity #LearnToCode #CodingEducation
+#CPlusPlus #CPP #HashMaps #DataStructures #Algorithms #SystemsProgramming #PerformanceEngineering #STL

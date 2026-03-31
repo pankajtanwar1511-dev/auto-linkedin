@@ -1,22 +1,30 @@
-Hello, C++ developers. [Post 84]
+Hello, C++ developers. [Post 80]
 
-Topic: Lock-Free Ring Buffer - SPSC Atomic Queue.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Concurrent programming remains one of the most challenging yet essential skills in modern software development.
+TOPIC: Lock-Free Ring Buffer (Circular Queue)
 
-This carousel covers:
-- Core threading concepts and synchronization primitives
-- Thread safety patterns and data race prevention
-- Performance considerations in concurrent code
-- Common pitfalls that lead to deadlocks and race conditions
-- Best practices for scalable multithreaded applications
+Single Producer Single Consumer (SPSC) with atomic operations
 
-Understanding concurrency fundamentals separates intermediate developers from advanced engineers.
+What this carousel covers:
+→ Fixed-size circular queue with atomic head/tail indices
+→ Memory ordering: release-acquire semantics for visibility
+→ False sharing prevention with 64-byte cache line alignment
+→ Full vs empty disambiguation by sacrificing one buffer slot
+→ Producer-consumer pattern with 1024 slots and 10,000 items
+→ std::memory_order_relaxed, acquire, and release usage
+→ Zero allocation and zero syscalls after initialization
 
-The material includes practical examples that demonstrate both correct and incorrect patterns.
+Key insights:
+◆ SPSC simplicity: Only one writer (no tail contention), one reader (no head contention) - eliminates CAS loops needed in MPMC
+◆ Memory ordering: Producer uses memory_order_release on tail store, consumer uses memory_order_acquire on tail load for synchronization
+◆ False sharing solution: alignas(64) on atomic head/tail puts them on separate cache lines, preventing ping-pong between CPU cores
+◆ Full detection: next_index(tail) == head (sacrifices 1 slot) avoids ambiguity where head == tail could mean empty OR full
+◆ Performance: Spin-waiting trades CPU cycles for latency - no context switches, no mutex syscalls, stays in userspace
+◆ Real-world use: Audio/video pipelines, high-frequency trading, game engine render threads - where microseconds matter
 
-What's been your biggest challenge with multithreaded programming?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
----
+Note: LinkedIn compresses carousel images. For best experience, download the PDF or pinch-zoom on mobile.
 
-#CPlusPlus #CPP #Multithreading #Concurrency #ThreadSafety #Programming #SoftwareEngineering #ParallelProgramming #PerformanceOptimization #SystemsProgramming #TechEducation #DeveloperLife #SoftwareDevelopment #DataRaces #Synchronization #ModernCPP #CPP11 #ThreadingPatterns #ScalableCode #TechnicalSkills
+#CPlusPlus #CPP #LockFree #Concurrency #Atomics #MemoryOrdering #RingBuffer #CircularQueue #SPSC #LockFreeProgramming #HighPerformance #SystemsProgramming #RealTime #CacheLine #FalseSharing #ProducerConsumer #ModernCPP #CPP11 #AtomicOperations #MultithreadedProgramming

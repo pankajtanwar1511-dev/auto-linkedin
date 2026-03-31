@@ -1,22 +1,33 @@
-Hello, C++ developers. [Post 83]
+Hello, C++ developers. [Post 79]
 
-Topic: RAII File Descriptor Wrapper - Resource Management.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Resource Acquisition Is Initialization - the cornerstone principle of C++ resource management.
+TOPIC: RAII File Descriptor Wrapper
 
-This carousel covers:
-- RAII principles and their importance
-- Implementing custom RAII wrappers
-- Exception safety through RAII
-- Common resource management patterns
-- Integration with modern C++ features
+Automatic resource management for file descriptors using RAII principles
 
-RAII eliminates entire categories of resource leaks and exception safety issues when applied correctly.
+What this carousel covers:
+→ RAII pattern: resource lifetime bound to object lifetime with automatic cleanup
+→ FileDescriptor class with constructor acquiring FD and destructor releasing it
+→ Rule of Five implementation: deleted copy operations, implemented move semantics
+→ Exception-safe file operations with read() and write() wrappers
+→ Safe file reading with 1024-byte buffer and automatic cleanup on scope exit
+→ Pipe communication using RAII to manage two file descriptors (read/write ends)
+→ Kernel pipe buffer of typically 64KB for write operations
+→ Double close protection using fd_ != -1 check before calling close()
 
-The material includes practical examples of custom RAII classes for various resource types beyond memory.
+Key insights:
+◆ Operating systems limit file descriptors to typically 1024 per process - leaks accumulate and cause "too many open files" errors
+◆ Traditional C-style open()/close() is prone to leaks if close() is forgotten or exceptions occur
+◆ RAII ensures file descriptor cannot leak even if exception thrown after opening - destructor runs during stack unwinding
+◆ Copy constructor deleted prevents double close bug where two owners would close() same FD and crash
+◆ Move semantics transfer ownership safely - moved-from object sets fd_ to -1
+◆ Unix pipes create two file descriptors consuming from limited pool - explicit close of unused ends prevents resource exhaustion
+◆ Closing pipe write end signals EOF to readers for clean shutdown
+◆ Rule of Five: defining destructor requires defining all five special member functions (copy ctor/assignment, move ctor/assignment)
 
-In my experience, consistent RAII usage results in more robust and maintainable codebases.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
----
+Note: LinkedIn compresses carousel images. For best experience, download the PDF or pinch-zoom on mobile.
 
-#CPlusPlus #CPP #RAII #ResourceManagement #ExceptionSafety #Programming #SoftwareEngineering #CleanCode #ModernCPP #MemorySafety #BestPractices #TechEducation #DeveloperLife #SoftwareDevelopment #CodeQuality #DesignPatterns #SystemsProgramming #TechnicalExcellence #CodeReliability #SoftwareCraftsmanship
+#CPlusPlus #CPP #RAII #ResourceManagement #FileDescriptors #ExceptionSafety #MoveSemantics #RuleOfFive #UnixPipes #SystemProgramming
