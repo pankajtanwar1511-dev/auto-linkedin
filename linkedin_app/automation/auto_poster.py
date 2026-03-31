@@ -118,7 +118,9 @@ class AutoPoster:
             # Random delay within 40-minute window (0-40 minutes)
             delay_minutes = random.randint(0, 40)
 
-            if current_hour_utc >= 20 or current_hour_utc < 12:  # Morning run (triggered at 11:00 PM UTC = 8:00 AM JST next day)
+            # Morning: 23:00 UTC (11 PM) = 8:00 AM JST next day
+            # Evening: 09:00 UTC (9 AM) = 6:00 PM JST same day
+            if current_hour_utc >= 22 or current_hour_utc <= 1:  # Morning run window (22:00-01:00 UTC)
                 time_label = "morning"
                 window = "8:00-8:40 AM JST"
             else:  # Evening run (triggered at 9:00 AM UTC = 6:00 PM JST)
