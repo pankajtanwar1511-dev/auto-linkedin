@@ -1,22 +1,31 @@
-Hello, C++ developers. [Post 77]
+Hello, C++ developers. [Post 70]
 
-Topic: topic_03_lock_free_stack.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-This topic represents essential knowledge for C++ developers at all levels.
+TOPIC: Lock-Free Stack Implementation
 
-This carousel covers:
-- Fundamental concepts and practical applications
-- Common mistakes and how to avoid them
-- Best practices for production code
-- Performance implications and optimization opportunities
-- Real-world implementation patterns
+Building concurrent stacks without mutexes using atomic operations
 
-Understanding these principles enables writing more maintainable, efficient, and correct C++ code.
+What this carousel covers:
+→ Compare-and-Swap (CAS) loops with std::atomic<T>::compare_exchange_weak()
+→ ABA problem and solution using tagged pointers with version counters
+→ Memory ordering semantics: release for push(), acquire for pop()
+→ Memory reclamation challenges (hazard pointers, reference counting, epoch-based)
+→ Performance comparison: lock-free 342ms vs mutex 876ms (2.5× faster, 8 threads, 1M ops)
+→ Progress guarantees: lock-free (system progress) vs wait-free (per-thread progress)
 
-The material combines theoretical foundations with practical examples you can apply immediately.
+Key insights:
+◆ Lock-free uses CAS loops where threads retry on contention instead of blocking - at least one thread always makes progress
+◆ ABA problem occurs when pointer changes A→B→A causing CAS to succeed incorrectly - solved by incrementing tag on each modification
+◆ TaggedPointer struct combines Node* ptr with uintptr_t tag (version counter) to prevent ABA corruption
+◆ Push uses memory_order_release on CAS success to publish changes, pop uses memory_order_acquire to see latest changes
+◆ Memory reclamation is critical: can't immediately delete popped nodes as other threads may still access them (use hazard pointers or reference counting)
+◆ Benchmark with 8 threads shows lock-free outperforms mutex under high contention (threads spend ~60% time blocked with mutex)
+◆ CAS weak may spuriously fail (use in loops), CAS strong never spuriously fails (slower, use for single attempts)
+◆ Real-world applications: high-frequency trading task queues, real-time audio processing, work-stealing schedulers, memory allocators with per-thread free lists
 
-Mastery of fundamentals separates competent developers from exceptional ones.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
----
+Note: LinkedIn compresses carousel images. For best experience, download the PDF or pinch-zoom on mobile.
 
-#CPlusPlus #CPP #Programming #SoftwareEngineering #TechEducation #DeveloperLife #CodeQuality #BestPractices #SoftwareDevelopment #CleanCode #ModernCPP #TechnicalExcellence #ProfessionalDevelopment #CodeCraftsmanship #TechSkills #ComputerScience #SoftwareCraftsmanship #TechCommunity #LearnToCode #CodingEducation
+#CPlusPlus #CPP #ConcurrentProgramming #LockFree #Atomics #MultithreadingCPP #SystemsProgramming #PerformanceOptimization #LowLatency #HighFrequencyTrading #RealtimeSystems #ModernCPP

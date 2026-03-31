@@ -1,22 +1,37 @@
-Hello, C++ developers. [Post 76]
+Hello, C++ developers. [Post 69]
 
-Topic: topic_02_thread_safe_bounded_queue.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-This topic represents essential knowledge for C++ developers at all levels.
+TOPIC: Thread-Safe Bounded Queue
 
-This carousel covers:
-- Fundamental concepts and practical applications
-- Common mistakes and how to avoid them
-- Best practices for production code
-- Performance implications and optimization opportunities
-- Real-world implementation patterns
+Solving the producer-consumer problem with synchronization primitives
 
-Understanding these principles enables writing more maintainable, efficient, and correct C++ code.
+What this carousel covers:
+→ The bounded buffer problem: producers add items, consumers remove items, queue has maximum capacity
+→ Race conditions, buffer full/empty states, deadlock prevention, spurious wakeups handling
+→ std::mutex for mutual exclusion ensuring only one thread accesses critical section at a time
+→ std::condition_variable with two CVs: not_full_ for producers, not_empty_ for consumers
+→ wait() atomically releases mutex and blocks, re-acquires mutex before returning
+→ Always use predicate version to handle spurious wakeups
+→ Bounded vs unbounded: fixed capacity prevents memory exhaustion, producers block when full
+→ FIFO semantics guaranteed using std::queue internally
+→ Operations: push() waits if full, pop() waits if empty, try_push()/try_pop() non-blocking variants
+→ Timeout support with wait_for()/wait_until() prevents indefinite blocking
 
-The material combines theoretical foundations with practical examples you can apply immediately.
+Key insights:
+◆ Two condition variables improve performance: not_full_ for producers only, not_empty_ for consumers only - avoids waking wrong thread type
+◆ Production-quality implementation uses RAII locks (lock_guard, unique_lock) for exception safety - mutex unlocks even during exceptions via destructor
+◆ Spurious wakeups are real: condition variables may wake without notification due to OS-level signal handling - always use predicate with wait()
+◆ notify_one() wakes one thread (more efficient), notify_all() wakes all threads (use for shutdown broadcast)
+◆ Exception-based termination with close(): sets is_closed_ flag, calls notify_all() on both CVs, wakes all waiting threads, throws runtime_error
+◆ Move semantics for efficiency: T value = std::move(queue_.front()) then queue_.pop() - only pop after successful move for strong exception guarantee
+◆ Real-world timing example: producers push every 100ms (20 items/sec total with 2 threads), consumers pop every 150ms (13.3 items/sec) - producers faster so queue fills up demonstrating back-pressure
+◆ Graceful shutdown pattern: main thread calls queue.close() after 2 seconds, workers' pop() throws exception, workers catch and exit cleanly, prevents deadlock from forgotten close()
+◆ Timeout-based processing: pop_for(2s) waits up to 2 seconds, returns std::optional, allows autonomous shutdown when producers stop without explicit signaling
+◆ Capacity parameter must be positive (checked in constructor), internally uses std::queue<T>, mutable mutex for const methods like size()
 
-Mastery of fundamentals separates competent developers from exceptional ones.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
----
+Note: LinkedIn compresses carousel images. For best experience, download the PDF or pinch-zoom on mobile.
 
-#CPlusPlus #CPP #Programming #SoftwareEngineering #TechEducation #DeveloperLife #CodeQuality #BestPractices #SoftwareDevelopment #CleanCode #ModernCPP #TechnicalExcellence #ProfessionalDevelopment #CodeCraftsmanship #TechSkills #ComputerScience #SoftwareCraftsmanship #TechCommunity #LearnToCode #CodingEducation
+#CPlusPlus #CPP #Multithreading #Concurrency #ThreadSafety #Synchronization #ProducerConsumer #ConditionVariables #Mutex #RAII #ExceptionSafety #ModernCPP #SystemsProgramming #PerformanceEngineering #SoftwareArchitecture

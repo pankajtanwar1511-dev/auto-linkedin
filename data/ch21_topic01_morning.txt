@@ -1,0 +1,42 @@
+Hello, C++ developers. [Post 72]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TOPIC: C++20 Language Features - Three-Way Comparison and Modern Syntax
+
+Cleaner, safer code with spaceship operator, designated initializers, and compile-time guarantees
+
+What this carousel covers:
+→ Three-way comparison operator (<=>): Replace 6 comparison operators with 1 line
+→ Comparison categories: strong_ordering, weak_ordering, partial_ordering for NaN handling
+→ Designated initializers: Initialize struct members by name (.x = 1, .y = 2)
+→ consteval functions: Guaranteed compile-time execution (stricter than constexpr)
+→ constinit variables: Compile-time initialization but mutable at runtime
+→ [[likely]] and [[unlikely]] attributes: Branch prediction hints for 10-30% speedup
+→ using enum: Bring enum values into scope without repetitive prefixes
+→ Template lambdas: []<typename T>(T x) for explicit template parameters
+→ Aggregate improvements: Parenthesized initialization and base class support
+→ Conditionally explicit constructors: Type-safe conversions based on compile-time conditions
+
+Key insights:
+◆ operator<=> reduces 6 comparison functions to 1 line with = default, avoiding boilerplate and errors
+◆ operator== NOT automatically generated from operator<=> for efficiency - define both for complete comparison support
+◆ Compiler selects weakest comparison category: int (strong) + double (partial) → partial_ordering due to NaN
+◆ Designated initializers must match declaration order, can't mix with positional, allows skipping members (default-initialized)
+◆ consteval functions MUST run at compile-time (error if called with runtime values), unlike constexpr which CAN run at compile-time
+◆ constinit guarantees compile-time initialization but allows runtime mutation, preventing static initialization order fiasco
+◆ [[likely]] and [[unlikely]] improve branch prediction by 10-30% in hot paths and error handling (>90% asymmetry)
+◆ Branch hints optimize instruction cache layout: likely code in hot path, unlikely code placed further away
+◆ Template lambdas enable perfect forwarding with std::forward<T> and access to actual type T (not possible with auto)
+◆ using enum eliminates verbose prefixes in switch statements: case Red instead of case Color::Red
+◆ C++20 aggregates support base class initialization: Derived{.id = 1, .name = "Bob"} initializes Base::id
+◆ Parenthesized aggregate initialization: Point p(1, 2) now valid alongside Point p{1, 2}
+◆ Comparison categories convert implicitly: strong → weak → partial, but NOT reverse (can't convert partial back to strong)
+◆ partial_ordering handles NaN: a <=> NaN returns std::partial_ordering::unordered (not comparable)
+◆ weak_ordering for case-insensitive strings: "Hello" equivalent to "HELLO" but not strongly equal (contents differ)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Note: LinkedIn compresses carousel images. For best experience, download the PDF or pinch-zoom on mobile.
+
+#CPlusPlus #CPP #CPP20 #ThreeWayComparison #SpaceshipOperator #Consteval #Constinit #DesignatedInitializers #ModernCPP #BranchPrediction #TemplateLambdas #CompileTime #LanguageFeatures #CleanCode
