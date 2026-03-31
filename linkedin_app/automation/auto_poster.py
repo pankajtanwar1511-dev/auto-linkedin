@@ -70,10 +70,10 @@ class AutoPoster:
             with open(self.tracker_file, 'r') as f:
                 for line in f:
                     if line.strip().startswith('[ ]'):
-                        # Parse: [ ] Day 1  | ch01_topic01_morning | Topic Title
+                        # Parse: [ ] Post 1  | ch01_topic01_morning | Topic Title
                         parts = line.strip().split('|')
                         if len(parts) >= 3:
-                            day_part = parts[0].replace('[ ]', '').replace('Day', '').strip()
+                            day_part = parts[0].replace('[ ]', '').replace('Post', '').strip()
                             file_base = parts[1].strip()
                             topic_title = parts[2].strip()
 
