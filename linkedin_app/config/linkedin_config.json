@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "app_name": "LinkedIn C++ Content Automation",
   "content": {
-    "pdf_directory": "/home/pankaj/autolinkedin/data",
-    "caption_directory": "/home/pankaj/autolinkedin/data",
+    "pdf_directory": "../../data",
+    "caption_directory": "../../data",
     "file_pattern": "ch{chapter:02d}_topic{topic:02d}_morning",
     "total_posts": 88
   },
