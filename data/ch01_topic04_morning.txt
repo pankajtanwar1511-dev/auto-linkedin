@@ -1,22 +1,34 @@
 Hello, C++ developers. [Post 4]
 
-Topic: Constructor Types - Default, Parameterized, Copy, and Move.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Special member functions define object lifecycle management in C++.
+TOPIC: Constructor Types - Default, Parameterized, Copy, and Move
 
-This carousel covers:
-- Constructor types and their use cases
-- Copy vs move semantics in special members
-- Rule of Three, Five, and Zero principles
-- When to delete or default special members
-- Object lifecycle and resource management
+Object lifecycle management and the Rule of Five for resource-safe C++ code.
 
-Proper understanding of special member functions prevents resource leaks, double-frees, and undefined behavior.
+What this carousel covers:
+→ 4 constructor types - default, parameterized, copy, move with auto-generation rules
+→ Member initialization methods - initializer list vs constructor body vs in-class defaults
+→ CRITICAL initialization order bug - declaration order, NOT initializer list order causes UB
+→ Built-in types contain garbage if uninitialized - source of heisenbugs
+→ Const and reference members - MUST use initializer lists, assignment fails
+→ Rule of Five - if you define one special member, define or delete all five
+→ Move constructors - rvalue references, mark noexcept for container performance
+→ Copy elision and RVO - C++17 mandatory elision eliminates copy/move
+→ Delegating constructors - centralize init logic, reduce duplication
+→ Explicit keyword - prevent surprising implicit conversions
+→ Autonomous vehicle trajectory example - all constructor types with deep vs shallow copy
 
-The material includes common mistakes and their consequences, along with correct implementation patterns.
+Key insights:
+◆ Members initialize in declaration order, not list order - mismatch causes undefined behavior using uninitialized values
+◆ Built-in types are garbage unless explicitly initialized
+◆ Initializer lists are mandatory for const/ref and more efficient for all types (direct construction vs default-construct-then-assign)
+◆ Declaring any constructor suppresses default constructor - use = default to restore
 
-These concepts are frequently tested in technical interviews and crucial for production code.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
----
+Note: LinkedIn compresses carousel images. For best experience, download the PDF or pinch-zoom on mobile.
 
-#CPlusPlus #CPP #Constructors #Destructors #RuleOfFive #Programming #SoftwareEngineering #ResourceManagement #ObjectLifecycle #MemorySafety #TechEducation #DeveloperLife #BestPractices #SoftwareDevelopment #CodeQuality #ModernCPP #CleanCode #TechnicalExcellence #SystemsProgramming #InterviewPrep
+#CPlusPlus #CPP #Constructors #RuleOfFive #MoveSem
+
+antics #CopyElision #ResourceManagement #MemorySafety #InitializerLists #Programming #SoftwareEngineering #TechEducation #BestPractices #ModernCPP #CodeQuality

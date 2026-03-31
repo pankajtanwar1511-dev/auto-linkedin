@@ -1,22 +1,33 @@
 Hello, C++ developers. [Post 5]
 
-Topic: Copy Constructor vs Assignment Operator and Rule of Three/Five/Zero.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Special member functions define object lifecycle management in C++.
+TOPIC: Copy Constructor vs Assignment Operator and Rule of Three/Five/Zero
 
-This carousel covers:
-- Constructor types and their use cases
-- Copy vs move semantics in special members
-- Rule of Three, Five, and Zero principles
-- When to delete or default special members
-- Object lifecycle and resource management
+Resource management fundamentals that prevent memory leaks, double-deletion, and undefined behavior.
 
-Proper understanding of special member functions prevents resource leaks, double-frees, and undefined behavior.
+What this carousel covers:
+→ Copy constructor vs copy assignment operator - when each is called, key differences
+→ Self-assignment safety - why "if (this != &other)" prevents data corruption
+→ Rule of Three (C++98) - destructor, copy constructor, copy assignment together
+→ Rule of Five (C++11+) - adds move constructor and move assignment for performance
+→ Rule of Zero (modern C++) - prefer smart pointers and RAII over manual resource management
+→ Copy-and-swap idiom - strong exception safety and automatic self-assignment protection
+→ Shallow vs deep copy - default bitwise copy causes double-deletion crashes
+→ noexcept on move operations - critical for optimal container performance
+→ Copy elision (RVO/NRVO) - C++17 mandatory optimization eliminates copy/move
+→ Compiler-generated special member function rules - what gets suppressed when
+→ Autonomous vehicle sensor data buffer example - Rule of Five implementation
 
-The material includes common mistakes and their consequences, along with correct implementation patterns.
+Key insights:
+◆ Copy constructor creates new objects during initialization; assignment modifies existing objects requiring cleanup
+◆ Default shallow copy of raw pointers causes double-deletion - multiple objects delete the same memory
+◆ Rule of Zero is preferred: use smart pointers to eliminate manual resource management entirely
+◆ Mark move operations noexcept so containers use moves instead of copies during reallocation
+◆ Never use std::move on return values - it prevents RVO/NRVO optimization
 
-These concepts are frequently tested in technical interviews and crucial for production code.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
----
+Note: LinkedIn compresses carousel images. For best experience, download the PDF or pinch-zoom on mobile.
 
-#CPlusPlus #CPP #Constructors #Destructors #RuleOfFive #Programming #SoftwareEngineering #ResourceManagement #ObjectLifecycle #MemorySafety #TechEducation #DeveloperLife #BestPractices #SoftwareDevelopment #CodeQuality #ModernCPP #CleanCode #TechnicalExcellence #SystemsProgramming #InterviewPrep
+#CPlusPlus #CPP #CopyConstructor #AssignmentOperator #RuleOfThree #RuleOfFive #RuleOfZero #MoveSema ntics #ResourceManagement #MemorySafety #SmartPointers #RAII #CopyElision #ExceptionSafety #Programming #SoftwareEngineering #TechEducation #ModernCPP #BestPractices #CodeQuality

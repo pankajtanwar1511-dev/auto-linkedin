@@ -1,22 +1,31 @@
 Hello, C++ developers. [Post 11]
 
-Topic: Move Semantics and std::move.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Move semantics revolutionized C++ performance characteristics in C++11 and beyond.
+TOPIC: Move Semantics and std::move
 
-This carousel covers:
-- Lvalue vs rvalue distinction and references
-- Move constructor and move assignment semantics
-- Perfect forwarding and universal references
-- When move operations actually improve performance
-- Common mistakes that prevent move semantics
+Transfer resource ownership efficiently by "stealing" internal pointers instead of expensive deep copies - the performance revolution of C++11.
 
-Understanding move semantics is fundamental to writing efficient modern C++ code.
+What this carousel covers:
+→ Move semantics problem - before C++11, returning large objects forced expensive O(n) copies
+→ Resource transfer mechanism - move constructors steal pointers and nullify source in O(1) time
+→ std::move is just a cast - converts lvalue to rvalue reference, doesn't move anything itself
+→ When moves happen automatically - returning locals, passing temporaries, container reallocation
+→ Valid-but-unspecified state - moved-from objects remain destructible and assignable
+→ Rule of Five - defining destructor, copy/move constructors, copy/move assignment together
+→ Rule of Zero preferred - use smart pointers so compiler generates all operations correctly
+→ Common pitfalls - moving from const, returning std::move(local) prevents RVO, self-move bugs
+→ Real-world autonomous vehicle trajectory transfer - moving 1M waypoint trajectories efficiently
 
-The examples demonstrate both the mechanics and the performance implications of proper move usage.
+Key insights:
+◆ std::move doesn't move - it's static_cast<T&&> that enables move operations to be called
+◆ Move vs copy: O(1) pointer theft vs O(n) element duplication - ~1000× faster for large containers
+◆ Moved-from objects are valid but unspecified - safe to destroy or assign, unsafe to read
+◆ Never use std::move in return statements - prevents RVO and forces unnecessary move
+◆ noexcept on move operations is critical - containers use copies without it for exception safety
 
-How often do you explicitly implement move constructors in your classes?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
----
+Note: LinkedIn compresses carousel images. For best experience, download the PDF or pinch-zoom on mobile.
 
-#CPlusPlus #CPP #MoveSemantics #CPP11 #RvalueReferences #Programming #SoftwareEngineering #PerformanceOptimization #ModernCPP #ZeroCopy #Efficiency #TechEducation #DeveloperLife #LanguageFeatures #SoftwareDevelopment #CodeOptimization #PerfectForwarding #TechnicalExcellence #SystemsProgramming #AdvancedCPP
+#CPlusPlus #CPP #MoveSemantics #StdMove #CPP11 #RvalueReferences #Programming #SoftwareEngineering #PerformanceOptimization #ModernCPP #ZeroCopy #Efficiency #TechEducation #DeveloperLife #LanguageFeatures #SoftwareDevelopment #CodeOptimization #RuleOfFive #TechnicalExcellence #AdvancedCPP
