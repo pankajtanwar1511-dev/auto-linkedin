@@ -1,22 +1,30 @@
-Hello, C++ developers. [Post 85]
+Hello, C++ developers. [Post 81]
 
-Topic: LRU Cache Implementation - Eviction Policy.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-This topic represents essential knowledge for C++ developers at all levels.
+TOPIC: LRU Cache (Least Recently Used)
 
-This carousel covers:
-- Fundamental concepts and practical applications
-- Common mistakes and how to avoid them
-- Best practices for production code
-- Performance implications and optimization opportunities
-- Real-world implementation patterns
+Fixed-size cache with O(1) operations using hash map + doubly-linked list
 
-Understanding these principles enables writing more maintainable, efficient, and correct C++ code.
+What this carousel covers:
+→ O(1) get() and put() operations through hash map + doubly-linked list combination
+→ Automatic eviction of least recently used items when capacity is reached
+→ Web browser page cache simulation with capacity 3 demonstrating cache hit/miss patterns
+→ std::optional usage for safe cache miss handling without exceptions
+→ std::list::splice() for O(1) access order tracking (just pointer updates)
+→ Cache hit optimization: ~1ns hash lookup + ~1ns list splice vs disk I/O at ~1-10ms
 
-The material combines theoretical foundations with practical examples you can apply immediately.
+Key insights:
+◆ Performance at 90% hit rate = 10× average speedup; 50% hit rate = 2× speedup compared to always loading from disk
+◆ Real browsers keep ~100-500 pages in memory using LRU; CDNs like Cloudflare/Akamai use LRU for edge caching
+◆ Doubly-linked list required for O(1) removal (node->prev->next = node->next); singly-linked would be O(n)
+◆ LRU vs LFU trade-off: LRU evicts oldest accessed (simpler), LFU evicts least frequently accessed (better for frequency patterns)
+◆ Memory bounded regardless of total items accessed - 3-page cache uses constant memory even accessing thousands of pages
+◆ Database systems use LRU for query result cache, index pages (PostgreSQL shared buffers, MySQL query cache)
+◆ Operating systems use LRU for page table cache and disk block cache (buffer cache in Linux kernel)
 
-Mastery of fundamentals separates competent developers from exceptional ones.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
----
+Note: LinkedIn compresses carousel images. For best experience, download the PDF or pinch-zoom on mobile.
 
-#CPlusPlus #CPP #Programming #SoftwareEngineering #TechEducation #DeveloperLife #CodeQuality #BestPractices #SoftwareDevelopment #CleanCode #ModernCPP #TechnicalExcellence #ProfessionalDevelopment #CodeCraftsmanship #TechSkills #ComputerScience #SoftwareCraftsmanship #TechCommunity #LearnToCode #CodingEducation
+#CPlusPlus #CPP #DataStructures #Algorithms #CachingStrategies #SystemDesign #PerformanceOptimization #LRUCache #HashMaps #LinkedLists #ModernCPP #Programming

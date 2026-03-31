@@ -1,22 +1,33 @@
-Hello, C++ developers. [Post 88]
+Hello, C++ developers. [Post 84]
 
-Topic: Spinlock vs Mutex - Lock Performance Comparison.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Concurrent programming remains one of the most challenging yet essential skills in modern software development.
+TOPIC: Spin Lock vs Mutex - Performance Comparison
 
-This carousel covers:
-- Core threading concepts and synchronization primitives
-- Thread safety patterns and data race prevention
-- Performance considerations in concurrent code
-- Common pitfalls that lead to deadlocks and race conditions
-- Best practices for scalable multithreaded applications
+When should you spin vs sleep? The answer lies in microseconds.
 
-Understanding concurrency fundamentals separates intermediate developers from advanced engineers.
+What this carousel covers:
+→ Mutex blocking behavior with context switch cost (1-10 μs)
+→ Spinlock busy-wait mechanism with zero context switch overhead
+→ Performance benchmark: 4 threads, 100,000 iterations comparison
+→ Simple spinlock implementation using std::atomic_flag
+→ Exponential backoff optimization with pause instruction
+→ Spin-then-yield hybrid with 1000 iteration spin limit
+→ Real benchmark results: 42ms (spinlock) vs 65ms (mutex)
 
-The material includes practical examples that demonstrate both correct and incorrect patterns.
+Key insights:
+◆ Use spinlocks when critical section < 100 ns (e.g., incrementing counter ~1 ns)
+◆ Use mutex when critical section > 1 μs or high contention
+◆ Context switch costs 1000× more than 1ns increment operation
+◆ Spinlock wins 35-40% speedup for short critical sections
+◆ Pause instruction (_mm_pause) reduces power and improves hyperthreading
+◆ Exponential backoff caps at 1024 iterations to prevent infinite spinning
+◆ Spinning thread consumes 100% CPU core, sleeping thread uses 0%
+◆ Priority inversion requires mutex with priority inheritance support
+◆ Applications: packet counters (~2ns), memory allocators, game physics, HFT order books
 
-What's been your biggest challenge with multithreaded programming?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
----
+Note: LinkedIn compresses carousel images. For best experience, download the PDF or pinch-zoom on mobile.
 
-#CPlusPlus #CPP #Multithreading #Concurrency #ThreadSafety #Programming #SoftwareEngineering #ParallelProgramming #PerformanceOptimization #SystemsProgramming #TechEducation #DeveloperLife #SoftwareDevelopment #DataRaces #Synchronization #ModernCPP #CPP11 #ThreadingPatterns #ScalableCode #TechnicalSkills
+#CPlusPlus #CPP #Concurrency #Multithreading #SystemsProgramming #PerformanceOptimization #Spinlock #Mutex #Synchronization #LockFree #ParallelProgramming #HighPerformanceComputing #RealTimeSystems #ModernCPP #Threading
