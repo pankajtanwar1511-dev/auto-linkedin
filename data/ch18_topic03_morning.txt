@@ -1,22 +1,39 @@
-Hello, C++ developers. [Post 65]
+Hello, C++ developers. [Post 62]
 
-Topic: I/O Multiplexing with select() - Event-Driven Architecture.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Software architecture decisions have long-lasting impacts on maintainability and scalability.
+TOPIC: I/O Multiplexing with select() - Event-Driven Architecture
 
-This carousel covers:
-- Architectural patterns and their applications
-- Trade-offs in different architectural approaches
-- When to apply each pattern
-- Scaling considerations
-- Migration strategies between architectures
+Monitor multiple connections with a single thread
 
-Good architecture enables growth while poor architecture creates mounting technical debt.
+What this carousel covers:
+→ The blocking problem: Threads need ~8KB stack + overhead per client
+→ select() system call: Blocks until file descriptors become ready for I/O
+→ fd_set data structure: Bitmask limited to 1024 file descriptors (FD_SETSIZE)
+→ Master set pattern: Copy fd_set before each select() call (select() modifies it)
+→ Ready states: Listening socket (accept() ready), connected socket (data available), EOF (recv() returns 0)
+→ Timeout modes: NULL (block forever), {0,0} (non-blocking poll), {sec,usec} (timed wait)
+→ FD_SETSIZE overflow: Check new_client >= FD_SETSIZE before FD_SET() to prevent corruption
+→ Zero-byte read detection: Must check recv() == 0 and FD_CLR() or causes 100% CPU busy loop
+→ Partial send handling: send() returns bytes written, queue remainder and monitor writefds
+→ Signal interruption (EINTR): Use SA_RESTART flag or retry loop when select() interrupted
 
-The material focuses on practical decision-making rather than theoretical ideals.
+Key insights:
+◆ Resource comparison: Each thread uses ~8KB stack, select() uses ~128 bytes for fd_set (1024 bits)
+◆ Scalability limits: Most systems cap at 10,000-30,000 threads, select() handles <1000 connections well
+◆ O(max_fd) complexity: Kernel checks all FDs up to max_fd, userspace must iterate to find ready ones
+◆ nfds parameter: Must pass (highest_fd + 1), not count of file descriptors
+◆ Three return values: Positive (count of ready FDs), 0 (timeout expired), -1 (error, check errno)
+◆ Real-world analogy: Threads = one waiter per table (expensive), select() = one waiter watching all tables (efficient)
+◆ Heartbeat with timeout: Set timeout.tv_sec = 5 to trigger periodic tasks every 5 seconds when idle
+◆ Production pattern: Track active FDs in std::set, use 64KB buffers, remove disconnected FDs immediately
+◆ Common bug: Forgetting to copy master_fds causes connections to become unresponsive after first select()
+◆ Critical check sequence: recv() returns 0 → client disconnected → FD_CLR() and close() → update client count
+◆ Write buffer queue: Use std::map<int, std::queue<std::string>> for partial sends, FD_SET(fd, &master_write_fds) when data queued
+◆ FD number reuse: FD numbers increment over time, checking fd_count insufficient, must check fd >= 1024
 
-Architecture is where engineering discipline meets business requirements.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
----
+Note: LinkedIn compresses carousel images. For best experience, download the PDF or pinch-zoom on mobile.
 
-#CPlusPlus #CPP #SoftwareArchitecture #SoftwareDesign #Programming #SoftwareEngineering #SystemsDesign #ArchitecturalPatterns #Scalability #TechEducation #DeveloperLife #TechnicalLeadership #SoftwareDevelopment #CodeOrganization #DesignDecisions #TechnicalExcellence #EnterpriseArchitecture #SystemsThinking #SoftwareCraftsmanship #ProfessionalDevelopment
+#CPlusPlus #CPP #NetworkProgramming #SystemsProgramming #SelectSyscall #IOMultiplexing #EventDriven #ConcurrentProgramming #SocketProgramming #LinuxProgramming #POSIX #ServerDevelopment #HighPerformance
