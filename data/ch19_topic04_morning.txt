@@ -1,22 +1,41 @@
-Hello, C++ developers. [Post 72]
+Hello, C++ developers. [Post 67]
 
-Topic: C++20 Language Features - Three-Way Comparison and Modern Syntax.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Modern C++ features dramatically improve code expressiveness, safety, and performance.
+TOPIC: C++20 Language Features - Three-Way Comparison and Modern Syntax
 
-This carousel covers:
-- Key language features introduced in this standard
-- Practical applications of new capabilities
-- Migration strategies from older standards
-- Performance implications of modern features
-- Best practices for adoption
+Cleaner comparison operators, designated initializers, and compile-time guarantees
 
-Staying current with C++ standards enables writing more maintainable and efficient code.
+What this carousel covers:
+→ Three-way comparison operator (<=>): Replace 6 comparison operators with 1 line of defaulted code
+→ Comparison categories: std::strong_ordering, std::weak_ordering, std::partial_ordering for different comparison semantics
+→ Designated initializers: Initialize aggregate members by name with .member = value syntax
+→ consteval functions: Guaranteed compile-time execution (unlike constexpr which can run at runtime)
+→ constinit variables: Compile-time initialization with mutability (avoids static initialization order fiasco)
+→ Branch prediction attributes: [[likely]] and [[unlikely]] for 10-30% performance gains in hot paths
+→ using enum: Bring enum values into scope to eliminate repetitive Enum::Value syntax
+→ Template lambdas: Explicit template parameters []<typename T>(T x) for perfect forwarding
+→ Aggregate improvements: Parenthesized initialization Point p(1, 2) and initialization with base classes
+→ Conditionally explicit constructors: explicit(!std::is_convertible_v<U, T>) for type-safe conversions
 
-The examples demonstrate both the new syntax and the problems it solves compared to previous approaches.
+Key insights:
+◆ Spaceship operator reduces boilerplate: operator<=>(const T&) = default generates all 6 comparison operators (<, <=, >, >=, ==, !=) from a single line
+◆ operator== not synthesized from operator<=>: Must define both separately for efficiency (equality checks can be optimized differently than ordering)
+◆ Comparison category hierarchy: Compiler selects weakest category among members (struct with int + double → partial_ordering due to NaN)
+◆ Designated initializers require declaration order: Config{.a=1, .c=3} works, but Config{.c=3, .a=1} is a compile error
+◆ consteval vs constexpr: consteval must execute at compile-time (consteval int f(int n) fails if n is runtime variable), constexpr can execute at runtime
+◆ constinit ensures safe global initialization: constinit int global1 = 42; constinit int global2 = global1 * 2; (no static initialization order fiasco)
+◆ Branch attributes improve CPU prediction: [[unlikely]] on error paths can reduce mispredicted branches by 10-30% in hot loops processing millions of items
+◆ using enum eliminates verbosity: switch(color) { case Red: break; } instead of case Color::Red: break; when using enum Color is declared
+◆ Template lambdas enable perfect forwarding: []<typename T>(T&& arg) { return func(std::forward<T>(arg)); } preserves value categories
+◆ NaN requires partial_ordering: double comparisons return std::partial_ordering::unordered for NaN values (NaN is not comparable to anything including itself)
+◆ Return type deduction: auto operator<=>() = default deduces weakest category (int + std::string → strong_ordering, int + double → partial_ordering)
+◆ constinit allows mutation: constinit int global = 100; global = 200; (valid), unlike constexpr which is immutable after initialization
+◆ Parenthesized aggregates: C++20 allows Point p(1, 2) in addition to Point p{1, 2} for aggregate initialization
+◆ Base class comparisons: Defaulted operator<=> in derived class automatically includes base class members in comparison (compares base first, then derived)
 
-Which modern C++ features have had the biggest impact on your codebase?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
----
+Note: LinkedIn compresses carousel images. For best experience, download the PDF or pinch-zoom on mobile.
 
-#CPlusPlus #CPP #ModernCPP #CPP11 #CPP14 #CPP17 #CPP20 #Programming #SoftwareEngineering #LanguageFeatures #TechEducation #DeveloperLife #CodeModernization #SoftwareDevelopment #BestPractices #LanguageStandards #CodeQuality #TechnicalExcellence #ProgrammingLanguages #SoftwareEvolution
+#CPlusPlus #CPP #CPP20 #SpaceshipOperator #DesignatedInitializers #Consteval #Constinit #TemplateMetaprogramming #ModernCPP #CompileTime #Aggregates #Comparisons #BranchPrediction #PerformanceOptimization #SystemsProgramming

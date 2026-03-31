@@ -1,22 +1,33 @@
-Hello, C++ developers. [Post 71]
+Hello, C++ developers. [Post 66]
 
-Topic: C++20 Coroutines - Stackless Cooperative Multitasking.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Modern C++ features dramatically improve code expressiveness, safety, and performance.
+TOPIC: C++20 Coroutines - Stackless Cooperative Multitasking
 
-This carousel covers:
-- Key language features introduced in this standard
-- Practical applications of new capabilities
-- Migration strategies from older standards
-- Performance implications of modern features
-- Best practices for adoption
+Linear async code without callback hell
 
-Staying current with C++ standards enables writing more maintainable and efficient code.
+What this carousel covers:
+→ Three coroutine keywords: co_await (suspend and wait), co_yield (produce value), co_return (complete)
+→ Promise types that control coroutine behavior: initial_suspend(), final_suspend(), return_value()
+→ Awaitable interface with three methods: await_ready(), await_suspend(), await_resume()
+→ Coroutine frames allocated on heap storing locals, parameters, and promise objects
+→ Generator pattern using co_yield to produce lazy sequences like Fibonacci
+→ Symmetric transfer returning coroutine_handle from await_suspend() for zero-overhead tail calls
+→ Exception handling through promise's unhandled_exception() storing std::exception_ptr
+→ HALO optimization (Heap Allocation eLision) when coroutine lifetime is nested within caller
 
-The examples demonstrate both the new syntax and the problems it solves compared to previous approaches.
+Key insights:
+◆ Coroutines solve callback hell - traditional async code with nested callbacks becomes linear readable flow
+◆ Any function containing co_await, co_yield, or co_return becomes a coroutine - compiler transforms it to state machine
+◆ Coroutine frame contains resume_point, destroy_point, promise, parameters, locals, and temporaries across suspensions
+◆ Generator<int> fibonacci() using co_yield produces infinite sequences lazily - 0,1,1,2,3,5,8,13,21,34
+◆ Symmetric transfer prevents stack overflow in recursive coroutines - can recurse 1,000,000 levels safely with constant stack
+◆ suspend_always initial_suspend() creates lazy start, suspend_never creates eager start immediately
+◆ Common pitfall: dangling references when parameters stored in frame outlive referenced objects
+◆ Memory management: default heap allocation, custom operator new/delete in promise, or compiler elision for short-lived coroutines
 
-Which modern C++ features have had the biggest impact on your codebase?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
----
+Note: LinkedIn compresses carousel images. For best experience, download the PDF or pinch-zoom on mobile.
 
-#CPlusPlus #CPP #ModernCPP #CPP11 #CPP14 #CPP17 #CPP20 #Programming #SoftwareEngineering #LanguageFeatures #TechEducation #DeveloperLife #CodeModernization #SoftwareDevelopment #BestPractices #LanguageStandards #CodeQuality #TechnicalExcellence #ProgrammingLanguages #SoftwareEvolution
+#CPlusPlus #CPP #CPP20 #Coroutines #AsyncProgramming #Concurrency #ModernCPP #StacklessCoroutines #CoAwait #CoYield #CoReturn #PromiseType #Generators #SymmetricTransfer #SoftwareEngineering #Programming #SystemsProgramming #PerformanceEngineering #TechEducation
