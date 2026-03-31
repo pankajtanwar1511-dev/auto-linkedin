@@ -99,7 +99,7 @@ class LinkedInPoster:
                     # Parse: [ ] Day 1  | ch01_topic01_morning | Topic Title
                     parts = line.strip().split('|')
                     if len(parts) >= 2:
-                        day_part = parts[0].replace('[ ]', '').replace('Day', '').strip()
+                        day_part = parts[0].replace('[ ]', '').replace('Post', '').strip()
                         file_part = parts[1].strip()
 
                         return {
