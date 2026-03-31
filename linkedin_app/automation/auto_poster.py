@@ -98,6 +98,46 @@ class AutoPoster:
         with open(caption_path, 'r') as f:
             return f.read().strip()
 
+    def _check_already_posted_today(self, time_slot: str) -> bool:
+        """
+        Check if we already posted in this time slot today.
+
+        Args:
+            time_slot: 'morning' or 'evening'
+
+        Returns:
+            True if already posted in this slot today
+        """
+        log_file = Path(__file__).parent.parent / "logs" / "posting_history.json"
+        if not log_file.exists():
+            return False
+
+        try:
+            with open(log_file, 'r') as f:
+                history = json.load(f)
+
+            # Get today's date
+            today = datetime.now().date()
+
+            # Check last few entries for today's posts
+            for entry in reversed(history[-10:]):  # Check last 10 entries
+                entry_time = datetime.fromisoformat(entry['timestamp'])
+                entry_date = entry_time.date()
+
+                if entry_date == today and entry.get('success', False):
+                    # Determine if this was morning or evening post based on hour (JST)
+                    entry_hour_jst = entry_time.hour + 9  # Convert to JST (rough approximation)
+                    entry_slot = 'morning' if entry_hour_jst >= 6 and entry_hour_jst < 12 else 'evening'
+
+                    if entry_slot == time_slot:
+                        return True
+
+            return False
+
+        except Exception as e:
+            self.logger.warning(f"Could not check posting history: {e}")
+            return False
+
     def post_next(self, dry_run: bool = False) -> bool:
         """
         Post next item from queue.
@@ -134,6 +174,11 @@ class AutoPoster:
 
                 time_label = "evening"
                 window = "6:00-6:40 PM JST"
+
+            # Safety check: Prevent double-posting in same time slot
+            if self._check_already_posted_today(time_label):
+                self.logger.info(f"⏭️  Already posted a {time_label} post today - skipping to prevent duplicate")
+                return True
 
             delay_seconds = delay_minutes * 60
 
