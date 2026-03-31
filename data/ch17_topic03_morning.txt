@@ -1,22 +1,33 @@
 Hello, C++ developers. [Post 58]
 
-Topic: topic_3_component_based_ecs.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-This topic represents essential knowledge for C++ developers at all levels.
+TOPIC: Component-Based Architecture (Entity-Component-System)
 
-This carousel covers:
-- Fundamental concepts and practical applications
-- Common mistakes and how to avoid them
-- Best practices for production code
-- Performance implications and optimization opportunities
-- Real-world implementation patterns
+Building objects through composition rather than inheritance
 
-Understanding these principles enables writing more maintainable, efficient, and correct C++ code.
+What this carousel covers:
+→ ECS separates Entities (IDs), Components (pure data), and Systems (logic)
+→ Composition vs inheritance: "HAS-A" relationship instead of "IS-A" relationship
+→ Data-oriented design: components stored contiguously for cache-friendly access
+→ 3 storage strategies: Hash Maps (simple), Archetypes (cache-friendly), Sparse Sets (fast iteration)
+→ Component dependencies: query systems filter entities with specific component combinations
+→ System execution order: priority-based scheduling or dependency graphs
+→ Deferred operations: queue entity creation/destruction to prevent iterator invalidation
+→ Versioned entity IDs with generation counters prevent use-after-free bugs
 
-The material combines theoretical foundations with practical examples you can apply immediately.
+Key insights:
+◆ Unity's DOTS achieved 4-10x performance improvements using ECS
+◆ Cache locality benefit: ECS loads 8 positions in one 64-byte cache line vs 1 OOP object
+◆ Archetype storage groups entities with same components for 2-5x speedup on large entity counts
+◆ MovementSystem processes only entities with both Position and Velocity components
+◆ Component granularity rule: group data used together, separate data used by different systems
+◆ Safe multithreading: track read/write access per system to prevent data races
+◆ Generic query function uses fold expressions: getEntitiesWith<Position, Velocity, Health>()
+◆ Sparse sets provide O(1) add/remove with fast iteration over packed dense arrays
 
-Mastery of fundamentals separates competent developers from exceptional ones.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
----
+Note: LinkedIn compresses carousel images. For best experience, download the PDF or pinch-zoom on mobile.
 
-#CPlusPlus #CPP #Programming #SoftwareEngineering #TechEducation #DeveloperLife #CodeQuality #BestPractices #SoftwareDevelopment #CleanCode #ModernCPP #TechnicalExcellence #ProfessionalDevelopment #CodeCraftsmanship #TechSkills #ComputerScience #SoftwareCraftsmanship #TechCommunity #LearnToCode #CodingEducation
+#CPlusPlus #CPP #ECS #EntityComponentSystem #SoftwareArchitecture #GameDevelopment #DataOrientedDesign #CacheFriendly #SystemDesign #PerformanceOptimization #ComponentBasedArchitecture #Unity #DOTS #GameEngine #Composition

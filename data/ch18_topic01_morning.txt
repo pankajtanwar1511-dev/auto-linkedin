@@ -1,22 +1,32 @@
-Hello, C++ developers. [Post 63]
+Hello, C++ developers. [Post 60]
 
-Topic: TCP/IP Socket Fundamentals - Building Network Applications.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Network programming requires understanding of both system-level concepts and C++ best practices.
+TOPIC: TCP/IP Socket Fundamentals - Building Network Applications
 
-This carousel covers:
-- Network programming fundamentals in C++
-- Socket APIs and their proper usage
-- Asynchronous IO patterns
-- Error handling in network code
-- Performance optimization techniques
+Core concepts for network communication in C++
 
-Building robust network applications demands attention to concurrency, error handling, and resource management.
+What this carousel covers:
+→ Socket API operations (socket, bind, listen, accept, connect, send/recv, close)
+→ Address structures: sockaddr_in with sin_family, sin_port (16-bit), sin_addr (32-bit)
+→ Network byte order: Big-endian (network) vs Little-endian (Intel x86/x64)
+→ Blocking vs non-blocking sockets and EAGAIN/EWOULDBLOCK error codes
+→ Socket lifecycle: server (socket→bind→listen→accept→recv/send→close) vs client (socket→connect→send/recv→close)
+→ Common ports: 80 (HTTP), 443 (HTTPS), 22 (SSH), 5000-9000 (custom apps)
+→ TCP vs UDP: SOCK_STREAM (reliable, ordered) vs SOCK_DGRAM (unreliable, fast, 8-byte header vs 20+ bytes)
 
-The examples demonstrate production-ready patterns for common networking scenarios.
+Key insights:
+◆ SIGPIPE signal crashes your process when writing to closed socket - use MSG_NOSIGNAL flag or signal(SIGPIPE, SIG_IGN)
+◆ send() and recv() don't guarantee all bytes transferred - implement send_all() and recv_all() wrapper functions with loops
+◆ Port enters TIME_WAIT state (60 seconds) after crash - use setsockopt(SO_REUSEADDR) to allow immediate restart
+◆ Forgetting htons() on little-endian: port 5000 (0x1388) becomes 34835 (0x8813) - always convert with htons/htonl
+◆ File descriptor limit typically 1024 (ulimit -n) - socket leaks cause EMFILE errors, use RAII SocketGuard class
+◆ TCP keep-alive options: TCP_KEEPIDLE (idle time), TCP_KEEPINTVL (interval), TCP_KEEPCNT (probe count)
+◆ UDP header 8 bytes vs TCP 20+ bytes - use UDP for sensor streams (lidar), TCP for critical data (HD maps)
+◆ Byte order conversion: htons() for 16-bit ports, htonl() for 32-bit IPs, ntohs/ntohl to convert back
 
-Network programming combines systems knowledge with software engineering discipline.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
----
+Note: LinkedIn compresses carousel images. For best experience, download the PDF or pinch-zoom on mobile.
 
-#CPlusPlus #CPP #NetworkProgramming #Sockets #Programming #SoftwareEngineering #SystemsProgramming #AsynchronousIO #Backend #TechEducation #DeveloperLife #NetworkIO #SoftwareDevelopment #DistributedSystems #PerformanceOptimization #TechnicalExcellence #ServerDevelopment #SystemsDesign #LowLevel #ProfessionalDevelopment
+#CPlusPlus #CPP #NetworkProgramming #SocketProgramming #TCPIP #SystemsProgramming #BackendDevelopment #DistributedSystems #LinuxProgramming #UnixSockets #RealTimeSystems #EmbeddedSystems #IoT #CloudComputing #Microservices #ServerProgramming #HighPerformance #LowLatency #AutonomousDriving #TechEducation
