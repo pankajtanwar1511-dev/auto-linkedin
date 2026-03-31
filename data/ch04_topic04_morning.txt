@@ -1,22 +1,31 @@
 Hello, C++ developers. [Post 13]
 
-Topic: Copy Elision and Return Value Optimization (RVO).
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-This topic represents essential knowledge for C++ developers at all levels.
+TOPIC: Copy Elision and Return Value Optimization (RVO)
 
-This carousel covers:
-- Fundamental concepts and practical applications
-- Common mistakes and how to avoid them
-- Best practices for production code
-- Performance implications and optimization opportunities
-- Real-world implementation patterns
+Master compiler optimizations that eliminate copy/move operations entirely by constructing objects directly in their final destination.
 
-Understanding these principles enables writing more maintainable, efficient, and correct C++ code.
+What this carousel covers:
+→ Copy elision principle - construct → copy → destroy becomes just construct in place
+→ RVO (Return Value Optimization) - returning prvalues, mandatory in C++17
+→ NRVO (Named RVO) - returning named locals, optional but common
+→ C++17 guaranteed copy elision - prvalue expressions bypass copy/move entirely
+→ std::move prevents NRVO - never use std::move on return statements
+→ Multiple return paths - usually prevent NRVO optimization
+→ Non-copyable types - work with RVO (C++17+), not with NRVO unless compiler applies it
+→ Automatic move fallback - if NRVO fails, compiler uses move instead of copy
+→ Real-world measurements - construct only vs construct + move comparisons
 
-The material combines theoretical foundations with practical examples you can apply immediately.
+Key insights:
+◆ C++17 RVO is mandatory for prvalues - return Object() always elides, no copy/move possible
+◆ NRVO is optional - return local_var may or may not elide, compiler-dependent
+◆ std::move on return prevents RVO/NRVO - forces move when elision would have occurred
+◆ Return by value is efficient - trust the compiler, don't use out-parameters for optimization
+◆ Multiple return paths block NRVO - compiler can't determine single object address
 
-Mastery of fundamentals separates competent developers from exceptional ones.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
----
+Note: LinkedIn compresses carousel images. For best experience, download the PDF or pinch-zoom on mobile.
 
-#CPlusPlus #CPP #Programming #SoftwareEngineering #TechEducation #DeveloperLife #CodeQuality #BestPractices #SoftwareDevelopment #CleanCode #ModernCPP #TechnicalExcellence #ProfessionalDevelopment #CodeCraftsmanship #TechSkills #ComputerScience #SoftwareCraftsmanship #TechCommunity #LearnToCode #CodingEducation
+#CPlusPlus #CPP #RVO #NRVO #CopyElision #CompilerOptimization #CPP17 #Programming #SoftwareEngineering #PerformanceOptimization #ZeroCopy #ModernCPP #TechEducation #DeveloperLife #CodeOptimization #Prvalue #ReturnValueOptimization #TechnicalExcellence #AdvancedCPP #CompilerMagic

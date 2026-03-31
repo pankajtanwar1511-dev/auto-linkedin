@@ -1,22 +1,34 @@
 Hello, C++ developers. [Post 18]
 
-Topic: Advanced Template Techniques - SFINAE and CRTP.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Template metaprogramming unlocks C++'s most powerful compile-time capabilities.
+TOPIC: Advanced Template Techniques - SFINAE and CRTP
 
-This carousel covers:
-- Template fundamentals and advanced patterns
-- Type deduction and SFINAE techniques
-- When to use templates vs other abstraction methods
-- Common template errors and how to debug them
-- Performance benefits of compile-time computation
+Master substitution failure is not an error (SFINAE) for conditional instantiation and curiously recurring template pattern (CRTP) for zero-overhead static polymorphism.
 
-Templates enable zero-cost abstractions - code that's as fast as hand-written specialized versions but infinitely more maintainable.
+What this carousel covers:
+→ SFINAE mechanism - failed template substitution silently removes candidate from overload set
+→ Immediate context rule - SFINAE applies to signature only, not function body
+→ std::enable_if placement - return type, template parameter, function parameter, trailing return
+→ Expression SFINAE with decltype - detect member functions, operators, nested types
+→ std::declval trick - create "fake" objects for unevaluated contexts without construction
+→ CRTP structure - class Derived : public Base<Derived> for static downcast
+→ CRTP vs virtual functions - zero overhead vs runtime flexibility tradeoff
+→ CRTP patterns - mixins, instance counting, template method, singleton
+→ Real-world LRU cache implementation combining SFINAE detection and CRTP design
 
-The examples progress from basic usage to advanced techniques, ensuring solid understanding at each level.
+Key insights:
+◆ SFINAE only works in immediate context - errors in function body are hard errors
+◆ enable_if<false> has no ::type member - triggers substitution failure
+◆ Expression SFINAE detects capabilities - decltype(t.method(), true_type{})
+◆ Overload priority with int vs ... - 0 converts to int (exact) > long > variadic
+◆ CRTP enables compile-time polymorphism - static_cast<Derived*>(this)->impl()
+◆ CRTP 10-30% faster than virtual - inlining + no vtable lookup in tight loops
+◆ Base<D1> and Base<D2> are different types - cannot use common base pointer
+◆ CRTP mixins compose functionality - multiple inheritance from Printable<T>, Comparable<T>
 
-Do you use templates extensively in your codebase?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
----
+Note: LinkedIn compresses carousel images. For best experience, download the PDF or pinch-zoom on mobile.
 
-#CPlusPlus #CPP #Templates #GenericProgramming #Metaprogramming #Programming #SoftwareEngineering #CompileTime #TypeSafety #CodeReuse #TechEducation #DeveloperLife #ModernCPP #TemplateMetaprogramming #SFINAE #AdvancedCPP #SoftwareDevelopment #CodeOptimization #ZeroCost #TechnicalExcellence
+#CPlusPlus #CPP #SFINAE #CRTP #TemplateMetaprogramming #StaticPolymorphism #CompileTime #EnableIf #Mixins #Programming #SoftwareEngineering #AdvancedCPP #ZeroOverhead #TypeTraits #ModernCPP #TechEducation #DeveloperLife #TemplatePatterns #GenericProgramming #TechnicalExcellence

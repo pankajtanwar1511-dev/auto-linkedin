@@ -1,22 +1,31 @@
 Hello, C++ developers. [Post 14]
 
-Topic: Operator Overloading.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Operator overloading enables expressive, intuitive APIs while maintaining type safety.
+TOPIC: Operator Overloading
 
-This carousel covers:
-- When and how to overload operators appropriately
-- Member vs non-member operator implementations
-- Common pitfalls in operator overloading
-- Performance considerations
-- Best practices for maintainable operator APIs
+Enable custom types to use familiar operator syntax while maintaining type safety and intuitive semantics for expressive, maintainable APIs.
 
-Well-designed operator overloading makes code more readable and natural, while poor design creates confusion.
+What this carousel covers:
+→ Operator overloading mechanism - operators are functions with special names (operator+)
+→ What can be overloaded - arithmetic, comparison, subscript, function call, stream I/O
+→ What cannot be overloaded - scope resolution (::), member selection (.), ternary (?:), sizeof
+→ Member vs non-member functions - left operand determines member function, symmetry needs friends
+→ Stream insertion/extraction - must be non-member friends for correct syntax (cout << obj)
+→ Compound assignment idiom - implement += first, then define + using +=
+→ Comparison operators - implement == and <, derive others (C++20 spaceship fixes this)
+→ Prefix vs postfix increment - prefix returns reference, postfix takes dummy int parameter
+→ Real-world Complex number class with natural mathematical syntax
 
-The material includes examples of both excellent and problematic operator overloading practices.
+Key insights:
+◆ Member functions have implicit left operand (a + b → a.operator+(b)), non-members are symmetric
+◆ Binary operators should be non-member friends when both operands are user types
+◆ Stream operators must be non-member - cout << obj requires operator<<(ostream&, const T&)
+◆ Return types matter - arithmetic returns by value, compound assignment returns *this by reference
+◆ Overload semantics should match intuition - don't make operator+ perform subtraction
 
-Proper operator overloading distinguishes professional-quality APIs from amateur implementations.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
----
+Note: LinkedIn compresses carousel images. For best experience, download the PDF or pinch-zoom on mobile.
 
-#CPlusPlus #CPP #OperatorOverloading #APIDesign #Programming #SoftwareEngineering #CleanCode #LanguageFeatures #CodeReadability #TechEducation #DeveloperLife #BestPractices #SoftwareDevelopment #CodeQuality #InterfaceDesign #ModernCPP #TechnicalExcellence #SoftwareDesign #ProgrammingPatterns #CodeExpressiveness
+#CPlusPlus #CPP #OperatorOverloading #APIDesign #Programming #SoftwareEngineering #CleanCode #LanguageFeatures #CodeReadability #TechEducation #DeveloperLife #BestPractices #SoftwareDevelopment #InterfaceDesign #ModernCPP #TechnicalExcellence #CustomOperators #Expressiveness #CodeQuality #SoftwareDesign
