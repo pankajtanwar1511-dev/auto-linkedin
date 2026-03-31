@@ -1,22 +1,32 @@
-Hello, C++ developers. [Post 80]
+Hello, C++ developers. [Post 76]
 
-Topic: topic_06_custom_function.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-This topic represents essential knowledge for C++ developers at all levels.
+TOPIC: Custom std::function - Callable Wrapper with Type Erasure
 
-This carousel covers:
-- Fundamental concepts and practical applications
-- Common mistakes and how to avoid them
-- Best practices for production code
-- Performance implications and optimization opportunities
-- Real-world implementation patterns
+Building a polymorphic function wrapper that stores any callable
 
-Understanding these principles enables writing more maintainable, efficient, and correct C++ code.
+What this carousel covers:
+→ Type erasure technique using inheritance and templates to hide concrete callable types behind uniform interface
+→ Small Buffer Optimization (SBO) with 16-byte inline buffer to avoid heap allocation for small lambdas
+→ Virtual dispatch mechanism through CallableBase and CallableImpl template hierarchy
+→ Supporting free functions, member functions, lambdas, and functors in single wrapper
+→ Copy semantics with clone() virtual function and unique_ptr management
+→ Signature-agnostic design using template specialization for R(Args...) patterns
+→ Performance overhead analysis: 5-10ns per call vs direct lambda (5-10× slower)
 
-The material combines theoretical foundations with practical examples you can apply immediately.
+Key insights:
+◆ Type erasure combines abstract CallableBase interface with template CallableImpl<F> to store any callable type polymorphically
+◆ Small Buffer Optimization stores callables ≤16 bytes inline (sizeof(CallableImpl<F>) <= BUF_SIZE) using placement new in aligned char buffer
+◆ Virtual function dispatch prevents compiler inlining but enables runtime polymorphism for callbacks and strategy patterns
+◆ std::function requires CopyConstructible callables because copy constructor needs clone() to duplicate stored callable
+◆ Benchmark results show direct lambda calls at ~1ns vs std::function at ~5-10ns per 1M invocations
+◆ Real-world applications include GUI callback systems, strategy pattern without inheritance hierarchies, and plugin architectures
+◆ std::function_ref (C++26) provides non-owning 16-byte lightweight alternative that never allocates (like std::string_view for callables)
+◆ Move-only callables require std::move_only_function (C++23) since standard std::function needs clone() for copy semantics
 
-Mastery of fundamentals separates competent developers from exceptional ones.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
----
+Note: LinkedIn compresses carousel images. For best experience, download the PDF or pinch-zoom on mobile.
 
-#CPlusPlus #CPP #Programming #SoftwareEngineering #TechEducation #DeveloperLife #CodeQuality #BestPractices #SoftwareDevelopment #CleanCode #ModernCPP #TechnicalExcellence #ProfessionalDevelopment #CodeCraftsmanship #TechSkills #ComputerScience #SoftwareCraftsmanship #TechCommunity #LearnToCode #CodingEducation
+#CPlusPlus #CPP #TypeErasure #Templates #CallableWrappers #AdvancedCPP #STL #FunctionalProgramming #Polymorphism #PerformanceOptimization #SmallBufferOptimization #VirtualDispatch #ModernCPP #SoftwareEngineering #Programming

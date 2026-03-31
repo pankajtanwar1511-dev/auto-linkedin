@@ -1,22 +1,33 @@
-Hello, C++ developers. [Post 79]
+Hello, C++ developers. [Post 75]
 
-Topic: topic_05_vector_internals.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-The Standard Template Library provides battle-tested, high-performance data structures and algorithms.
+TOPIC: std::vector Internals - Dynamic Array Implementation
 
-This carousel covers:
-- Container characteristics and selection criteria
-- Algorithm complexity and performance analysis
-- Iterator categories and their implications
-- Common usage patterns and antipatterns
-- Performance optimization techniques
+How dynamic arrays achieve amortized O(1) insertions
 
-Understanding STL internals enables informed decisions about container selection and proper usage patterns.
+What this carousel covers:
+→ Internal structure: data pointer, size, and capacity management
+→ Growth strategies: 2× (libstdc++) vs 1.5× (libc++) growth factors
+→ Exception safety: noexcept move vs copy-with-rollback during reallocation
+→ Iterator invalidation rules and when reallocation occurs
+→ Placement new for in-place construction vs regular allocation
+→ reserve() vs resize(): 1M insertions benchmark shows 2.5× speedup
+→ emplace_back efficiency: eliminates temporary object construction
+→ Small Buffer Optimization (SBO) for avoiding heap allocations
 
-The material focuses on practical performance implications rather than just API documentation.
+Key insights:
+◆ Growth factor comparison: 2× provides simple fast growth but wastes more space; 1.5× enables memory reuse but grows slower; φ (1.618) is optimal for memory reuse
+◆ Amortized analysis: Fixed increment (+10) results in O(n²) total copies for 1000 elements; 2× growth gives only log₂(1000) ≈ 10 reallocations with O(n) total copies
+◆ Performance benchmark: 1M push_back operations without reserve takes 87ms with ~20 reallocations; with reserve(1000000) takes only 34ms (2.5× speedup, 0 reallocations)
+◆ Exception guarantee: Vector uses std::is_nothrow_move_constructible_v check - noexcept types get fast moves; throwing types get safe copy-with-rollback
+◆ emplace_back advantage: push_back creates temporary + move (2 constructions); emplace_back constructs directly in vector memory (1 construction)
+◆ Iterator invalidation: Reallocation invalidates all iterators when data_ pointer changes; insertion/erasure invalidates only iterators after modification point
+◆ Memory separation: reserve(10) sets capacity=10 but size=0 (no construction); resize(10) constructs 10 default elements; accessing v[5] after reserve is UB
+◆ Placement new necessity: ::operator new allocates raw memory, then placement new constructs objects at specific addresses without double allocation
 
-Which STL container do you find yourself using most frequently?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
----
+Note: LinkedIn compresses carousel images. For best experience, download the PDF or pinch-zoom on mobile.
 
-#CPlusPlus #CPP #STL #DataStructures #Algorithms #Programming #SoftwareEngineering #PerformanceOptimization #StandardLibrary #Containers #Iterators #TechEducation #DeveloperLife #CodeEfficiency #BigONotation #SoftwareDevelopment #ModernCPP #AlgorithmDesign #ComputerScience #TechnicalSkills
+#CPlusPlus #CPP #STL #Vector #DataStructures #MemoryManagement #PerformanceOptimization #DynamicArray #AmortizedComplexity #ExceptionSafety #MoveSemantics #PlacementNew #ContainerInternals #CPPInternals #SystemsProgramming #ModernCPP #AlgorithmAnalysis #SoftwareEngineering #TechnicalDeepDive #CPPPerformance
