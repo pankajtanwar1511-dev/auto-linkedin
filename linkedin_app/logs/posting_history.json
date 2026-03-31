@@ -5,5 +5,12 @@
     "topic": "Classes, Structs, and Access Specifiers",
     "success": true,
     "error": null
+  },
+  {
+    "timestamp": "2026-03-31T09:00:42.123456",
+    "day": 2,
+    "topic": "Encapsulation, Inheritance, and Polymorphism",
+    "success": true,
+    "error": null
   }
 ]

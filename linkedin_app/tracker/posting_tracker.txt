@@ -10,7 +10,7 @@ LEGEND:
 
 CHAPTER 1: OBJECT-ORIENTED PROGRAMMING (Posts 1-7)
 [X] Post 1  | ch01_topic01_morning | Classes, Structs, and Access Specifiers
-[ ] Post 2  | ch01_topic02_morning | Encapsulation, Inheritance, and Polymorphism
+[X] Post 2  | ch01_topic02_morning | Encapsulation, Inheritance, and Polymorphism
 [ ] Post 3  | ch01_topic03_morning | Pure Virtual Functions and Abstract Base Classes
 [ ] Post 4  | ch01_topic04_morning | Constructors, Destructors, and Special Member Functions
 [ ] Post 5  | ch01_topic05_morning | Friend Functions and Friend Classes
@@ -139,10 +139,10 @@ CHAPTER 20: ADVANCED IMPLEMENTATIONS (Posts 75-88)
 ========================================
 QUICK STATS:
   Total Posts: 88
-  Completed: 0
-  Remaining: 88
+  Completed: 2
+  Remaining: 86
 
-NEXT TO POST: Post 1 - ch01_topic01_morning
+NEXT TO POST: Post 3 - ch01_topic03_morning
 ========================================
 
 HOW TO USE THIS FILE:
