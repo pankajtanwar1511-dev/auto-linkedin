@@ -38,7 +38,9 @@ class AutoPoster:
         with open(config_path, 'r') as f:
             self.config = json.load(f)
 
-        self.data_dir = Path(self.config['content']['pdf_directory'])
+        # Resolve paths relative to script location (not CWD)
+        base_dir = Path(__file__).parent.parent.parent  # repo root
+        self.data_dir = base_dir / "data"
         self.tracker_file = Path(__file__).parent.parent / self.config['tracking']['tracker_file']
 
         self.logger = self._setup_logging()
