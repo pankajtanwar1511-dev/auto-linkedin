@@ -11,7 +11,7 @@ import logging
 import time
 import random
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Optional
 
 # Import our modules
@@ -98,9 +98,22 @@ class AutoPoster:
         with open(caption_path, 'r') as f:
             return f.read().strip()
 
+    def _get_jst_now(self) -> datetime:
+        """Get current datetime in JST timezone."""
+        jst = timezone(timedelta(hours=9))
+        return datetime.now(timezone.utc).astimezone(jst)
+
+    def _utc_to_jst(self, dt: datetime) -> datetime:
+        """Convert UTC datetime to JST."""
+        jst = timezone(timedelta(hours=9))
+        if dt.tzinfo is None:
+            # Assume naive datetime is UTC
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(jst)
+
     def _check_already_posted_today(self, time_slot: str) -> bool:
         """
-        Check if we already posted in this time slot today.
+        Check if we already posted in this time slot today (JST).
 
         Args:
             time_slot: 'morning' or 'evening'
@@ -116,20 +129,28 @@ class AutoPoster:
             with open(log_file, 'r') as f:
                 history = json.load(f)
 
-            # Get today's date
-            today = datetime.now().date()
+            # Get today's date in JST
+            today_jst = self._get_jst_now().date()
 
             # Check last few entries for today's posts
             for entry in reversed(history[-10:]):  # Check last 10 entries
-                entry_time = datetime.fromisoformat(entry['timestamp'])
-                entry_date = entry_time.date()
+                if not entry.get('success', False):
+                    continue
 
-                if entry_date == today and entry.get('success', False):
-                    # Determine if this was morning or evening post based on hour (JST)
-                    entry_hour_jst = entry_time.hour + 9  # Convert to JST (rough approximation)
-                    entry_slot = 'morning' if entry_hour_jst >= 6 and entry_hour_jst < 12 else 'evening'
+                # Parse timestamp (stored as naive UTC from GitHub Actions)
+                entry_time_utc = datetime.fromisoformat(entry['timestamp'])
+
+                # Convert to JST
+                entry_time_jst = self._utc_to_jst(entry_time_utc)
+                entry_date_jst = entry_time_jst.date()
+
+                if entry_date_jst == today_jst:
+                    # Determine if this was morning or evening based on JST hour
+                    entry_hour_jst = entry_time_jst.hour
+                    entry_slot = 'morning' if 6 <= entry_hour_jst < 12 else 'evening'
 
                     if entry_slot == time_slot:
+                        self.logger.info(f"Found existing {time_slot} post from today (JST): {entry_time_jst.strftime('%Y-%m-%d %H:%M:%S')}")
                         return True
 
             return False
@@ -151,9 +172,10 @@ class AutoPoster:
         # Random posting time within fixed 40-minute windows
         # Only apply when running via automation (check if GITHUB_ACTIONS env var exists)
         if os.getenv('GITHUB_ACTIONS') == 'true' and not dry_run:
-            # Determine if morning or evening based on current UTC hour
+            # Get current time in JST (GitHub Actions runs in UTC)
+            now_jst = self._get_jst_now()
             current_hour_utc = datetime.utcnow().hour
-            current_weekday = datetime.now().weekday()  # 0=Monday, 6=Sunday
+            current_weekday_jst = now_jst.weekday()  # 0=Monday, 6=Sunday (in JST!)
 
             # Random delay within 40-minute window (0-40 minutes)
             delay_minutes = random.randint(0, 40)
@@ -168,7 +190,7 @@ class AutoPoster:
                 # Pattern: Mon(1 post), Tue(2 posts), Wed(1), Thu(2), Fri(1), Sat(2), Sun(1)
                 evening_post_days = [1, 3, 5]  # Tuesday, Thursday, Saturday
 
-                if current_weekday not in evening_post_days:
+                if current_weekday_jst not in evening_post_days:
                     self.logger.info("⏭️  Skipping evening post (alternating pattern)")
                     return True  # Skip evening post on non-posting days
 
