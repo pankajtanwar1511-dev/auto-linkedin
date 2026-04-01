@@ -93,8 +93,9 @@ class LinkedInPoster:
             self.logger.info(f"Uploading PDF: {pdf_path.name}")
 
             # Step 1: Initialize document upload (NEW Documents API)
-            from datetime import datetime
-            linkedin_version = datetime.now().strftime("%Y%m")
+            # Use stable LinkedIn API version (202401 = January 2024)
+            # LinkedIn versions are typically 2-3 months behind current date
+            linkedin_version = "202401"
 
             init_url = "https://api.linkedin.com/rest/documents?action=initializeUpload"
 
@@ -194,8 +195,8 @@ class LinkedInPoster:
             }
 
             # Add Linkedin-Version header for new API
-            from datetime import datetime
-            linkedin_version = datetime.now().strftime("%Y%m")
+            # Use stable LinkedIn API version (202401 = January 2024)
+            linkedin_version = "202401"
 
             post_headers = {
                 'Authorization': f'Bearer {self.access_token}',
