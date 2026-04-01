@@ -12,5 +12,12 @@
     "topic": "Encapsulation, Inheritance, and Polymorphism",
     "success": true,
     "error": null
+  },
+  {
+    "timestamp": "2026-04-01T03:18:57.051065",
+    "day": 3,
+    "topic": "Pure Virtual Functions and Abstract Base Classes",
+    "success": true,
+    "error": null
   }
 ]
