@@ -289,7 +289,7 @@ fix: Critical JST timezone bugs - datetime handling and duplicate prevention
 
 The system is **fully backward compatible** with existing `posting_history.json`:
 
-**Old entries** (before fix):
+**Old entries** (before improvements):
 ```json
 {
   "timestamp": "2026-03-31T02:00:53.960967",
@@ -297,26 +297,42 @@ The system is **fully backward compatible** with existing `posting_history.json`
   "topic": "Classes, Structs, and Access Specifiers",
   "success": true,
   "error": null
-  // No time_label!
+  // Missing: timezone in timestamp, time_label, calendar_date_jst
 }
 ```
 
-**New entries** (after fix):
+**New entries** (after improvements):
 ```json
 {
   "timestamp": "2026-04-01T04:14:32.756066+00:00",
-  "day": 4,
+  "post_number": 4,  // Renamed from "day" - clearer!
+  "calendar_date_jst": "2026-04-01",  // NEW - which calendar day in JST
   "topic": "Constructors and Destructors",
   "success": true,
   "error": null,
-  "time_label": "morning"  // NOW INCLUDED!
+  "time_label": "morning"  // NEW - time slot indicator
 }
 ```
 
-**Code handles both:**
-- If `time_label` exists → use it (new behavior)
-- If `time_label` missing → calculate from hour (old behavior)
-- No data migration needed!
+**Improvements:**
+- `day` → `post_number` (clearer naming)
+- Added `calendar_date_jst` (shows which calendar day in JST)
+- Added `time_label` (morning/evening/manual)
+- Timezone-aware timestamps (`+00:00` suffix)
+
+**Example - Multiple posts same day:**
+```json
+// Post 1 - March 31 morning
+{"post_number": 1, "calendar_date_jst": "2026-03-31", "time_label": "morning"}
+
+// Post 2 - March 31 evening (SAME DAY!)
+{"post_number": 2, "calendar_date_jst": "2026-03-31", "time_label": "evening"}
+
+// Post 3 - April 1 morning (NEW DAY)
+{"post_number": 3, "calendar_date_jst": "2026-04-01", "time_label": "morning"}
+```
+
+Now it's crystal clear which posts were on the same calendar day!
 
 ---
 

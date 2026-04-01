@@ -478,14 +478,28 @@ class AutoPoster:
             self.logger.error(f"Error updating tracker: {e}")
 
     def _log_post(self, day: int, topic: str, success: bool, error: str = None, time_label: str = None):
-        """Log posting event."""
+        """
+        Log posting event with improved structure.
+
+        Args:
+            day: Post number (1-88)
+            topic: Post topic
+            success: Whether posting succeeded
+            error: Error message if failed
+            time_label: Time slot (morning/evening/manual)
+        """
+        # Get current time in both UTC and JST
+        now_utc = datetime.now(timezone.utc)
+        now_jst = self._get_jst_now()
+
         log_entry = {
-            'timestamp': datetime.now(timezone.utc).isoformat(),
-            'day': day,
+            'timestamp': now_utc.isoformat(),
+            'post_number': day,  # Renamed from 'day' - clearer!
+            'calendar_date_jst': now_jst.strftime('%Y-%m-%d'),  # Which calendar day in JST
             'topic': topic,
             'success': success,
             'error': error,
-            'time_label': time_label  # Store the actual time slot (morning/evening/manual)
+            'time_label': time_label  # morning/evening/manual
         }
 
         log_file = Path(__file__).parent.parent / "logs" / "posting_history.json"
