@@ -159,6 +159,62 @@ class AutoPoster:
             self.logger.warning(f"Could not check posting history: {e}")
             return False
 
+    def _check_daily_post_limit(self) -> bool:
+        """
+        Check if daily post limit has been reached for today (JST).
+        - Tuesday, Thursday, Saturday: Max 2 posts
+        - Other days: Max 1 post
+
+        Returns:
+            True if limit reached (cannot post), False if OK to post
+        """
+        log_file = Path(__file__).parent.parent / "logs" / "posting_history.json"
+        if not log_file.exists():
+            return False  # No history, OK to post
+
+        try:
+            with open(log_file, 'r') as f:
+                history = json.load(f)
+
+            now_jst = self._get_jst_now()
+            today_jst = now_jst.date()
+            weekday = now_jst.weekday()  # 0=Monday, 1=Tuesday, ..., 6=Sunday
+
+            # Determine max posts for today
+            # Tuesday(1), Thursday(3), Saturday(5) allow 2 posts
+            # Other days allow 1 post
+            max_posts = 2 if weekday in [1, 3, 5] else 1
+
+            # Count successful posts today
+            posts_today = 0
+            for entry in reversed(history[-10:]):
+                if not entry.get('success', False):
+                    continue
+
+                entry_time_utc = datetime.fromisoformat(entry['timestamp'])
+                entry_time_jst = self._utc_to_jst(entry_time_utc)
+
+                if entry_time_jst.date() == today_jst:
+                    posts_today += 1
+
+            if posts_today >= max_posts:
+                day_name = now_jst.strftime('%A')
+                self.logger.warning(
+                    f"⏭️  DAILY POST LIMIT REACHED\n"
+                    f"   Today: {day_name} ({today_jst})\n"
+                    f"   Posts today: {posts_today}\n"
+                    f"   Maximum allowed: {max_posts}\n"
+                    f"   Cannot post more until tomorrow."
+                )
+                return True  # Limit reached
+
+            self.logger.info(f"✅ Daily limit check passed: {posts_today}/{max_posts} posts today")
+            return False  # OK to post
+
+        except Exception as e:
+            self.logger.warning(f"Could not check daily post limit: {e}")
+            return False  # Allow posting on error (fail open)
+
     def _check_minimum_post_separation(self, min_hours: int = 6) -> None:
         """
         Check if enough time has passed since last post today (JST).
@@ -233,6 +289,12 @@ class AutoPoster:
         Returns:
             True if successful
         """
+        # EARLY CHECK: Daily post limit (before delay to save time)
+        if not dry_run:
+            if self._check_daily_post_limit():
+                self.logger.info("⏭️  Skipping: Daily post limit reached")
+                return True  # Not an error, just reached daily quota
+
         # Random posting time within fixed 40-minute windows
         # Only apply when running via automation (check if GITHUB_ACTIONS env var exists)
         if os.getenv('GITHUB_ACTIONS') == 'true' and not dry_run:
