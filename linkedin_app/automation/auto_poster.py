@@ -159,6 +159,70 @@ class AutoPoster:
             self.logger.warning(f"Could not check posting history: {e}")
             return False
 
+    def _check_minimum_post_separation(self, min_hours: int = 6) -> None:
+        """
+        Check if enough time has passed since last post today (JST).
+        Raises RuntimeError if minimum separation not met.
+
+        Args:
+            min_hours: Minimum hours between posts (default 6)
+
+        Raises:
+            RuntimeError: If less than min_hours since last post
+        """
+        log_file = Path(__file__).parent.parent / "logs" / "posting_history.json"
+        if not log_file.exists():
+            return  # No history, OK to post
+
+        try:
+            with open(log_file, 'r') as f:
+                history = json.load(f)
+
+            now_jst = self._get_jst_now()
+            today_jst = now_jst.date()
+
+            # Find last successful post today
+            for entry in reversed(history[-10:]):
+                if not entry.get('success', False):
+                    continue
+
+                entry_time_utc = datetime.fromisoformat(entry['timestamp'])
+                entry_time_jst = self._utc_to_jst(entry_time_utc)
+
+                if entry_time_jst.date() == today_jst:
+                    # Calculate time difference
+                    time_diff = now_jst - entry_time_jst
+                    hours_diff = time_diff.total_seconds() / 3600
+
+                    if hours_diff < min_hours:
+                        last_post_time = entry_time_jst.strftime('%Y-%m-%d %H:%M:%S JST')
+                        next_allowed = (entry_time_jst + timedelta(hours=min_hours)).strftime('%H:%M JST')
+                        current_time = now_jst.strftime('%H:%M JST')
+
+                        error_msg = (
+                            f"❌ MINIMUM {min_hours}-HOUR SEPARATION REQUIRED\n"
+                            f"   Last post: {last_post_time}\n"
+                            f"   Current time: {current_time}\n"
+                            f"   Time since last post: {hours_diff:.1f} hours\n"
+                            f"   Next allowed posting time: {next_allowed}"
+                        )
+                        self.logger.error(error_msg)
+                        raise RuntimeError(error_msg)
+
+                    # Found last post and it's OK (>= min_hours)
+                    self.logger.info(f"✅ Separation check passed: {hours_diff:.1f} hours since last post")
+                    return
+
+            # No posts found today, OK to post
+            return
+
+        except RuntimeError:
+            # Re-raise our validation error
+            raise
+        except Exception as e:
+            self.logger.error(f"Error checking post separation: {e}")
+            raise RuntimeError(f"Failed to validate post separation: {e}")
+
     def post_next(self, dry_run: bool = False) -> bool:
         """
         Post next item from queue.
@@ -214,6 +278,13 @@ class AutoPoster:
             if self._check_already_posted_today(time_label):
                 self.logger.info(f"⏭️  Already posted a {time_label} post today - skipping to prevent duplicate")
                 return True
+
+            # Safety check: Ensure minimum 6-hour separation between posts on same day
+            try:
+                self._check_minimum_post_separation(min_hours=6)
+            except RuntimeError as e:
+                self.logger.error(f"⏭️  Skipping post due to separation requirement")
+                return False  # Return False to indicate failure (not True like skip cases)
 
             delay_seconds = delay_minutes * 60
 
