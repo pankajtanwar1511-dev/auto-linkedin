@@ -186,22 +186,29 @@ class AutoPoster:
                 # Manual trigger (workflow_dispatch): Post immediately
                 delay_minutes = 0
 
-            # Morning: 23:00 UTC (11 PM) = 8:00 AM JST next day
-            # Evening: 09:00 UTC (9 AM) = 6:00 PM JST same day
-            if current_hour_utc >= 22 or current_hour_utc <= 1:  # Morning run window (22:00-01:00 UTC)
-                time_label = "morning"
-                window = "8:00-8:40 AM JST" if event_name == 'schedule' else "8:00 AM JST (immediate)"
-            else:  # Evening run (triggered at 9:00 AM UTC = 6:00 PM JST)
-                # Check if today is an "evening post day" (Tue, Thu, Sat = days 1, 3, 5)
-                # Pattern: Mon(1 post), Tue(2 posts), Wed(1), Thu(2), Fri(1), Sat(2), Sun(1)
-                evening_post_days = [1, 3, 5]  # Tuesday, Thursday, Saturday
+            # For scheduled runs, determine time slot based on UTC hour
+            # For manual runs, time slot doesn't matter (can run anytime)
+            if event_name == 'schedule':
+                # Morning: 23:00 UTC (11 PM) = 8:00 AM JST next day
+                # Evening: 09:00 UTC (9 AM) = 6:00 PM JST same day
+                if current_hour_utc >= 22 or current_hour_utc <= 1:  # Morning run window (22:00-01:00 UTC)
+                    time_label = "morning"
+                    window = "8:00-8:40 AM JST"
+                else:  # Evening run (triggered at 9:00 AM UTC = 6:00 PM JST)
+                    # Check if today is an "evening post day" (Tue, Thu, Sat = days 1, 3, 5)
+                    # Pattern: Mon(1 post), Tue(2 posts), Wed(1), Thu(2), Fri(1), Sat(2), Sun(1)
+                    evening_post_days = [1, 3, 5]  # Tuesday, Thursday, Saturday
 
-                if current_weekday_jst not in evening_post_days:
-                    self.logger.info("⏭️  Skipping evening post (alternating pattern)")
-                    return True  # Skip evening post on non-posting days
+                    if current_weekday_jst not in evening_post_days:
+                        self.logger.info("⏭️  Skipping evening post (alternating pattern)")
+                        return True  # Skip evening post on non-posting days
 
-                time_label = "evening"
-                window = "6:00-6:40 PM JST" if event_name == 'schedule' else "6:00 PM JST (immediate)"
+                    time_label = "evening"
+                    window = "6:00-6:40 PM JST"
+            else:
+                # Manual trigger: can run at any time
+                time_label = "manual"
+                window = f"Current time: {now_jst.strftime('%H:%M JST')}"
 
             # Safety check: Prevent double-posting in same time slot
             if self._check_already_posted_today(time_label):
