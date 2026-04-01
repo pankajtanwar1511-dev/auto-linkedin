@@ -177,8 +177,8 @@ class AutoPoster:
             current_hour_utc = datetime.utcnow().hour
             current_weekday_jst = now_jst.weekday()  # 0=Monday, 6=Sunday (in JST!)
 
-            # Random delay within 2-minute window (0-2 minutes) - TESTING MODE
-            delay_minutes = random.randint(0, 2)
+            # NO DELAY - TESTING MODE (for manual runs)
+            delay_minutes = 0  # random.randint(0, 40) for production
 
             # Morning: 23:00 UTC (11 PM) = 8:00 AM JST next day
             # Evening: 09:00 UTC (9 AM) = 6:00 PM JST same day
