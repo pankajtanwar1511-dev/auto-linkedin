@@ -35,6 +35,7 @@ jobs:
         LINKEDIN_USER_ID: ${{ secrets.LINKEDIN_USER_ID }}
         POSTING_TIME: '08:00'
         TIMEZONE: 'Asia/Tokyo'
+        GITHUB_EVENT_NAME: ${{ github.event_name }}
       run: |
         cd linkedin_app/automation
         python3 auto_poster.py
