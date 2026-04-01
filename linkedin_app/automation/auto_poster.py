@@ -177,14 +177,14 @@ class AutoPoster:
             current_hour_utc = datetime.utcnow().hour
             current_weekday_jst = now_jst.weekday()  # 0=Monday, 6=Sunday (in JST!)
 
-            # Random delay within 40-minute window (0-40 minutes)
-            delay_minutes = random.randint(0, 40)
+            # Random delay within 2-minute window (0-2 minutes) - TESTING MODE
+            delay_minutes = random.randint(0, 2)
 
             # Morning: 23:00 UTC (11 PM) = 8:00 AM JST next day
             # Evening: 09:00 UTC (9 AM) = 6:00 PM JST same day
             if current_hour_utc >= 22 or current_hour_utc <= 1:  # Morning run window (22:00-01:00 UTC)
                 time_label = "morning"
-                window = "8:00-8:40 AM JST"
+                window = "8:00-8:02 AM JST"
             else:  # Evening run (triggered at 9:00 AM UTC = 6:00 PM JST)
                 # Check if today is an "evening post day" (Tue, Thu, Sat = days 1, 3, 5)
                 # Pattern: Mon(1 post), Tue(2 posts), Wed(1), Thu(2), Fri(1), Sat(2), Sun(1)
@@ -195,7 +195,7 @@ class AutoPoster:
                     return True  # Skip evening post on non-posting days
 
                 time_label = "evening"
-                window = "6:00-6:40 PM JST"
+                window = "6:00-6:02 PM JST"
 
             # Safety check: Prevent double-posting in same time slot
             if self._check_already_posted_today(time_label):
