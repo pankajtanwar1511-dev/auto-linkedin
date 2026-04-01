@@ -137,7 +137,7 @@ class AutoPoster:
                 if not entry.get('success', False):
                     continue
 
-                # Parse timestamp (stored as naive UTC from GitHub Actions)
+                # Parse timestamp (stored as timezone-aware UTC)
                 entry_time_utc = datetime.fromisoformat(entry['timestamp'])
 
                 # Convert to JST
@@ -145,9 +145,14 @@ class AutoPoster:
                 entry_date_jst = entry_time_jst.date()
 
                 if entry_date_jst == today_jst:
-                    # Determine if this was morning or evening based on JST hour
-                    entry_hour_jst = entry_time_jst.hour
-                    entry_slot = 'morning' if 6 <= entry_hour_jst < 12 else 'evening'
+                    # Use stored time_label if available (new entries)
+                    # Otherwise fallback to hour-based detection (old entries)
+                    if 'time_label' in entry and entry['time_label']:
+                        entry_slot = entry['time_label']
+                    else:
+                        # Backward compatibility: calculate from hour
+                        entry_hour_jst = entry_time_jst.hour
+                        entry_slot = 'morning' if 6 <= entry_hour_jst < 12 else 'evening'
 
                     if entry_slot == time_slot:
                         self.logger.info(f"Found existing {time_slot} post from today (JST): {entry_time_jst.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -289,6 +294,9 @@ class AutoPoster:
         Returns:
             True if successful
         """
+        # Initialize time_label for all code paths
+        time_label = None
+
         # EARLY CHECK: Daily post limit (before delay to save time)
         if not dry_run:
             if self._check_daily_post_limit():
@@ -300,7 +308,7 @@ class AutoPoster:
         if os.getenv('GITHUB_ACTIONS') == 'true' and not dry_run:
             # Get current time in JST (GitHub Actions runs in UTC)
             now_jst = self._get_jst_now()
-            current_hour_utc = datetime.utcnow().hour
+            current_hour_utc = datetime.now(timezone.utc).hour
             current_weekday_jst = now_jst.weekday()  # 0=Monday, 6=Sunday (in JST!)
 
             # Check if this is a scheduled (cron) run or manual trigger
@@ -360,6 +368,18 @@ class AutoPoster:
 
             if delay_seconds > 0:
                 time.sleep(delay_seconds)
+        else:
+            # Not running in GitHub Actions (local run or dry run)
+            # Infer time_label from JST hour for logging purposes
+            if not dry_run:
+                now_jst = self._get_jst_now()
+                hour_jst = now_jst.hour
+                if 6 <= hour_jst < 12:
+                    time_label = "morning"
+                elif 18 <= hour_jst < 24:
+                    time_label = "evening"
+                else:
+                    time_label = "manual"  # Outside normal windows
 
         # Get next post
         next_post = self.get_next_post()
@@ -412,17 +432,17 @@ class AutoPoster:
                 self.mark_complete(day)
 
                 # Log success
-                self._log_post(day, topic, success=True)
+                self._log_post(day, topic, success=True, time_label=time_label)
 
                 return True
             else:
                 self.logger.error(f"❌ Failed to post Post {day}")
-                self._log_post(day, topic, success=False)
+                self._log_post(day, topic, success=False, time_label=time_label)
                 return False
 
         except Exception as e:
             self.logger.error(f"Posting error: {e}")
-            self._log_post(day, topic, success=False, error=str(e))
+            self._log_post(day, topic, success=False, error=str(e), time_label=time_label)
             return False
 
     def mark_complete(self, day: int):
@@ -457,14 +477,15 @@ class AutoPoster:
         except Exception as e:
             self.logger.error(f"Error updating tracker: {e}")
 
-    def _log_post(self, day: int, topic: str, success: bool, error: str = None):
+    def _log_post(self, day: int, topic: str, success: bool, error: str = None, time_label: str = None):
         """Log posting event."""
         log_entry = {
-            'timestamp': datetime.now().isoformat(),
+            'timestamp': datetime.now(timezone.utc).isoformat(),
             'day': day,
             'topic': topic,
             'success': success,
-            'error': error
+            'error': error,
+            'time_label': time_label  # Store the actual time slot (morning/evening/manual)
         }
 
         log_file = Path(__file__).parent.parent / "logs" / "posting_history.json"
