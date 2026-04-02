@@ -13,7 +13,7 @@ CHAPTER 1: OBJECT-ORIENTED PROGRAMMING (Posts 1-7)
 [X] Post 2  | ch01_topic02_morning | Encapsulation, Inheritance, and Polymorphism
 [X] Post 3  | ch01_topic03_morning | Pure Virtual Functions and Abstract Base Classes
 [X] Post 4  | ch01_topic04_morning | Constructors, Destructors, and Special Member Functions
-[ ] Post 5  | ch01_topic05_morning | Friend Functions and Friend Classes
+[X] Post 5  | ch01_topic05_morning | Friend Functions and Friend Classes
 [ ] Post 6  | ch01_topic06_morning | Static Members and Static Functions
 [ ] Post 7  | ch01_topic07_morning | Virtual Functions Deep Dive
 
