@@ -15,7 +15,7 @@ CHAPTER 1: OBJECT-ORIENTED PROGRAMMING (Posts 1-7)
 [X] Post 4  | ch01_topic04_morning | Constructors, Destructors, and Special Member Functions
 [X] Post 5  | ch01_topic05_morning | Friend Functions and Friend Classes
 [X] Post 6  | ch01_topic06_morning | Static Members and Static Functions
-[ ] Post 7  | ch01_topic07_morning | Virtual Functions Deep Dive
+[X] Post 7  | ch01_topic07_morning | Virtual Functions Deep Dive
 
 CHAPTER 2: MEMORY MANAGEMENT (Post 8)
 [ ] Post 8  | ch02_topic01_morning | Memory Management Fundamentals
