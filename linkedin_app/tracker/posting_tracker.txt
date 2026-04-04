@@ -18,7 +18,7 @@ CHAPTER 1: OBJECT-ORIENTED PROGRAMMING (Posts 1-7)
 [X] Post 7  | ch01_topic07_morning | Virtual Functions Deep Dive
 
 CHAPTER 2: MEMORY MANAGEMENT (Post 8)
-[ ] Post 8  | ch02_topic01_morning | Memory Management Fundamentals
+[X] Post 8  | ch02_topic01_morning | Memory Management Fundamentals
 
 CHAPTER 3: SMART POINTERS (Post 9)
 [ ] Post 9  | ch03_topic01_morning | Smart Pointers (unique_ptr, shared_ptr, weak_ptr)
