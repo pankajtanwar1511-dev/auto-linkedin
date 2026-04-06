@@ -24,7 +24,7 @@ CHAPTER 3: SMART POINTERS (Post 9)
 [X] Post 9  | ch03_topic01_morning | Smart Pointers (unique_ptr, shared_ptr, weak_ptr)
 
 CHAPTER 4: REFERENCES, COPYING, MOVING (Posts 10-13)
-[ ] Post 10 | ch04_topic01_morning | Lvalue and Rvalue References
+[X] Post 10 | ch04_topic01_morning | Lvalue and Rvalue References
 [ ] Post 11 | ch04_topic02_morning | Move Semantics and std::move
 [ ] Post 12 | ch04_topic03_morning | Perfect Forwarding and Reference Collapsing
 [ ] Post 13 | ch04_topic04_morning | Copy Elision and Return Value Optimization
