@@ -26,7 +26,7 @@ CHAPTER 3: SMART POINTERS (Post 9)
 CHAPTER 4: REFERENCES, COPYING, MOVING (Posts 10-13)
 [X] Post 10 | ch04_topic01_morning | Lvalue and Rvalue References
 [X] Post 11 | ch04_topic02_morning | Move Semantics and std::move
-[ ] Post 12 | ch04_topic03_morning | Perfect Forwarding and Reference Collapsing
+[X] Post 12 | ch04_topic03_morning | Perfect Forwarding and Reference Collapsing
 [ ] Post 13 | ch04_topic04_morning | Copy Elision and Return Value Optimization
 
 CHAPTER 5: OPERATOR OVERLOADING (Post 14)
