@@ -33,7 +33,7 @@ CHAPTER 5: OPERATOR OVERLOADING (Post 14)
 [X] Post 14 | ch05_topic01_morning | Operator Overloading
 
 CHAPTER 6: TYPE SYSTEM AND CASTING (Posts 15-16)
-[ ] Post 15 | ch06_topic01_morning | Type Conversions and Type Deduction
+[X] Post 15 | ch06_topic01_morning | Type Conversions and Type Deduction
 [ ] Post 16 | ch06_topic02_morning | C++ Cast Operators
 
 CHAPTER 7: TEMPLATES AND GENERICS (Posts 17-18)
