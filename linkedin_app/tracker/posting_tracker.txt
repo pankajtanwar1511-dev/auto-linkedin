@@ -30,7 +30,7 @@ CHAPTER 4: REFERENCES, COPYING, MOVING (Posts 10-13)
 [X] Post 13 | ch04_topic04_morning | Copy Elision and Return Value Optimization
 
 CHAPTER 5: OPERATOR OVERLOADING (Post 14)
-[ ] Post 14 | ch05_topic01_morning | Operator Overloading
+[X] Post 14 | ch05_topic01_morning | Operator Overloading
 
 CHAPTER 6: TYPE SYSTEM AND CASTING (Posts 15-16)
 [ ] Post 15 | ch06_topic01_morning | Type Conversions and Type Deduction
