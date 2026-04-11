@@ -38,7 +38,7 @@ CHAPTER 6: TYPE SYSTEM AND CASTING (Posts 15-16)
 
 CHAPTER 7: TEMPLATES AND GENERICS (Posts 17-18)
 [X] Post 17 | ch07_topic01_morning | Template Fundamentals
-[ ] Post 18 | ch07_topic02_morning | Advanced Templates (SFINAE and CRTP)
+[X] Post 18 | ch07_topic02_morning | Advanced Templates (SFINAE and CRTP)
 
 CHAPTER 8: STL CONTAINERS AND ALGORITHMS (Posts 19-24)
 [ ] Post 19 | ch08_topic01_morning | STL Vector
