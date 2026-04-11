@@ -37,7 +37,7 @@ CHAPTER 6: TYPE SYSTEM AND CASTING (Posts 15-16)
 [X] Post 16 | ch06_topic02_morning | C++ Cast Operators
 
 CHAPTER 7: TEMPLATES AND GENERICS (Posts 17-18)
-[ ] Post 17 | ch07_topic01_morning | Template Fundamentals
+[X] Post 17 | ch07_topic01_morning | Template Fundamentals
 [ ] Post 18 | ch07_topic02_morning | Advanced Templates (SFINAE and CRTP)
 
 CHAPTER 8: STL CONTAINERS AND ALGORITHMS (Posts 19-24)
