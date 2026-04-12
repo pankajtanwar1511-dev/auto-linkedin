@@ -41,7 +41,7 @@ CHAPTER 7: TEMPLATES AND GENERICS (Posts 17-18)
 [X] Post 18 | ch07_topic02_morning | Advanced Templates (SFINAE and CRTP)
 
 CHAPTER 8: STL CONTAINERS AND ALGORITHMS (Posts 19-24)
-[ ] Post 19 | ch08_topic01_morning | STL Vector
+[X] Post 19 | ch08_topic01_morning | STL Vector
 [ ] Post 20 | ch08_topic02_morning | STL List
 [ ] Post 21 | ch08_topic03_morning | STL Deque and Forward List
 [ ] Post 22 | ch08_topic04_morning | Ordered Associative Containers (set/map)
