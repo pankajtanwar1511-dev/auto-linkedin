@@ -1,2 +1,0 @@
-**Output:** A (called from constructor)
-Full explanation in the image below 👇

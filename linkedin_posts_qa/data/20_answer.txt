@@ -1,2 +1,0 @@
-**Output:** B::func
-Full explanation in the image below 👇

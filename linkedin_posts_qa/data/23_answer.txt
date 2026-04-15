@@ -1,2 +1,0 @@
-**Output:** A::foo implementation, B::foo, ~A
-Full explanation in the image below 👇

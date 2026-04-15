@@ -1,2 +1,0 @@
-**Output:** Race condition - multiple threads may create multiple instances
-Full explanation in the image below 👇

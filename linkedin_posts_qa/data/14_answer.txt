@@ -1,2 +1,0 @@
-**Output:** Locked, In critical section, Unlocked, Caught
-Full explanation in the image below 👇

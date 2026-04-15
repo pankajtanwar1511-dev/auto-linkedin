@@ -1,2 +1,0 @@
-**Output:** Compilation error: no matching function for process(double)
-Full explanation in the image below 👇

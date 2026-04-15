@@ -1,2 +1,0 @@
-**Output:** (No output - memory leak!)
-Full explanation in the image below 👇

@@ -1,2 +1,0 @@
-**Output:** Lambda: 10, Main: 5
-Full explanation in the image below 👇

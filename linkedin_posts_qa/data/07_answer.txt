@@ -1,2 +1,0 @@
-**Output:** Derived: 10 (Derived's function, Base's default value!)
-Full explanation in the image below 👇

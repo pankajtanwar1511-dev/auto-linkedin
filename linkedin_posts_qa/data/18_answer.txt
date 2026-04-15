@@ -1,2 +1,0 @@
-**Output:** Lvalue reference
-Full explanation in the image below 👇

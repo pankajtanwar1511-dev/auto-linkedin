@@ -1,2 +1,0 @@
-**Output:** 0, 1
-Full explanation in the image below 👇

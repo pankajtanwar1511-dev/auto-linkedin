@@ -1,2 +1,0 @@
-**Output:** Undefined behavior (likely crash or garbage output)
-Full explanation in the image below 👇

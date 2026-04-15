@@ -1,2 +1,0 @@
-**Output:** 10 (unchanged!)
-Full explanation in the image below 👇

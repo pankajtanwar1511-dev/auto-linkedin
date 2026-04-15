@@ -1,2 +1,0 @@
-**Output:** 5 2, then 10 10 10 10 10, then 5 10
-Full explanation in the image below 👇

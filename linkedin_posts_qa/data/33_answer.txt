@@ -1,2 +1,0 @@
-**Output:** 1 3 4 5
-Full explanation in the image below 👇

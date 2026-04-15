@@ -1,2 +1,0 @@
-**Output:** A (not B - object slicing!)
-Full explanation in the image below 👇

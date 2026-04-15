@@ -230,6 +230,275 @@ class LinkedInPoster:
             self.logger.error(f"Post creation failed: {e}")
             return False
 
+    def upload_image(self, image_path: str) -> Optional[str]:
+        """
+        Upload image to LinkedIn using Images API.
+
+        Args:
+            image_path: Path to image file (PNG/JPG)
+
+        Returns:
+            Image URN if successful
+        """
+        try:
+            image_path = Path(image_path)
+
+            if not image_path.exists():
+                raise FileNotFoundError(f"Image not found: {image_path}")
+
+            self.logger.info(f"Uploading image: {image_path.name}")
+
+            # LinkedIn API versions are released with delay - use previous month
+            from datetime import datetime, timedelta
+            last_month = datetime.now() - timedelta(days=30)
+            linkedin_version = last_month.strftime("%Y%m")
+
+            # Step 1: Initialize image upload
+            init_url = "https://api.linkedin.com/rest/images?action=initializeUpload"
+
+            init_payload = {
+                "initializeUploadRequest": {
+                    "owner": self.user_id
+                }
+            }
+
+            init_headers = {
+                'Authorization': f'Bearer {self.access_token}',
+                'Content-Type': 'application/json',
+                'Linkedin-Version': linkedin_version,
+                'X-Restli-Protocol-Version': '2.0.0'
+            }
+
+            register_response = requests.post(
+                init_url,
+                headers=init_headers,
+                json=init_payload,
+                timeout=30
+            )
+
+            if register_response.status_code != 200:
+                self.logger.error(f"Image initialization failed: {register_response.status_code}")
+                self.logger.error(f"Response: {register_response.text}")
+                return None
+
+            register_data = register_response.json()
+            upload_url = register_data['value']['uploadUrl']
+            image_urn = register_data['value']['image']
+
+            # Step 2: Upload image binary
+            with open(image_path, 'rb') as f:
+                image_data = f.read()
+
+            # Determine content type
+            if image_path.suffix.lower() == '.png':
+                content_type = 'image/png'
+            elif image_path.suffix.lower() in ['.jpg', '.jpeg']:
+                content_type = 'image/jpeg'
+            else:
+                content_type = 'image/png'  # default
+
+            upload_headers = {
+                'Authorization': f'Bearer {self.access_token}',
+                'Content-Type': content_type
+            }
+
+            self.logger.info(f"Uploading {len(image_data) // 1024} KB...")
+
+            upload_response = requests.put(
+                upload_url,
+                headers=upload_headers,
+                data=image_data,
+                timeout=60
+            )
+
+            if upload_response.status_code not in [200, 201]:
+                self.logger.error(f"Image upload failed: {upload_response.status_code}")
+                self.logger.error(f"Response: {upload_response.text}")
+                return None
+
+            self.logger.info(f"✅ Image uploaded successfully")
+            return image_urn
+
+        except Exception as e:
+            self.logger.error(f"Image upload failed: {e}")
+            return None
+
+    def create_post_with_image(self, caption: str, image_urn: str) -> Optional[str]:
+        """
+        Create LinkedIn post with image using new Posts API.
+
+        Args:
+            caption: Post caption/text
+            image_urn: URN of uploaded image
+
+        Returns:
+            Post URN if successful, None otherwise
+        """
+        try:
+            # Use new Posts API endpoint
+            post_url = "https://api.linkedin.com/rest/posts"
+
+            # New Posts API payload structure
+            post_payload = {
+                "author": self.user_id,
+                "commentary": caption,
+                "visibility": "PUBLIC",
+                "distribution": {
+                    "feedDistribution": "MAIN_FEED",
+                    "targetEntities": [],
+                    "thirdPartyDistributionChannels": []
+                },
+                "content": {
+                    "media": {
+                        "id": image_urn
+                    }
+                },
+                "lifecycleState": "PUBLISHED",
+                "isReshareDisabledByAuthor": False
+            }
+
+            # Add Linkedin-Version header for new API
+            from datetime import datetime, timedelta
+            last_month = datetime.now() - timedelta(days=30)
+            linkedin_version = last_month.strftime("%Y%m")
+
+            post_headers = {
+                'Authorization': f'Bearer {self.access_token}',
+                'Content-Type': 'application/json',
+                'Linkedin-Version': linkedin_version,
+                'X-Restli-Protocol-Version': '2.0.0'
+            }
+
+            self.logger.info("Creating post with image...")
+
+            response = requests.post(
+                post_url,
+                headers=post_headers,
+                json=post_payload,
+                timeout=30
+            )
+
+            if response.status_code == 201:
+                post_urn = response.headers.get('x-restli-id')
+                self.logger.info(f"✅ Post created: {post_urn}")
+                return post_urn
+            else:
+                self.logger.error(f"Post creation failed: {response.status_code}")
+                self.logger.error(f"Response: {response.text}")
+                return None
+
+        except Exception as e:
+            self.logger.error(f"Post creation failed: {e}")
+            return None
+
+    def post_image(self, image_path: str, caption: str) -> Optional[str]:
+        """
+        Upload image and create post in one step.
+
+        Args:
+            image_path: Path to image file
+            caption: Post caption/text
+
+        Returns:
+            Post URN if successful, None otherwise
+        """
+        try:
+            # Upload image
+            image_urn = self.upload_image(image_path)
+
+            if not image_urn:
+                self.logger.error("Failed to upload image")
+                return None
+
+            # Create post
+            post_urn = self.create_post_with_image(caption, image_urn)
+
+            if post_urn:
+                self.logger.info("🎉 Image posted successfully!")
+                return post_urn
+            else:
+                self.logger.error("Failed to create post")
+                return None
+
+        except Exception as e:
+            self.logger.error(f"Posting failed: {e}")
+            return None
+
+    def add_comment(self, post_urn: str, comment_text: str, image_path: str = None) -> bool:
+        """
+        Add comment to a LinkedIn post, optionally with an image.
+
+        Args:
+            post_urn: URN of the post to comment on
+            comment_text: Comment text
+            image_path: Optional path to image to attach to comment
+
+        Returns:
+            True if successful
+        """
+        try:
+            self.logger.info(f"Adding comment to post: {post_urn}")
+
+            # Upload image if provided
+            image_urn = None
+            if image_path:
+                image_urn = self.upload_image(image_path)
+                if not image_urn:
+                    self.logger.warning("Failed to upload comment image, posting text only")
+
+            # Use new Comments API
+            comment_url = "https://api.linkedin.com/rest/socialActions/{post_urn}/comments"
+
+            # Build comment payload
+            comment_payload = {
+                "actor": self.user_id,
+                "message": {
+                    "text": comment_text
+                }
+            }
+
+            # Add image to comment if uploaded
+            if image_urn:
+                comment_payload["content"] = {
+                    "media": {
+                        "id": image_urn
+                    }
+                }
+
+            # LinkedIn API version
+            from datetime import datetime, timedelta
+            last_month = datetime.now() - timedelta(days=30)
+            linkedin_version = last_month.strftime("%Y%m")
+
+            comment_headers = {
+                'Authorization': f'Bearer {self.access_token}',
+                'Content-Type': 'application/json',
+                'Linkedin-Version': linkedin_version,
+                'X-Restli-Protocol-Version': '2.0.0'
+            }
+
+            # Replace {post_urn} in URL
+            comment_url = comment_url.replace('{post_urn}', post_urn)
+
+            response = requests.post(
+                comment_url,
+                headers=comment_headers,
+                json=comment_payload,
+                timeout=30
+            )
+
+            if response.status_code in [200, 201]:
+                self.logger.info("✅ Comment added successfully")
+                return True
+            else:
+                self.logger.error(f"Comment failed: {response.status_code}")
+                self.logger.error(f"Response: {response.text}")
+                return False
+
+        except Exception as e:
+            self.logger.error(f"Comment failed: {e}")
+            return False
+
     def post_pdf(self, pdf_path: str, caption: str, title: str = None) -> bool:
         """
         Upload PDF and create post in one step.
