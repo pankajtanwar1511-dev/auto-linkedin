@@ -50,7 +50,7 @@ CHAPTER 8: STL CONTAINERS AND ALGORITHMS (Posts 19-24)
 
 CHAPTER 9: C++11 FEATURES (Posts 25-29)
 [X] Post 25 | ch09_topic01_morning | C++11 Type Deduction (auto, decltype)
-[ ] Post 26 | ch09_topic02_morning | C++11 Language Safety Features
+[X] Post 26 | ch09_topic02_morning | C++11 Language Safety Features
 [ ] Post 27 | ch09_topic03_morning | C++11 Inheritance Control
 [ ] Post 28 | ch09_topic04_morning | C++11 Functional Programming Features
 [ ] Post 29 | ch09_topic05_morning | C++11 Initialization and Template Enhancements
