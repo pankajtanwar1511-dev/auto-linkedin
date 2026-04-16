@@ -46,7 +46,7 @@ CHAPTER 8: STL CONTAINERS AND ALGORITHMS (Posts 19-24)
 [X] Post 21 | ch08_topic03_morning | STL Deque and Forward List
 [X] Post 22 | ch08_topic04_morning | Ordered Associative Containers (set/map)
 [X] Post 23 | ch08_topic05_morning | Unordered Containers (unordered_set/unordered_map)
-[ ] Post 24 | ch08_topic06_morning | Iterators, Allocators, Algorithms, and Lambdas
+[X] Post 24 | ch08_topic06_morning | Iterators, Allocators, Algorithms, and Lambdas
 
 CHAPTER 9: C++11 FEATURES (Posts 25-29)
 [ ] Post 25 | ch09_topic01_morning | C++11 Type Deduction (auto, decltype)
