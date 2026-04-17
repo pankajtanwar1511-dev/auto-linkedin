@@ -232,5 +232,14 @@
     "success": true,
     "error": null,
     "time_label": "morning"
+  },
+  {
+    "timestamp": "2026-04-17T23:43:28.107298+00:00",
+    "post_number": 27,
+    "calendar_date_jst": "2026-04-18",
+    "topic": "C++11 Inheritance Control",
+    "success": true,
+    "error": null,
+    "time_label": "morning"
   }
 ]
