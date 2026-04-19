@@ -56,7 +56,7 @@ CHAPTER 9: C++11 FEATURES (Posts 25-29)
 [X] Post 29 | ch09_topic05_morning | C++11 Initialization and Template Enhancements
 
 CHAPTER 10: RAII AND RESOURCE MANAGEMENT (Posts 30-32)
-[ ] Post 30 | ch10_topic01_morning | RAII Fundamentals and Exception Safety
+[X] Post 30 | ch10_topic01_morning | RAII Fundamentals and Exception Safety
 [ ] Post 31 | ch10_topic02_morning | RAII Custom Wrappers and Advanced Patterns
 [ ] Post 32 | ch10_topic03_morning | Smart Pointers as RAII
 
