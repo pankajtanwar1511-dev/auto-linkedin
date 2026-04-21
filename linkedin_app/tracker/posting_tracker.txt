@@ -58,7 +58,7 @@ CHAPTER 9: C++11 FEATURES (Posts 25-29)
 CHAPTER 10: RAII AND RESOURCE MANAGEMENT (Posts 30-32)
 [X] Post 30 | ch10_topic01_morning | RAII Fundamentals and Exception Safety
 [X] Post 31 | ch10_topic02_morning | RAII Custom Wrappers and Advanced Patterns
-[ ] Post 32 | ch10_topic03_morning | Smart Pointers as RAII
+[X] Post 32 | ch10_topic03_morning | Smart Pointers as RAII
 
 CHAPTER 11: MULTITHREADING (Posts 33-39)
 [ ] Post 33 | ch11_topic01_morning | Thread Basics and std::thread
