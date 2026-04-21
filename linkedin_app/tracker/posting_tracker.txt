@@ -61,7 +61,7 @@ CHAPTER 10: RAII AND RESOURCE MANAGEMENT (Posts 30-32)
 [X] Post 32 | ch10_topic03_morning | Smart Pointers as RAII
 
 CHAPTER 11: MULTITHREADING (Posts 33-39)
-[ ] Post 33 | ch11_topic01_morning | Thread Basics and std::thread
+[X] Post 33 | ch11_topic01_morning | Thread Basics and std::thread
 [ ] Post 34 | ch11_topic02_morning | Mutexes and Locks
 [ ] Post 35 | ch11_topic03_morning | Condition Variables
 [ ] Post 36 | ch11_topic04_morning | Atomics and Memory Ordering
