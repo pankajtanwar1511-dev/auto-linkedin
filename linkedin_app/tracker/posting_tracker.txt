@@ -64,7 +64,7 @@ CHAPTER 11: MULTITHREADING (Posts 33-39)
 [X] Post 33 | ch11_topic01_morning | Thread Basics and std::thread
 [X] Post 34 | ch11_topic02_morning | Mutexes and Locks
 [X] Post 35 | ch11_topic03_morning | Condition Variables
-[ ] Post 36 | ch11_topic04_morning | Atomics and Memory Ordering
+[X] Post 36 | ch11_topic04_morning | Atomics and Memory Ordering
 [ ] Post 37 | ch11_topic05_morning | Thread-Safe Patterns
 [ ] Post 38 | ch11_topic06_morning | Async, Promise, and Future
 [ ] Post 39 | ch11_topic07_morning | STL Thread Safety
