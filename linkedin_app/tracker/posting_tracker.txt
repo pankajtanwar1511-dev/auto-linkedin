@@ -74,7 +74,7 @@ CHAPTER 12: DESIGN PATTERNS (Posts 40-47)
 [X] Post 41 | ch12_topic02_morning | Functor Pattern
 [X] Post 42 | ch12_topic03_morning | CRTP Pattern
 [X] Post 43 | ch12_topic04_morning | Object Pool Pattern
-[ ] Post 44 | ch12_topic05_morning | Custom Vector Implementation
+[X] Post 44 | ch12_topic05_morning | Custom Vector Implementation
 [ ] Post 45 | ch12_topic06_morning | Factory Pattern
 [ ] Post 46 | ch12_topic07_morning | Observer Pattern
 [ ] Post 47 | ch12_topic08_morning | Strategy Pattern
