@@ -76,7 +76,7 @@ CHAPTER 12: DESIGN PATTERNS (Posts 40-47)
 [X] Post 43 | ch12_topic04_morning | Object Pool Pattern
 [X] Post 44 | ch12_topic05_morning | Custom Vector Implementation
 [X] Post 45 | ch12_topic06_morning | Factory Pattern
-[ ] Post 46 | ch12_topic07_morning | Observer Pattern
+[X] Post 46 | ch12_topic07_morning | Observer Pattern
 [ ] Post 47 | ch12_topic08_morning | Strategy Pattern
 
 CHAPTER 13: COMPILE-TIME MAGIC (Post 48)
