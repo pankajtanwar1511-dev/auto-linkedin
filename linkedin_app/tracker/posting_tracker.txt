@@ -80,7 +80,7 @@ CHAPTER 12: DESIGN PATTERNS (Posts 40-47)
 [X] Post 47 | ch12_topic08_morning | Strategy Pattern
 
 CHAPTER 13: COMPILE-TIME MAGIC (Post 48)
-[ ] Post 48 | ch13_topic01_morning | Compile-Time Programming
+[X] Post 48 | ch13_topic01_morning | Compile-Time Programming
 
 CHAPTER 14: LOW-LEVEL AND TRICKY TOPICS (Posts 49-50)
 [ ] Post 49 | ch14_topic01_morning | Low-Level Internals
