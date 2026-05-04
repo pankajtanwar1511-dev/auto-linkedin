@@ -84,7 +84,7 @@ CHAPTER 13: COMPILE-TIME MAGIC (Post 48)
 
 CHAPTER 14: LOW-LEVEL AND TRICKY TOPICS (Posts 49-50)
 [X] Post 49 | ch14_topic01_morning | Low-Level Internals
-[ ] Post 50 | ch14_topic02_morning | Advanced Pitfalls
+[X] Post 50 | ch14_topic02_morning | Advanced Pitfalls
 
 CHAPTER 15: C++14 FEATURES (Post 51)
 [ ] Post 51 | ch15_topic01_morning | C++14 Features
