@@ -87,7 +87,7 @@ CHAPTER 14: LOW-LEVEL AND TRICKY TOPICS (Posts 49-50)
 [X] Post 50 | ch14_topic02_morning | Advanced Pitfalls
 
 CHAPTER 15: C++14 FEATURES (Post 51)
-[ ] Post 51 | ch15_topic01_morning | C++14 Features
+[X] Post 51 | ch15_topic01_morning | C++14 Features
 
 CHAPTER 16: C++17 FEATURES (Posts 52-55)
 [ ] Post 52 | ch16_topic01_morning | C++17 Language Features
