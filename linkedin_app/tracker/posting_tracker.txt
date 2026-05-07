@@ -93,7 +93,7 @@ CHAPTER 16: C++17 FEATURES (Posts 52-55)
 [X] Post 52 | ch16_topic01_morning | C++17 Language Features
 [X] Post 53 | ch16_topic02_morning | C++17 Standard Library
 [X] Post 54 | ch16_topic03_morning | C++17 Template Improvements
-[ ] Post 55 | ch16_topic04_morning | C++17 Parallel Algorithms
+[X] Post 55 | ch16_topic04_morning | C++17 Parallel Algorithms
 
 CHAPTER 17: SOFTWARE ARCHITECTURE (Posts 56-62)
 [ ] Post 56 | ch17_topic01_morning | Architecture and Design Thinking
