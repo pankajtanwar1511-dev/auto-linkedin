@@ -97,7 +97,7 @@ CHAPTER 16: C++17 FEATURES (Posts 52-55)
 
 CHAPTER 17: SOFTWARE ARCHITECTURE (Posts 56-62)
 [X] Post 56 | ch17_topic01_morning | Architecture and Design Thinking
-[ ] Post 57 | ch17_topic02_morning | Event-Driven Architecture
+[X] Post 57 | ch17_topic02_morning | Event-Driven Architecture
 [ ] Post 58 | ch17_topic03_morning | Component-Based Architecture (ECS)
 [ ] Post 59 | ch17_topic04_morning | Layered Architecture
 [ ] Post 60 | ch17_topic05_morning | MVC/MVVM Patterns
