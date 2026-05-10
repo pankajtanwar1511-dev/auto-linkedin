@@ -100,7 +100,7 @@ CHAPTER 17: SOFTWARE ARCHITECTURE (Posts 56-62)
 [X] Post 57 | ch17_topic02_morning | Event-Driven Architecture
 [X] Post 58 | ch17_topic03_morning | Component-Based Architecture (ECS)
 [X] Post 59 | ch17_topic04_morning | Layered Architecture
-[ ] Post 60 | ch17_topic05_morning | MVC/MVVM Patterns
+[X] Post 60 | ch17_topic05_morning | MVC/MVVM Patterns
 [ ] Post 61 | ch17_topic06_morning | Microservices Architecture
 [ ] Post 62 | ch17_topic07_morning | Clean/Hexagonal Architecture
 
