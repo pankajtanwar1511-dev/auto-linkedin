@@ -102,7 +102,7 @@ CHAPTER 17: SOFTWARE ARCHITECTURE (Posts 56-62)
 [X] Post 59 | ch17_topic04_morning | Layered Architecture
 [X] Post 60 | ch17_topic05_morning | MVC/MVVM Patterns
 [X] Post 61 | ch17_topic06_morning | Microservices Architecture
-[ ] Post 62 | ch17_topic07_morning | Clean/Hexagonal Architecture
+[X] Post 62 | ch17_topic07_morning | Clean/Hexagonal Architecture
 
 CHAPTER 18: NETWORK PROGRAMMING (Posts 63-68)
 [ ] Post 63 | ch18_topic01_morning | Network Programming Basics
