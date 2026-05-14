@@ -107,7 +107,7 @@ CHAPTER 17: SOFTWARE ARCHITECTURE (Posts 56-62)
 CHAPTER 18: NETWORK PROGRAMMING (Posts 63-68)
 [X] Post 63 | ch18_topic01_morning | Network Programming Basics
 [X] Post 64 | ch18_topic02_morning | Socket Programming
-[ ] Post 65 | ch18_topic03_morning | TCP/IP Protocol Suite
+[X] Post 65 | ch18_topic03_morning | TCP/IP Protocol Suite
 [ ] Post 66 | ch18_topic04_morning | Asynchronous I/O
 [ ] Post 67 | ch18_topic05_morning | Network Security
 [ ] Post 68 | ch18_topic06_morning | High-Performance Networking
