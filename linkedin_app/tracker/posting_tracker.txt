@@ -110,7 +110,7 @@ CHAPTER 18: NETWORK PROGRAMMING (Posts 63-68)
 [X] Post 65 | ch18_topic03_morning | TCP/IP Protocol Suite
 [X] Post 66 | ch18_topic04_morning | Asynchronous I/O
 [X] Post 67 | ch18_topic05_morning | Network Security
-[ ] Post 68 | ch18_topic06_morning | High-Performance Networking
+[X] Post 68 | ch18_topic06_morning | High-Performance Networking
 
 CHAPTER 19: C++20 FEATURES (Posts 69-74)
 [ ] Post 69 | ch19_topic01_morning | C++20 Concepts and Constraints
