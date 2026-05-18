@@ -114,7 +114,7 @@ CHAPTER 18: NETWORK PROGRAMMING (Posts 63-68)
 
 CHAPTER 19: C++20 FEATURES (Posts 69-74)
 [X] Post 69 | ch19_topic01_morning | C++20 Concepts and Constraints
-[ ] Post 70 | ch19_topic02_morning | C++20 Ranges and Views
+[X] Post 70 | ch19_topic02_morning | C++20 Ranges and Views
 [ ] Post 71 | ch19_topic03_morning | C++20 Coroutines
 [ ] Post 72 | ch19_topic04_morning | C++20 Language Features
 [ ] Post 73 | ch19_topic05_morning | C++20 Library Additions
