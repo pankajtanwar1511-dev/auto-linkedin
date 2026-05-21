@@ -121,7 +121,7 @@ CHAPTER 19: C++20 FEATURES (Posts 69-74)
 [X] Post 74 | ch19_topic06_morning | C++20 Modules
 
 CHAPTER 20: ADVANCED IMPLEMENTATIONS (Posts 75-88)
-[ ] Post 75 | ch20_topic01_morning | Memory Pool Allocator
+[X] Post 75 | ch20_topic01_morning | Memory Pool Allocator
 [ ] Post 76 | ch20_topic02_morning | Thread-Safe Bounded Queue
 [ ] Post 77 | ch20_topic03_morning | Lock-Free Stack
 [ ] Post 78 | ch20_topic04_morning | Thread Pool Implementation
