@@ -122,7 +122,7 @@ CHAPTER 19: C++20 FEATURES (Posts 69-74)
 
 CHAPTER 20: ADVANCED IMPLEMENTATIONS (Posts 75-88)
 [X] Post 75 | ch20_topic01_morning | Memory Pool Allocator
-[ ] Post 76 | ch20_topic02_morning | Thread-Safe Bounded Queue
+[X] Post 76 | ch20_topic02_morning | Thread-Safe Bounded Queue
 [ ] Post 77 | ch20_topic03_morning | Lock-Free Stack
 [ ] Post 78 | ch20_topic04_morning | Thread Pool Implementation
 [ ] Post 79 | ch20_topic05_morning | Vector Internals
