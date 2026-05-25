@@ -126,7 +126,7 @@ CHAPTER 20: ADVANCED IMPLEMENTATIONS (Posts 75-88)
 [X] Post 77 | ch20_topic03_morning | Lock-Free Stack
 [X] Post 78 | ch20_topic04_morning | Thread Pool Implementation
 [X] Post 79 | ch20_topic05_morning | Vector Internals
-[ ] Post 80 | ch20_topic06_morning | Custom std::function Implementation
+[X] Post 80 | ch20_topic06_morning | Custom std::function Implementation
 [ ] Post 81 | ch20_topic07_morning | Custom HashMap Implementation
 [ ] Post 82 | ch20_topic08_morning | Singleton Pattern Implementation
 [ ] Post 83 | ch20_topic09_morning | RAII File Descriptor Wrapper
