@@ -128,7 +128,7 @@ CHAPTER 20: ADVANCED IMPLEMENTATIONS (Posts 75-88)
 [X] Post 79 | ch20_topic05_morning | Vector Internals
 [X] Post 80 | ch20_topic06_morning | Custom std::function Implementation
 [X] Post 81 | ch20_topic07_morning | Custom HashMap Implementation
-[ ] Post 82 | ch20_topic08_morning | Singleton Pattern Implementation
+[X] Post 82 | ch20_topic08_morning | Singleton Pattern Implementation
 [ ] Post 83 | ch20_topic09_morning | RAII File Descriptor Wrapper
 [ ] Post 84 | ch20_topic10_morning | Lock-Free Ring Buffer
 [ ] Post 85 | ch20_topic11_morning | LRU Cache Implementation
