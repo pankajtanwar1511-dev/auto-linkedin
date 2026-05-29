@@ -131,7 +131,7 @@ CHAPTER 20: ADVANCED IMPLEMENTATIONS (Posts 75-88)
 [X] Post 82 | ch20_topic08_morning | Singleton Pattern Implementation
 [X] Post 83 | ch20_topic09_morning | RAII File Descriptor Wrapper
 [X] Post 84 | ch20_topic10_morning | Lock-Free Ring Buffer
-[ ] Post 85 | ch20_topic11_morning | LRU Cache Implementation
+[X] Post 85 | ch20_topic11_morning | LRU Cache Implementation
 [ ] Post 86 | ch20_topic12_morning | Copy-on-Write String
 [ ] Post 87 | ch20_topic13_morning | Smart Logger Implementation
 [ ] Post 88 | ch20_topic14_morning | Spinlock vs Mutex
